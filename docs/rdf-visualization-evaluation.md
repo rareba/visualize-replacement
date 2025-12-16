@@ -2,236 +2,383 @@
 
 **Task Reference:** ADNMUPS-1554 - Visualisation of Graph Data
 **Date:** 2025-12-16
-**Objective:** Evaluate options for visualizing RDF Triplestore/SPARQL endpoint data
+**Objective:** Find the best replacement for visualizing RDF Triplestore/SPARQL endpoint data
 
 ---
 
 ## Executive Summary
 
-This document evaluates options for visualizing RDF/SPARQL data. Two main tools were analyzed in detail, along with additional alternatives discovered through research.
+This document evaluates alternatives for creating dashboards and visualizations from RDF/SPARQL endpoints. The goal is to find tools that allow easy visualization creation without requiring deep technical knowledge.
 
-**Recommendation:** For LINDAS and Swiss federal RDF data, **visualize.admin.ch (visualization-tool)** is the best choice. For general BI needs with RDF data through an intermediary layer, **Metabase** could be considered but requires additional setup.
+**Top Recommendations:**
+
+| Rank | Tool | Best For | Ease of Use |
+|------|------|----------|-------------|
+| 1 | **Grafana + SPARQL Plugin** | Dashboards, monitoring, time series | High |
+| 2 | **Metaphactory** | Enterprise KG visualization | Medium-High |
+| 3 | **Looker Studio + SPARQL Connector** | Free dashboards, Google integration | High |
+| 4 | **Stardog + BI Tools** | Tableau/Power BI users | High |
 
 ---
 
-## 1. Tools Evaluated
+## 1. Tools with Native SPARQL Support
 
-### 1.1 visualization-tool (visualize.admin.ch)
+### 1.1 Grafana + SPARQL Datasource Plugin
 
-**Source:** https://github.com/visualize-admin/visualization-tool
-**Live Instance:** https://visualize.admin.ch
-**Ownership:** Federal Office for the Environment (FOEN), Switzerland
+**Website:** https://grafana.com/grafana/plugins/flandersmake-sparql-datasource/
+**GitHub:** https://github.com/Flanders-Make-vzw/grafana-sparql-datasource
+**Cost:** Free (open source)
+**Latest Version:** 1.1.0 (October 2025)
 
 #### Overview
-A Next.js-based data visualization platform specifically designed for creating interactive charts from RDF/SPARQL data sources, particularly the LINDAS Linked Data Service.
+Grafana is a mature, widely-used visualization platform. The SPARQL datasource plugin (by Flanders Make) adds direct connectivity to any SPARQL endpoint using the Comunica framework.
 
 #### Key Features
+- Direct SPARQL endpoint connection
+- Variable interpolation in queries
+- Basic HTTP authentication support
+- All Grafana visualization types available (graphs, tables, gauges, maps, etc.)
+- Dashboard templating and sharing
+- Alerting capabilities
+- Embedding support
 
-| Feature | Details |
-|---------|---------|
-| **Native RDF/SPARQL Support** | Built-in SPARQL client using `sparql-http-client` and `rdf-cube-view-query` |
-| **Chart Types** | Area, Bar (grouped/stacked), Line, Combo, Maps, Pie, Scatterplot, Tables |
-| **Data Layer** | GraphQL API that queries RDF endpoints and transforms data |
-| **Frontend** | React/Next.js with D3.js for visualizations |
-| **Database** | PostgreSQL (Prisma ORM) for storing chart configurations |
-| **Authentication** | Swiss federal eIAM through ADFS |
-| **Internationalization** | 4 languages (EN, DE, FR, IT) |
-| **Embedding** | Embed charts in external websites via iframe or embed.js |
-
-#### Technical Architecture
-
-```
-RDF/SPARQL Endpoints (LINDAS)
-         |
-         v
-    GraphQL Layer (Apollo Server)
-         |
-         v
-    Chart Configurator (React/MUI)
-         |
-         v
-    Chart Rendering (D3.js)
-         |
-         v
-    PostgreSQL (config storage)
+#### Installation
+```bash
+grafana-cli plugins install flandersmake-sparql-datasource
 ```
 
-#### Strengths
-- Purpose-built for RDF data cubes
-- Native SPARQL query generation
-- Understands RDF cube schemas (dimensions, observations, hierarchies)
-- Handles versioned dimensions
-- Optimized for Swiss government data standards
-- Open source (MIT License)
-- Production-tested at scale
+#### Pros
+- Mature, well-supported platform
+- Rich visualization library
+- Active community
+- Self-hosted or cloud options
+- Free tier available
+
+#### Cons
+- Requires writing SPARQL queries
+- Plugin is community-maintained
+- No visual query builder for SPARQL
+
+#### Rating: 4.5/5 for dashboard creation
+
+---
+
+### 1.2 Metaphactory
+
+**Website:** https://metaphacts.com/product
+**Cost:** Commercial (free trial available)
+
+#### Overview
+A low-code knowledge graph platform that runs on any SPARQL 1.1 graph database. Designed specifically for enterprise knowledge graph management and visualization.
+
+#### Key Features
+- Native SPARQL 1.1 support
+- Visual ontology modeling (OWL + SHACL)
+- SPARQL query UI and query catalog
+- Pre-built dashboard components (tables, charts, maps)
+- Semantic search capabilities
+- Federation across multiple SPARQL endpoints
+- Works with: Amazon Neptune, GraphDB, Stardog, RDFox, Virtuoso
+
+#### Dashboard Components
+- Semantic tables
+- Charts (bar, line, pie, etc.)
+- Semantic maps (geographic)
+- Custom graph visualizations
+- Faceted search interfaces
+
+#### Pros
+- Purpose-built for knowledge graphs
+- Low-code/no-code approach
+- Enterprise-grade features
+- Excellent documentation
+
+#### Cons
+- Commercial license required
+- Learning curve for full features
+- May be overkill for simple dashboards
+
+#### Rating: 4/5 for enterprise use cases
+
+---
+
+### 1.3 Looker Studio + SPARQL Connector
+
+**Website:** https://lookerstudio.google.com/
+**Connector:** Community connector by Datafabrics LLC
+**Cost:** Free
+
+#### Overview
+Google's free BI tool with a community SPARQL connector that enables direct querying of SPARQL endpoints.
+
+#### Key Features
+- Free dashboard creation
+- SPARQL endpoint connectivity
+- Standard chart types (pie, bar, line, table, histogram)
+- Calculated fields
+- Data extraction and caching
+- Shareable dashboards
+- Google ecosystem integration
+
+#### Setup Steps
+1. Add SPARQL community connector
+2. Enter SPARQL endpoint URL
+3. Define query and schema
+4. Build visualizations
 
 #### Limitations
-- Designed specifically for RDF cube data format
-- Requires understanding of LINDAS/RDF data structures
-- May need customization for different RDF schemas
+- Endpoint must be publicly accessible (no authentication)
+- Decimal separator format issues with some data
+- Single data source per extraction (no blending)
+- Manual schema definition required
+
+#### Pros
+- Completely free
+- Easy to share
+- Google integration
+- No installation required
+
+#### Cons
+- No authentication support
+- Limited to public endpoints
+- Manual data type mapping
+
+#### Rating: 3.5/5 for simple public data
 
 ---
 
-### 1.2 Metabase
+### 1.4 Dataset Dashboard (KBSS-CVUT)
 
-**Source:** https://github.com/metabase/metabase
-**Website:** https://www.metabase.com
-**License:** AGPL (open source) + Commercial editions
+**Website:** https://onto.fel.cvut.cz/dataset-dashboard
+**GitHub:** https://github.com/kbss-cvut/dataset-dashboard
+**Cost:** Free (open source)
 
 #### Overview
-A general-purpose, open-source business intelligence tool for everyone in a company to ask questions and learn from data.
+Academic tool designed to explore SPARQL endpoint content from multiple analytical perspectives.
 
 #### Key Features
+- RDF summaries and statistics
+- Dataset relationship visualization
+- GeoSPARQL support (maps)
+- Temporal data visualization
+- Docker deployment
 
-| Feature | Details |
-|---------|---------|
-| **Database Support** | PostgreSQL, MySQL, MongoDB, BigQuery, Snowflake, etc. |
-| **Query Builder** | Visual query builder + SQL editor |
-| **Dashboards** | Interactive dashboards with filters, auto-refresh |
-| **Alerts** | Data change notifications via email/Slack |
-| **Embedding** | Charts, dashboards, or full Metabase in apps |
-| **Models** | Clean up, annotate, combine raw tables |
-| **SDK** | Embedded Analytics SDK for React |
+#### Pros
+- Purpose-built for RDF exploration
+- GeoSPARQL support
+- Open source
 
-#### RDF/SPARQL Support
+#### Cons
+- Academic project (limited support)
+- Less polished than commercial tools
+- Limited chart variety
 
-**Metabase does NOT have native SPARQL/RDF support.**
-
-Possible workarounds:
-1. **PostgreSQL Foreign Data Wrapper (rdf_fdw)** - Expose SPARQL endpoints as PostgreSQL tables
-2. **ETL Pipeline** - Export RDF data to relational database, then connect Metabase
-3. **Custom Driver** - Develop a community SPARQL driver (significant effort)
-
-#### Strengths
-- User-friendly interface for non-technical users
-- Mature, well-documented product
-- Large community and ecosystem
-- Cloud and self-hosted options
-- Rich embedding capabilities
-
-#### Limitations for RDF Use Cases
-- No native RDF/SPARQL support
-- Requires intermediary data layer
-- Loss of semantic richness when converting to relational model
-- Does not understand RDF cube structures
+#### Rating: 3/5 for data exploration
 
 ---
 
-## 2. Alternative Tools Considered
+## 2. BI Tools with SPARQL Bridges
 
-Based on web research, these additional tools support RDF visualization:
+### 2.1 Stardog BI/SQL Server + Tableau/Power BI
 
-### 2.1 VisGraph3
-**URL:** https://visgraph3.github.io/
-A visual tool for reading, creating, and modifying RDF graphs. Supports Notation3, Turtle, N-Triples, and RDF/XML syntaxes. Best for graph exploration rather than dashboards.
+**Website:** https://www.stardog.com/blog/introducing-the-stardog-bi/sql-server/
+**Cost:** Stardog license required
 
-### 2.2 SPARQL-Visualizer
-**URL:** https://github.com/MadsHolten/sparql-visualizer
-Angular-based app with D3.js for visualizing knowledge base content. Force graph visualization. More suitable for ontology exploration than business charts.
+#### Overview
+Stardog provides a SQL layer that automatically translates SQL queries to SPARQL, allowing any SQL-based BI tool to work with knowledge graph data.
 
-### 2.3 GraphDB (Ontotext)
-**URL:** https://graphdb.ontotext.com/
-Enterprise triplestore with built-in visualization. Custom graph views, SPARQL filtering. Commercial product with learning curve.
+#### How It Works
+```
+Tableau/Power BI --> SQL Query --> Stardog BI Server --> SPARQL --> Knowledge Graph
+```
 
-### 2.4 G.V() (Graph Visualization)
-**URL:** https://gdotv.com/
-Recently added RDF support (Nov 2025). Connects to AllegroGraph, Amazon Neptune, Stardog, Virtuoso. Desktop application.
+#### Supported BI Tools
+- Tableau
+- Power BI
+- Any SQL-compatible tool
 
-### 2.5 Sgvizler
-JavaScript library that visualizes SPARQL result sets. Lightweight but dated. Requires custom integration.
+#### Pros
+- No SPARQL knowledge required
+- Use familiar BI tools
+- Auto-generated schema
+- Full BI tool capabilities
 
-### 2.6 QueDI
-Question-answering and visualization tool for LOD. Academic project. Allows data visualization without SPARQL knowledge.
+#### Cons
+- Requires Stardog as triplestore
+- Commercial license
+- SQL-to-SPARQL translation limitations
 
----
-
-## 3. Comparison Matrix
-
-| Criteria | visualization-tool | Metabase | GraphDB | G.V() |
-|----------|-------------------|----------|---------|-------|
-| **Native SPARQL Support** | Yes | No | Yes | Yes |
-| **RDF Cube Understanding** | Yes | No | Partial | No |
-| **Dashboard Creation** | Yes | Yes | Limited | No |
-| **Chart Variety** | 8+ types | 10+ types | Limited | Graph-focused |
-| **Embedding** | Yes | Yes | Limited | No |
-| **Open Source** | Yes | Yes (AGPL) | No | No |
-| **Swiss Gov Integration** | Yes | No | No | No |
-| **LINDAS Compatible** | Yes | Via workaround | Via SPARQL | Via SPARQL |
-| **User-Friendly** | Medium | High | Medium | Medium |
-| **Setup Complexity** | Medium | Low | High | Low |
-| **Cost** | Free | Free/Paid | Paid | Paid |
+#### Rating: 4/5 for BI-centric organizations
 
 ---
 
-## 4. Recommendations
+### 2.2 GraphDB JDBC Driver + BI Tools
 
-### For LINDAS/Swiss Federal Data: Use visualization-tool
+**Website:** https://graphdb.ontotext.com/documentation/standard/sql-access-over-jdbc.html
+**Cost:** GraphDB license required
 
-**Rationale:**
-1. Purpose-built for LINDAS and RDF data cubes
-2. Understands Swiss federal data standards
-3. Native SPARQL query generation
-4. Already in production at visualize.admin.ch
-5. Open source with active development
-6. Handles versioned dimensions and hierarchies
-7. Swiss federal authentication integration
+#### Overview
+GraphDB provides a JDBC driver that creates SQL views from SPARQL queries, enabling connectivity to Tableau, Power BI (via ODBC bridge), and other tools.
 
-### For General BI with RDF Data: Consider Hybrid Approach
+#### Key Features
+- SQL views from SPARQL queries
+- JDBC connectivity
+- Works with Tableau directly
+- Power BI via ODBC-JDBC bridge (e.g., Easysoft)
 
-If business requirements include:
-- Non-technical users needing self-service analytics
-- Data from multiple sources (RDF + relational)
-- Advanced alerting and subscriptions
+#### Pros
+- Leverage existing BI investments
+- GraphDB is mature triplestore
+- SPARQL federation support
 
-**Option A:** Use visualization-tool for RDF-specific visualizations + Metabase for relational data
+#### Cons
+- Requires GraphDB
+- Power BI needs additional bridge
+- SQL view configuration needed
 
-**Option B:** Set up rdf_fdw PostgreSQL extension to expose SPARQL data to Metabase (adds complexity, loses semantic richness)
-
----
-
-## 5. Implementation Considerations
-
-### visualization-tool Setup Requirements
-- Node.js server
-- PostgreSQL database
-- Docker (optional, for local development)
-- SPARQL endpoint access (e.g., LINDAS)
-
-### Key Files for Customization
-- `/app/rdf/queries.ts` - Core SPARQL query logic
-- `/app/rdf/sparql-utils.ts` - SPARQL utilities
-- `/app/charts/` - Chart rendering components
-- `/app/graphql/` - GraphQL schema and resolvers
-
-### Data Requirements
-The visualization-tool expects RDF data in cube format with:
-- Dimensions (categorical, temporal, geographical)
-- Observations (data points)
-- Metadata (labels, units, hierarchies)
+#### Rating: 3.5/5 for GraphDB users
 
 ---
 
-## 6. Conclusion
+## 3. Lightweight JavaScript Libraries
 
-For the specific use case of visualizing RDF Triplestore/SPARQL endpoint data, particularly within the Swiss federal context and LINDAS ecosystem, **visualization-tool** is the clear winner. It provides:
+### 3.1 Sgvizler
 
-1. Native, optimized RDF/SPARQL support
-2. Production-proven reliability
-3. Swiss federal data compatibility
-4. Open source flexibility
-5. Modern web technologies
+**Website:** https://www.bobdc.com/blog/making-charts-out-of-sparql-qu/
+**Cost:** Free (open source)
 
-Metabase remains an excellent choice for traditional BI needs but is not suitable as a direct RDF visualization tool without significant additional infrastructure.
+#### Overview
+JavaScript library that generates charts from SPARQL query results. Embed in any HTML page.
+
+#### Usage
+```html
+<div id="chart"
+     data-sgvizler-query="SELECT ?x ?y WHERE {...}"
+     data-sgvizler-endpoint="https://sparql.example.com"
+     data-sgvizler-chart="google.visualization.PieChart">
+</div>
+```
+
+#### Chart Types
+- Pie charts
+- Bar charts
+- Line charts
+- Tables
+- Google Charts integration
+
+#### Pros
+- Simple to embed
+- No server required
+- Customizable
+
+#### Cons
+- Dated library
+- Limited interactivity
+- Requires HTML/JS knowledge
+
+#### Rating: 2.5/5 for quick embeds
+
+---
+
+### 3.2 SPARQL-Visualizer
+
+**GitHub:** https://github.com/MadsHolten/sparql-visualizer
+**Cost:** Free (open source)
+
+#### Overview
+Angular-based web app for visualizing SPARQL results as force-directed graphs or tables.
+
+#### Features
+- Force graph visualization (D3.js)
+- Table view for SELECT queries
+- Built-in triplestore (rdfstore)
+- Material Design UI
+
+#### Pros
+- Good for ontology exploration
+- Interactive graph view
+- Modern stack
+
+#### Cons
+- Graph-focused (not business charts)
+- Requires deployment
+- Limited chart types
+
+#### Rating: 3/5 for graph exploration
+
+---
+
+## 4. Comparison Matrix
+
+| Tool | SPARQL Native | Chart Types | Ease of Setup | Cost | Best Use Case |
+|------|--------------|-------------|---------------|------|---------------|
+| **Grafana + Plugin** | Yes | 15+ | Easy | Free | Dashboards, monitoring |
+| **Metaphactory** | Yes | 10+ | Medium | Paid | Enterprise KG |
+| **Looker Studio** | Yes (connector) | 10+ | Easy | Free | Public data dashboards |
+| **Dataset Dashboard** | Yes | 5+ | Medium | Free | Data exploration |
+| **Stardog + BI** | Via SQL | Full BI | Medium | Paid | BI-centric orgs |
+| **GraphDB + JDBC** | Via SQL | Full BI | Hard | Paid | GraphDB users |
+| **Sgvizler** | Yes | 8+ | Easy | Free | Simple embeds |
+| **SPARQL-Visualizer** | Yes | 2 | Medium | Free | Graph exploration |
+
+---
+
+## 5. Recommendations by Use Case
+
+### For General Dashboard Creation: **Grafana + SPARQL Plugin**
+
+**Why:**
+- Most versatile option
+- Rich visualization library
+- Active development
+- Free and open source
+- Can combine SPARQL with other data sources
+
+### For Enterprise/Large Scale: **Metaphactory**
+
+**Why:**
+- Built for knowledge graphs
+- Low-code approach
+- Enterprise features (access control, federation)
+- Professional support
+
+### For Quick, Free Dashboards: **Looker Studio**
+
+**Why:**
+- Zero cost
+- No installation
+- Easy sharing
+- Familiar Google interface
+
+*Limitation:* Only works with public (unauthenticated) endpoints
+
+### For Existing Tableau/Power BI Users: **Stardog or GraphDB with SQL Bridge**
+
+**Why:**
+- Leverage existing BI skills
+- No SPARQL learning required
+- Full BI tool capabilities
+
+---
+
+## 6. Next Steps
+
+1. **Evaluate Grafana first** - Best balance of features, ease of use, and cost
+2. **Test with your SPARQL endpoint** - Verify connectivity and query performance
+3. **Prototype a dashboard** - Create sample visualizations with real data
+4. **Assess user needs** - Determine if self-service or developer-built dashboards are needed
 
 ---
 
 ## Sources
 
-- [visualize.admin.ch Documentation](https://visualize.admin.ch/docs/)
-- [LINDAS - Linked Data Service](https://lindas.admin.ch/)
-- [visualization-tool GitHub](https://github.com/visualize-admin/visualization-tool)
-- [Metabase Documentation](https://www.metabase.com/docs/)
-- [rdf_fdw PostgreSQL Extension](https://pgxn.org/dist/rdf_fdw/)
-- [G.V() RDF Support Announcement](https://gdotv.com/blog/gdotv-rdf-triplestore-support-announcement/)
-- [VisGraph3](https://visgraph3.github.io/)
+- [Grafana SPARQL Plugin](https://grafana.com/grafana/plugins/flandersmake-sparql-datasource/)
+- [Grafana SPARQL GitHub](https://github.com/Flanders-Make-vzw/grafana-sparql-datasource)
+- [Metaphactory](https://metaphacts.com/product)
+- [Looker Studio SPARQL Guide](http://blog.sparna.fr/2022/10/18/dashboards-from-sparql-knowledge-graphs-using-looker-studio-google-data-studio/)
+- [Dataset Dashboard](https://github.com/kbss-cvut/dataset-dashboard)
+- [Stardog BI Server](https://www.stardog.com/blog/introducing-the-stardog-bi/sql-server/)
+- [GraphDB JDBC](https://graphdb.ontotext.com/documentation/standard/sql-access-over-jdbc.html)
+- [Sgvizler Guide](https://www.bobdc.com/blog/making-charts-out-of-sparql-qu/)
 - [SPARQL-Visualizer](https://github.com/MadsHolten/sparql-visualizer)
+- [Virtuoso + Tableau](https://medium.com/virtuoso-blog/virtuoso-tableau-sparql-f9411852a87d)

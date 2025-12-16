@@ -1,0 +1,16 @@
+# Grafana Dashboard Provisioning Configuration
+# Loads dashboards automatically from the dashboards folder
+
+apiVersion: 1
+
+providers:
+  - name: 'LINDAS Sample Dashboards'
+    orgId: 1
+    folder: 'LINDAS'
+    folderUid: 'lindas-folder'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/dashboards

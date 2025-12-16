@@ -1,0 +1,37 @@
+# Grafana Datasource Provisioning for LINDAS SPARQL Endpoints
+# This file automatically configures SPARQL data sources on startup
+
+apiVersion: 1
+
+datasources:
+  # Main LINDAS Production Endpoint
+  - name: LINDAS Production
+    type: flandersmake-sparql-datasource
+    access: proxy
+    url: https://lindas.admin.ch/query
+    isDefault: true
+    editable: true
+    jsonData:
+      # Comunica-based SPARQL client
+      timeout: 30000
+    uid: lindas-prod
+
+  # Wikidata Endpoint (for comparison and reference data)
+  - name: Wikidata
+    type: flandersmake-sparql-datasource
+    access: proxy
+    url: https://query.wikidata.org/sparql
+    editable: true
+    jsonData:
+      timeout: 30000
+    uid: wikidata
+
+  # DBpedia Endpoint (additional Linked Data source)
+  - name: DBpedia
+    type: flandersmake-sparql-datasource
+    access: proxy
+    url: https://dbpedia.org/sparql
+    editable: true
+    jsonData:
+      timeout: 30000
+    uid: dbpedia

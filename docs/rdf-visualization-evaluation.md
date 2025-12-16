@@ -368,6 +368,15 @@ Angular-based web app for visualizing SPARQL results as force-directed graphs or
 3. **Prototype a dashboard** - Create sample visualizations with real data
 4. **Assess user needs** - Determine if self-service or developer-built dashboards are needed
 
+## 7. Prototype Implementation
+
+A prototype environment using **Grafana** and the **Flanders Make SPARQL Datasource** has been set up in the `rdf-dashboard-prototype` directory.
+
+To run the prototype:
+1. Navigate to `rdf-dashboard-prototype`
+2. Run `docker-compose up -d`
+3. Access Grafana at `http://localhost:3001`
+
 ---
 
 ## Sources

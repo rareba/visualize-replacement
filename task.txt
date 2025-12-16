@@ -1,0 +1,21 @@
+
+ADNMUPS-1554
+Visualisation of Graph Data
+Type: Task
+Resolution:Unresolved
+Priority: P3 - Medium
+Fix Version/s:None
+Affects Version/s:None
+Component/s:None
+Labels:None
+Severity:S4 - Minor
+SAP WBS Element:I-00053-01
+
+Description
+Background
+RDF Data is difficult to read for end users
+For developers and users the technology is not easily accessible
+Goals
+Evaluate options how to visualise data in RDF Triplestore or SPARQL endpoint
+Research on possible products or libraries
+implement a dashboard and charts

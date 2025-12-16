@@ -1,0 +1,24 @@
+# Dependencies and node_modules in subfolders
+**/node_modules/
+
+# Build outputs
+**/dist/
+**/.next/
+**/build/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Submodule repositories (tracked separately)
+visualization-tool/
+metabase/
+
+# Environment files
+.env
+.env.local
+*.env

@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # SPARQL Proxy - handles CORS for LINDAS requests
+  sparql-proxy:
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - DEFAULT_SPARQL_ENDPOINT=https://lindas.admin.ch/query
+    restart: unless-stopped
+
+  # Grafana with LINDAS plugin
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=lindas-sparql-datasource
+      - GF_INSTALL_PLUGINS=
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_LOG_LEVEL=debug
+    volumes:
+      - ./dist:/var/lib/grafana/plugins/lindas-sparql-datasource
+      - ./provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - sparql-proxy
+    restart: unless-stopped
+
+volumes:
+  grafana-data:

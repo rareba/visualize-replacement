@@ -2,7 +2,7 @@
 ADNMUPS-1554
 Visualisation of Graph Data
 Type: Task
-Resolution:Unresolved
+Resolution:Resolved
 Priority: P3 - Medium
 Fix Version/s:None
 Affects Version/s:None
@@ -19,3 +19,7 @@ Goals
 Evaluate options how to visualise data in RDF Triplestore or SPARQL endpoint
 Research on possible products or libraries
 implement a dashboard and charts
+
+Completion Note
+- Evaluated options in docs/rdf-visualization-evaluation.md
+- Implemented Grafana prototype in rdf-dashboard-prototype/

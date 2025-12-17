@@ -368,14 +368,86 @@ Angular-based web app for visualizing SPARQL results as force-directed graphs or
 3. **Prototype a dashboard** - Create sample visualizations with real data
 4. **Assess user needs** - Determine if self-service or developer-built dashboards are needed
 
-## 7. Prototype Implementation
+## 7. Prototype Implementation: Custom LINDAS Grafana Plugin
 
-A prototype environment using **Grafana** and the **Flanders Make SPARQL Datasource** has been set up in the `rdf-dashboard-prototype` directory.
+### The Problem with Standard SPARQL Plugins
 
-To run the prototype:
-1. Navigate to `rdf-dashboard-prototype`
-2. Run `docker-compose up -d`
-3. Access Grafana at `http://localhost:3001`
+The standard Grafana SPARQL plugin only provides a raw SPARQL query editor. It does NOT replicate the user experience of visualize.admin.ch which offers:
+- Dataset browsing and search
+- Automatic dimension discovery
+- Visual query building
+
+### Solution: Custom LINDAS Grafana Plugin
+
+We created a forked/enhanced Grafana plugin (`grafana-lindas-plugin/`) that provides visualize.admin.ch-like functionality:
+
+**Features:**
+- **Dataset Browser**: Search and browse all LINDAS datasets
+- **Dimension Selector**: Visual selection of data fields
+- **Auto Query Generation**: Generates SPARQL automatically
+- **Manual Mode**: Full SPARQL editor for advanced users
+
+### How It Works
+
+```
+User Interface                    Backend
++------------------+              +------------------+
+| 1. Select Dataset| -- browse -> | LINDAS Endpoint  |
+| 2. Pick Dimensions| -- discover | lindas.admin.ch  |
+| 3. View Chart    | <- query --- +------------------+
++------------------+
+```
+
+The plugin queries LINDAS for:
+1. Available `cube:Cube` datasets (LIST_CUBES_QUERY)
+2. Dimensions for selected cube (GET_CUBE_DIMENSIONS_QUERY)
+3. Observation data (GENERATE_OBSERVATIONS_QUERY)
+
+### Running the Prototype
+
+```bash
+cd grafana-lindas-plugin
+
+# Build the plugin (requires Node.js 18+)
+npm install
+npm run build
+
+# Start with Docker
+docker-compose up -d
+
+# Access at http://localhost:3001
+```
+
+### Plugin Structure
+
+```
+grafana-lindas-plugin/
+  src/
+    components/
+      CubeSelector.tsx      # Dataset browser UI
+      DimensionSelector.tsx # Dimension picker UI
+      QueryEditor.tsx       # Combined editor with tabs
+      ConfigEditor.tsx      # Datasource settings
+    datasource.ts           # API methods for LINDAS
+    sparql-queries.ts       # SPARQL query templates
+    types.ts                # TypeScript interfaces
+  proxy/
+    server.js               # CORS proxy for SPARQL
+  docker-compose.yml        # POC deployment
+```
+
+### Comparison: visualize.admin.ch vs LINDAS Plugin
+
+| Feature | visualize.admin.ch | LINDAS Plugin |
+|---------|-------------------|---------------|
+| Dataset Browser | Yes | Yes |
+| Dimension Selection | Yes | Yes |
+| Auto Query Generation | Yes | Yes |
+| Chart Types | 8 fixed | 15+ (Grafana) |
+| Custom Queries | No | Yes (SPARQL editor) |
+| Multi-source Dashboards | No | Yes |
+| Alerting | No | Yes |
+| Embedding | Yes | Yes |
 
 ---
 

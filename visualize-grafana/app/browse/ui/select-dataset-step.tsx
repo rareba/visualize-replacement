@@ -41,7 +41,6 @@ import {
   PanelBodyWrapper,
   PanelLayout,
 } from "@/configurator/components/layout";
-import { sourceToLabel } from "@/domain/data-source";
 import { truthy } from "@/domain/types";
 import {
   DataCubeOrganization,
@@ -356,9 +355,8 @@ const SelectDatasetStepInner = ({
                     </Button>
                   ) : (
                     <NextLink
-                      href={`/create/new?cube=${
-                        dataCubeMetadata?.dataCubeMetadata.iri
-                      }&dataSource=${sourceToLabel(dataSource)}`}
+                      href={`/create/grafana?cube=${dataCubeMetadata?.dataCubeMetadata.iri
+                        }`}
                       passHref
                       legacyBehavior={!odsIframe}
                       target={odsIframe ? "_blank" : undefined}
@@ -376,14 +374,14 @@ const SelectDatasetStepInner = ({
                         sx={
                           odsIframe
                             ? {
-                                // Could be extracted in case we have more
-                                // openData.swiss dependencies
-                                backgroundColor: "#009688",
+                              // Could be extracted in case we have more
+                              // openData.swiss dependencies
+                              backgroundColor: "#009688",
 
-                                "&:hover": {
-                                  backgroundColor: darken("#009688", 0.2),
-                                },
-                              }
+                              "&:hover": {
+                                backgroundColor: darken("#009688", 0.2),
+                              },
+                            }
                             : null
                         }
                       >

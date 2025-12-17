@@ -1,0 +1,305 @@
+{
+  "uid": "lindas-template",
+  "title": "LINDAS Dataset Explorer",
+  "description": "Template dashboard for exploring LINDAS RDF datasets via SPARQL. Select a cube and create visualizations.",
+  "tags": ["lindas", "sparql", "template"],
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "liveNow": false,
+  "refresh": "",
+  "schemaVersion": 39,
+  "style": "light",
+  "timezone": "browser",
+  "weekStart": "",
+  "templating": {
+    "list": [
+      {
+        "name": "cube",
+        "type": "textbox",
+        "label": "Cube IRI",
+        "description": "The IRI of the LINDAS cube to query",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "hide": 0,
+        "options": [],
+        "query": "",
+        "skipUrlSync": false
+      },
+      {
+        "name": "limit",
+        "type": "custom",
+        "label": "Row Limit",
+        "description": "Maximum number of rows to return",
+        "current": {
+          "selected": true,
+          "text": "1000",
+          "value": "1000"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [
+          { "selected": false, "text": "100", "value": "100" },
+          { "selected": false, "text": "500", "value": "500" },
+          { "selected": true, "text": "1000", "value": "1000" },
+          { "selected": false, "text": "5000", "value": "5000" },
+          { "selected": false, "text": "10000", "value": "10000" }
+        ],
+        "query": "100,500,1000,5000,10000",
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "Getting Started",
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "mode": "markdown",
+        "content": "## LINDAS Dataset Explorer\n\n**Selected Cube:** `${cube:text}`\n\nThis is your visualization sandbox. You can:\n\n1. **View data** in the table below\n2. **Add panels** - Click the + button in the top menu\n3. **Edit queries** - Click on any panel title and select Edit\n4. **Save your work** - Use Share > Export to download the dashboard JSON\n5. **Import later** - Go to Dashboards > Import to restore your saved dashboard\n\n> Tip: Modify the SPARQL queries to select specific dimensions and measures from your dataset.",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Dataset Observations",
+      "description": "Raw observations from the selected cube. Edit the query to filter or transform data.",
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 5 },
+      "id": 2,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\n\nSELECT *\nWHERE {\n  ?observation a cube:Observation .\n  ?observation cube:observedBy <${cube}> .\n  ?observation ?predicate ?value .\n  \n  FILTER(?predicate != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n  FILTER(?predicate != cube:observedBy)\n}\nLIMIT ${limit}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": true,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": true,
+          "reducer": ["count"],
+          "countRows": true,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Time Series (customize query)",
+      "description": "Edit this panel's query to create time series visualizations. Replace the placeholder with your cube's date and measure predicates.",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 17 },
+      "id": 3,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "# Time Series Query Template\n# Replace <date-predicate> and <measure-predicate> with your cube's predicates\n#\n# Example predicates you might use:\n#   Date: <http://purl.org/linked-data/sdmx/2009/dimension#refPeriod>\n#   Measure: <http://example.org/measure/value>\n\nPREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nSELECT ?date ?value\nWHERE {\n  ?observation a cube:Observation .\n  ?observation cube:observedBy <${cube}> .\n  \n  # Uncomment and modify these lines:\n  # ?observation <date-predicate> ?date .\n  # ?observation <measure-predicate> ?value .\n}\nORDER BY ?date\nLIMIT ${limit}"
+        }
+      ],
+      "options": {
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "barAlignment": 0,
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "auto",
+            "pointSize": 5,
+            "stacking": { "mode": "none", "group": "A" },
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisColorMode": "text",
+            "axisBorderShow": false,
+            "scaleDistribution": { "type": "linear" },
+            "hideFrom": { "tooltip": false, "viz": false, "legend": false },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Bar Chart (customize query)",
+      "description": "Edit this panel's query to create bar chart visualizations. Group by a dimension and aggregate measures.",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 17 },
+      "id": 4,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "# Bar Chart Query Template\n# Replace <category-predicate> with your cube's dimension predicate\n#\n# Example: Group observations by region, category, etc.\n\nPREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\n\nSELECT ?category (COUNT(?observation) AS ?count)\nWHERE {\n  ?observation a cube:Observation .\n  ?observation cube:observedBy <${cube}> .\n  \n  # Uncomment and modify:\n  # ?observation <category-predicate> ?category .\n}\nGROUP BY ?category\nORDER BY DESC(?count)\nLIMIT ${limit}"
+        }
+      ],
+      "options": {
+        "orientation": "auto",
+        "barRadius": 0.1,
+        "xTickLabelRotation": -45,
+        "xTickLabelSpacing": 0,
+        "showValue": "auto",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.9,
+        "fullHighlight": false,
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "piechart",
+      "title": "Pie Chart (customize query)",
+      "description": "Edit this panel's query to create pie chart visualizations. Select a category and its values.",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 27 },
+      "id": 5,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "# Pie Chart Query Template\n# Replace <category-predicate> with your cube's dimension\n\nPREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\n\nSELECT ?category (COUNT(?observation) AS ?count)\nWHERE {\n  ?observation a cube:Observation .\n  ?observation cube:observedBy <${cube}> .\n  \n  # Uncomment and modify:\n  # ?observation <category-predicate> ?category .\n}\nGROUP BY ?category\nORDER BY DESC(?count)\nLIMIT 10"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [],
+          "fields": ""
+        },
+        "pieType": "pie",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "showLegend": true, "displayMode": "table", "placement": "right", "values": ["value", "percent"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Statistics (customize query)",
+      "description": "Display key statistics from your dataset.",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 27 },
+      "id": 6,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "# Statistics Query Template\n# Count observations, calculate aggregates, etc.\n\nPREFIX cube: <https://cube.link/>\n\nSELECT (COUNT(?observation) AS ?totalObservations)\nWHERE {\n  ?observation a cube:Observation .\n  ?observation cube:observedBy <${cube}> .\n}"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      }
+    }
+  ],
+  "time": { "from": "now-1y", "to": "now" },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+  },
+  "version": 1
+}

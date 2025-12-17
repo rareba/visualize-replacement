@@ -1,0 +1,70 @@
+# Optimized Combined Dockerfile
+# Uses multi-stage build + official Grafana image for faster builds
+
+# ============================================
+# Stage 1: Build visualize (same as original)
+# ============================================
+FROM node:22 AS builder
+
+WORKDIR /app
+
+# Copy package files first for layer caching
+COPY package.json yarn.lock ./
+COPY app/package.json ./app/
+
+# Install dependencies (cached if package.json unchanged)
+RUN yarn install --frozen-lockfile
+
+# Copy source and build
+COPY ./ ./
+
+ARG PREVENT_SEARCH_BOTS=false
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN yarn prisma generate && yarn build
+
+# Install only production dependencies
+RUN yarn install --frozen-lockfile --production && yarn cache clean
+
+# ============================================
+# Stage 2: Final runtime image
+# ============================================
+FROM node:22-slim
+
+# Install supervisor for multi-process management
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    supervisor \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy built visualize app
+WORKDIR /app
+COPY --from=builder /app ./
+
+# Create supervisor config inline (no heredoc for compatibility)
+RUN mkdir -p /var/log/supervisor && \
+    echo '[supervisord]' > /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'nodaemon=true' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'user=root' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo '' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo '[program:visualize]' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'command=yarn start' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'directory=/app' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'autostart=true' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'autorestart=true' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stdout_logfile=/dev/stdout' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stdout_logfile_maxbytes=0' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stderr_logfile=/dev/stderr' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stderr_logfile_maxbytes=0' >> /etc/supervisor/conf.d/supervisord.conf
+
+# Environment
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-http-header-size=65536"
+ENV PORT=3000
+ENV NEXT_PUBLIC_GRAFANA_URL=http://localhost:3003
+ENV NEXT_PUBLIC_GRAFANA_DATASOURCE_UID=lindas-datasource
+
+EXPOSE 3000
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

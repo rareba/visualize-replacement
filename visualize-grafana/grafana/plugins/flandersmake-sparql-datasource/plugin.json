@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "SPARQL",
+  "id": "flandersmake-sparql-datasource",
+  "metrics": true,
+  "alerting": false,
+  "backend": false,
+  "info": {
+    "description": "Data source for SPARQL endpoints",
+    "author": {
+      "name": "Flanders Make"
+    },
+    "keywords": ["datasource"],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [],
+    "screenshots": [
+      {
+        "name": "SPARQL query feeding data to a directed graph",
+        "path": "img/screenshot1.jpg"
+      },
+      {
+        "name": "SPARQL data source configuration",
+        "path": "img/screenshot2.jpg"
+      }
+    ],
+    "version": "1.1.0",
+    "updated": "2025-10-20"
+  },
+  "routes": [
+    {
+      "method": "POST",
+      "path": "source",
+      "url": "{{ .JsonData.source }}",
+      "headers": [
+        {
+          "name": "Authorization",
+          "content": "Basic {{ .SecureJsonData.bearer }}"
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "grafanaDependency": ">=10.0.3",
+    "plugins": []
+  }
+}

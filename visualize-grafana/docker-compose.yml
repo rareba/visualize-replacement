@@ -1,40 +1,53 @@
 # Development environment with Grafana integration
+# No database needed - Grafana handles visualization
 version: "3"
 services:
-  db:
-    image: "postgres:11"
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: "visualization_tool"
-      POSTGRES_PASSWORD: "password"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-
   # Grafana with SPARQL plugin for LINDAS visualization
   grafana:
     image: grafana/grafana:10.2.0
     ports:
       - "3003:3000"
     environment:
-      # Install SPARQL datasource plugin
-      - GF_INSTALL_PLUGINS=https://github.com/Flanders-Make-vzw/grafana-sparql-datasource/releases/download/v1.1.0/flandersmake-sparql-datasource-1.1.0.zip;flandersmake-sparql-datasource
+      # Plugin configuration
       - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=flandersmake-sparql-datasource
-      # Anonymous access for embedding
-      - GF_AUTH_ANONYMOUS_ENABLED=true
+
+      # ADFS/eIAM OAuth Authentication (synced with visualize app)
+      # Set GF_AUTH_ANONYMOUS_ENABLED=true for local development without ADFS
+      - GF_AUTH_ANONYMOUS_ENABLED=${GRAFANA_ANONYMOUS_ENABLED:-true}
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Editor
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      # Allow embedding in iframes
+
+      # Generic OAuth (ADFS) - uncomment for production
+      - GF_AUTH_GENERIC_OAUTH_ENABLED=${GRAFANA_OAUTH_ENABLED:-false}
+      - GF_AUTH_GENERIC_OAUTH_NAME=eIAM
+      - GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=true
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_ID=${ADFS_ID:-}
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=${ADFS_SECRET:-}
+      - GF_AUTH_GENERIC_OAUTH_SCOPES=openid email profile
+      - GF_AUTH_GENERIC_OAUTH_AUTH_URL=${ADFS_ISSUER:-}/protocol/openid-connect/auth
+      - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=${ADFS_ISSUER:-}/protocol/openid-connect/token
+      - GF_AUTH_GENERIC_OAUTH_API_URL=${ADFS_ISSUER:-}/protocol/openid-connect/userinfo
+      - GF_AUTH_GENERIC_OAUTH_USE_PKCE=true
+      - GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=Editor
+
+      # Security settings
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_SECURITY_ALLOW_EMBEDDING=true
-      - GF_SECURITY_COOKIE_SAMESITE=none
-      # Customize appearance
+      - GF_SECURITY_COOKIE_SAMESITE=lax
+
+      # Server configuration
+      - GF_SERVER_ROOT_URL=${NEXT_PUBLIC_GRAFANA_URL:-http://localhost:3003}
+
+      # Default home dashboard
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/lindas-template.json
+
+      # UI customization
       - GF_USERS_DEFAULT_THEME=light
-      - GF_LOG_LEVEL=warn
+      - GF_LOG_LEVEL=info
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/plugins:/var/lib/grafana/plugins
       - grafana-data:/var/lib/grafana
     restart: unless-stopped
 
 volumes:
-  postgres-data:
   grafana-data:

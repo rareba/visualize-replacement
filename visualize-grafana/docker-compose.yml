@@ -1,0 +1,40 @@
+# Development environment with Grafana integration
+version: "3"
+services:
+  db:
+    image: "postgres:11"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: "visualization_tool"
+      POSTGRES_PASSWORD: "password"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  # Grafana with SPARQL plugin for LINDAS visualization
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3003:3000"
+    environment:
+      # Install SPARQL datasource plugin
+      - GF_INSTALL_PLUGINS=https://github.com/Flanders-Make-vzw/grafana-sparql-datasource/releases/download/v1.1.0/flandersmake-sparql-datasource-1.1.0.zip;flandersmake-sparql-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=flandersmake-sparql-datasource
+      # Anonymous access for embedding
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Editor
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      # Allow embedding in iframes
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_SECURITY_COOKIE_SAMESITE=none
+      # Customize appearance
+      - GF_USERS_DEFAULT_THEME=light
+      - GF_LOG_LEVEL=warn
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  grafana-data:

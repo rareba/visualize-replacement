@@ -1,0 +1,23 @@
+name: Preload Varnish cache
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  preload-varnish-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "yarn"
+          cache-dependency-path: "**/yarn.lock"
+      - name: Install dependencies
+        run: yarn install --immutable --prefer-offline
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright test to preload Varnish cache
+        run: ./node_modules/.bin/ts-node ./e2e/varnish-cache-preload.ts

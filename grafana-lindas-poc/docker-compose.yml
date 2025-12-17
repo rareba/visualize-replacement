@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3003:3000"
+    environment:
+      - GF_INSTALL_PLUGINS=https://github.com/Flanders-Make-vzw/grafana-sparql-datasource/releases/download/v1.1.0/flandersmake-sparql-datasource-1.1.0.zip;flandersmake-sparql-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=flandersmake-sparql-datasource
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_LOG_LEVEL=info
+    volumes:
+      - ./provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  grafana-data:

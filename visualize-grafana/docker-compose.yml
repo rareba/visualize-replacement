@@ -14,7 +14,12 @@ services:
       # ADFS/eIAM OAuth Authentication (synced with visualize app)
       # Set GF_AUTH_ANONYMOUS_ENABLED=true for local development without ADFS
       - GF_AUTH_ANONYMOUS_ENABLED=${GRAFANA_ANONYMOUS_ENABLED:-true}
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Editor
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ORG_ID=1
+
+      # Disable login requirement for anonymous access
+      - GF_AUTH_DISABLE_LOGIN_FORM=false
+      - GF_AUTH_DISABLE_SIGNOUT_MENU=false
 
       # Generic OAuth (ADFS) - uncomment for production
       - GF_AUTH_GENERIC_OAUTH_ENABLED=${GRAFANA_OAUTH_ENABLED:-false}

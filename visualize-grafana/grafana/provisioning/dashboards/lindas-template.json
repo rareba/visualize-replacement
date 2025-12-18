@@ -299,10 +299,10 @@
       }
     },
     {
-      "type": "stat",
-      "title": "Total Observations",
-      "description": "Count of observations in this cube.",
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 23 },
+      "type": "table",
+      "title": "Dataset Statistics",
+      "description": "Quick stats about this cube - total observations and dimensions.",
+      "gridPos": { "h": 5, "w": 12, "x": 12, "y": 23 },
       "id": 6,
       "datasource": {
         "type": "flandersmake-sparql-datasource",
@@ -311,77 +311,29 @@
       "targets": [
         {
           "refId": "A",
-          "queryText": "PREFIX cube: <https://cube.link/>\n\nSELECT (COUNT(?observation) AS ?totalObservations)\nWHERE {\n  <${cube}> cube:observationSet/cube:observation ?observation .\n}"
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\n\nSELECT \n  (COUNT(DISTINCT ?observation) AS ?totalObservations)\n  (COUNT(DISTINCT ?dimension) AS ?dimensionCount)\nWHERE {\n  <${cube}> cube:observationSet/cube:observation ?observation .\n  <${cube}> cube:observationConstraint/sh:property ?prop .\n  ?prop sh:path ?dimension .\n  FILTER(?dimension != cube:observedBy)\n  FILTER(?dimension != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n}"
         }
       ],
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": ["lastNotNull"],
-          "fields": ""
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
       "fieldConfig": {
         "defaults": {
+          "custom": {
+            "align": "center",
+            "cellOptions": { "type": "auto" },
+            "inspect": false,
+            "filterable": false
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [
-              { "color": "blue", "value": null }
-            ]
-          },
-          "color": { "mode": "thresholds" }
+            "steps": [{ "color": "green", "value": null }]
+          }
         },
         "overrides": []
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Dimensions",
-      "description": "Number of dimensions in this cube.",
-      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 23 },
-      "id": 8,
-      "datasource": {
-        "type": "flandersmake-sparql-datasource",
-        "uid": "lindas-datasource"
       },
-      "targets": [
-        {
-          "refId": "A",
-          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\n\nSELECT (COUNT(DISTINCT ?dimension) AS ?dimensionCount)\nWHERE {\n  <${cube}> cube:observationConstraint/sh:property ?prop .\n  ?prop sh:path ?dimension .\n  FILTER(?dimension != cube:observedBy)\n  FILTER(?dimension != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n}"
-        }
-      ],
       "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": ["lastNotNull"],
-          "fields": ""
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null }
-            ]
-          },
-          "color": { "mode": "thresholds" }
-        },
-        "overrides": []
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": { "show": false }
       }
     },
     {

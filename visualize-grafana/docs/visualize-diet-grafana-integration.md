@@ -34,9 +34,15 @@ The Grafana dashboards have been styled to match the Swiss Federal design system
 - **Tags**: Rounded pills with category-specific colors
 
 ### Implementation Approach
-The dashboards use a single consolidated HTML panel per page where possible to avoid Grafana's panel padding creating visual gaps. Inline CSS with namespaced classes (`.viz-*`) prevents style conflicts.
+The dashboards use the **Dynamic Text (Business Text) plugin** (`marcusolsson-dynamictext-panel`) to combine SPARQL query results with Handlebars templates. This allows rich, styled layouts that render data dynamically.
 
-For dynamic content (SPARQL query results), transparent table panels are positioned alongside the static HTML structure. The table panels have headers hidden and minimal styling to blend seamlessly.
+Key features of the Dynamic Text approach:
+- **Handlebars templates**: Use `{{#each data}}` to iterate over query results
+- **Multiple queries**: Combine metadata, dimensions, and counts in one panel
+- **Custom helpers**: Register helpers for URL encoding, array length, etc.
+- **Inline CSS**: All styles are inline within the template HTML
+
+For static content (headers, navigation), transparent text panels with inline HTML are used alongside the dynamic panels.
 
 ### Key Styling Decisions
 1. **Inline styles only**: Grafana sanitizes `<style>` tags, so all CSS must be inline
@@ -98,16 +104,19 @@ For the simplest deployment, Grafana can handle everything:
 ### Dashboard Structure
 
 1. **lindas-catalog** (Home page)
-   - Static curated dataset catalog
-   - Organized by category (Environment, Energy, Demographics, etc.)
-   - Clickable links to description pages
-   - Easy to maintain - just edit the JSON
+   - **Dynamic dataset catalog** using Dynamic Text plugin
+   - Queries LINDAS for all available cubes (50 most recent)
+   - Handlebars template renders styled dataset cards
+   - Shows name, description, creator, and last modified date
+   - Clicking a card navigates to the description page
 
 2. **lindas-description** (Cube details)
-   - Shows cube metadata (name, description, creator, date)
-   - Lists available dimensions
-   - Shows sample data
-   - Link to visualization sandbox
+   - **Dynamic metadata display** using Dynamic Text plugin
+   - Three SPARQL queries: metadata, dimensions, observation count
+   - Shows cube name, description, creator, last modified
+   - Displays all available dimensions in a table (column name, data type, predicate URI)
+   - Includes usage instructions with example SPARQL query pattern
+   - Link to visualization sandbox with cube pre-loaded
 
 3. **lindas-template** (Visualization sandbox)
    - Pre-configured SPARQL queries
@@ -117,7 +126,7 @@ For the simplest deployment, Grafana can handle everything:
 4. **lindas-browser** (Optional dynamic browser)
    - SPARQL-powered cube search
    - Filters by language
-   - Alternative to static catalog
+   - Alternative to catalog page
 
 ### User Flow (Grafana-Only)
 
@@ -125,29 +134,34 @@ For the simplest deployment, Grafana can handle everything:
 http://localhost:3003/d/lindas-catalog
     |
     v
-[Static Catalog] -- click dataset --> [Description Page]
-    |                                        |
-    v                                        v
-[See metadata, dimensions]           [Open Visualization Sandbox]
-                                             |
-                                             v
-                                    [Create charts & panels]
-                                             |
-                                             v
-                                    [Export dashboard JSON]
+[Dynamic Catalog] -- click dataset card --> [Description Page]
+    |                                              |
+    |                                              v
+    |                                    [See metadata, dimensions]
+    |                                              |
+    v                                              v
+[50 most recent datasets]              [Click "Create visualization"]
+                                                   |
+                                                   v
+                                          [Grafana Sandbox]
+                                                   |
+                                                   v
+                                          [Create charts & panels]
+                                                   |
+                                                   v
+                                          [Export dashboard JSON]
 ```
 
-### Adding New Datasets to Catalog
+### Dataset Discovery
 
-Edit `grafana/provisioning/dashboards/lindas-catalog.json`:
+The catalog page **automatically discovers** all available datasets from LINDAS. No manual configuration is needed - new datasets published to LINDAS will appear automatically (up to 50 most recent).
 
-```markdown
-**[Dataset Name](/d/lindas-description?var-cube=https://your-cube-iri)**
-Description of the dataset.
-*Publisher name*
-```
-
-Then restart Grafana: `docker-compose restart grafana`
+The SPARQL query fetches:
+- Cube URI (for linking)
+- Name (English preferred, fallback to any language)
+- Description (English preferred)
+- Creator organization name
+- Last modified date
 
 ## Grafana Configuration
 
@@ -194,7 +208,49 @@ ADFS_ISSUER=https://your-adfs-server
 Grafana service configured:
 - Port: 3003
 - SPARQL plugin: flandersmake-sparql-datasource
+- Dynamic Text plugin: marcusolsson-dynamictext-panel
 - Datasource: LINDAS (https://lindas.admin.ch/query)
+
+### Plugins
+
+Two plugins are required:
+
+1. **flandersmake-sparql-datasource** (unsigned, local)
+   - Enables SPARQL queries to RDF endpoints
+   - Installed via volume mount: `./grafana/plugins:/var/lib/grafana/plugins`
+   - Requires: `GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=flandersmake-sparql-datasource`
+
+2. **marcusolsson-dynamictext-panel** (official Grafana plugin)
+   - Enables Handlebars templates with query data
+   - Installed via: `GF_INSTALL_PLUGINS=marcusolsson-dynamictext-panel`
+   - Documentation: https://grafana.com/docs/plugins/marcusolsson-dynamictext-panel/
+
+### Handlebars Template Examples
+
+**Iterating over query results:**
+```handlebars
+{{#each data}}
+  <div>{{name}} - {{description}}</div>
+{{/each}}
+```
+
+**Accessing specific query by index (multiple queries):**
+```handlebars
+{{#each (lookup data 1)}}
+  <tr><td>{{columnName}}</td><td>{{dataType}}</td></tr>
+{{/each}}
+```
+
+**Custom helpers (defined in panel options):**
+```javascript
+handlebars.registerHelper('encodeURIComponent', function(str) {
+  return encodeURIComponent(str || '');
+});
+
+handlebars.registerHelper('len', function(arr) {
+  return arr ? arr.length : 0;
+});
+```
 
 ## What's Currently Active
 

@@ -9,6 +9,7 @@ services:
       - "3003:3000"
     environment:
       # Plugin configuration
+      - GF_INSTALL_PLUGINS=marcusolsson-dynamictext-panel
       - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=flandersmake-sparql-datasource
 
       # ADFS/eIAM OAuth Authentication (synced with visualize app)

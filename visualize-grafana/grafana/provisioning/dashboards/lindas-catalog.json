@@ -7,7 +7,18 @@
   "schemaVersion": 39,
   "style": "light",
   "timezone": "browser",
-  "templating": { "list": [] },
+  "templating": {
+    "list": [
+      {
+        "name": "search",
+        "type": "textbox",
+        "label": "Search",
+        "current": { "text": "", "value": "" },
+        "hide": 2,
+        "skipUrlSync": false
+      }
+    ]
+  },
   "annotations": { "list": [] },
   "panels": [
     {
@@ -29,73 +40,38 @@
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<div style=\"background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 50%, #3d5a7f 100%); padding: 40px 24px; color: white; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <h1 style=\"font-size: 28px; font-weight: 300; margin: 0 0 12px 0; letter-spacing: -0.5px;\">Swiss Open Government Data</h1>\n  <p style=\"font-size: 15px; opacity: 0.9; max-width: 680px; line-height: 1.6; margin: 0 0 20px 0;\">Explore datasets from the LINDAS Linked Data Service. Filter by category or organization, or search by keyword. Click on a dataset for details and to start creating visualizations.</p>\n  <div style=\"background: white; border-radius: 4px; padding: 12px 16px; width: 100%; max-width: 500px; display: flex; align-items: center; gap: 10px;\">\n    <span style=\"color: #666; font-size: 16px;\">&#128269;</span>\n    <span style=\"color: #999; font-size: 14px;\">Search by name, organization, or keyword...</span>\n  </div>\n</div>"
+        "content": "<div style=\"background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 50%, #3d5a7f 100%); padding: 40px 24px; color: white; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <h1 style=\"font-size: 28px; font-weight: 300; margin: 0 0 12px 0; letter-spacing: -0.5px;\">Swiss Open Government Data</h1>\n  <p style=\"font-size: 15px; opacity: 0.9; max-width: 680px; line-height: 1.6; margin: 0 0 20px 0;\">Explore datasets from the LINDAS Linked Data Service. Browse cubes from Swiss federal offices and create visualizations.</p>\n  <div style=\"display: flex; gap: 16px;\">\n    <a href=\"/d/lindas-browser\" style=\"background: white; color: #1e3a5f; padding: 12px 24px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500;\">Search all datasets</a>\n  </div>\n</div>"
       }
     },
     {
-      "type": "text",
+      "type": "marcusolsson-dynamictext-panel",
       "title": "",
-      "gridPos": { "h": 16, "w": 5, "x": 0, "y": 8 },
-      "id": 3,
-      "transparent": true,
-      "options": {
-        "mode": "html",
-        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 16px 0;\">\n  <h3 style=\"font-size: 13px; font-weight: 600; color: #1a1a1a; margin: 0 0 12px 0; padding-left: 10px; border-left: 3px solid #2c5282;\">Categories</h3>\n  <div style=\"font-size: 13px;\">\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>Territory and environment</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">42</span></div>\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>Agriculture, forestry</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">86</span></div>\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>National economy</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">52</span></div>\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>Energy</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">28</span></div>\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>Health</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">24</span></div>\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>Administration</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">56</span></div>\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>Mobility and Transport</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">35</span></div>\n  </div>\n  \n  <h3 style=\"font-size: 13px; font-weight: 600; color: #1a1a1a; margin: 24px 0 12px 0; padding-left: 10px; border-left: 3px solid #2c5282;\">Organizations</h3>\n  <div style=\"font-size: 12px;\">\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>Federal Office for the Environment</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">48</span></div>\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>Federal Office for Agriculture</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">49</span></div>\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>Federal Statistical Office</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">32</span></div>\n    <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e8e8e8; color: #333;\"><span>Federal Electricity Commission</span><span style=\"background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 11px;\">3</span></div>\n  </div>\n</div>"
-      }
-    },
-    {
-      "type": "text",
-      "title": "",
-      "gridPos": { "h": 2, "w": 19, "x": 5, "y": 8 },
-      "id": 4,
-      "transparent": true,
-      "options": {
-        "mode": "html",
-        "content": "<div style=\"display: flex; justify-content: space-between; align-items: center; padding: 16px 0; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <span style=\"font-size: 14px; color: #666;\"><strong style=\"color: #1a1a1a;\">Featured datasets</strong> - Click to explore and visualize</span>\n  <span style=\"font-size: 13px; color: #666;\">Sort by: Newest</span>\n</div>"
-      }
-    },
-    {
-      "type": "text",
-      "title": "",
-      "gridPos": { "h": 4, "w": 19, "x": 5, "y": 10 },
+      "gridPos": { "h": 18, "w": 24, "x": 0, "y": 8 },
       "id": 10,
       "transparent": true,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\n\nSELECT DISTINCT \n  (STR(?cube) AS ?cubeUri)\n  (COALESCE(?name_en, ?name_any, REPLACE(STR(?cube), \"^.*/\", \"\")) AS ?name)\n  (COALESCE(?desc_en, ?desc_any, \"No description available\") AS ?description)\n  (COALESCE(?creatorName, \"Unknown\") AS ?creator)\n  (COALESCE(SUBSTR(STR(?modified), 1, 10), \"\") AS ?dateModified)\nWHERE {\n  ?cube a cube:Cube .\n  \n  OPTIONAL { ?cube schema:name ?name_en . FILTER(LANG(?name_en) = \"en\") }\n  OPTIONAL { ?cube schema:name ?name_any . }\n  \n  OPTIONAL { ?cube schema:description ?desc_en . FILTER(LANG(?desc_en) = \"en\") }\n  OPTIONAL { ?cube schema:description ?desc_any . }\n  \n  OPTIONAL { ?cube dcterms:creator/schema:name ?creatorName . }\n  OPTIONAL { ?cube schema:dateModified ?modified . }\n}\nORDER BY DESC(?modified)\nLIMIT 50"
+        }
+      ],
       "options": {
-        "mode": "html",
-        "content": "<a href=\"/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/ubd01041prod/6\" style=\"text-decoration: none; display: block;\">\n  <div style=\"background: white; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px 20px; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n    <div style=\"font-size: 12px; color: #888; margin-bottom: 6px;\">08.12.2025</div>\n    <div style=\"font-size: 16px; font-weight: 500; color: #1565c0; margin-bottom: 8px;\">Bathing Water Quality</div>\n    <div style=\"font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 10px;\">The assessment of bathing waters is made on the basis of hygienic quality indicators. These pollutants typically arise from wastewater and agricultural runoff.</div>\n    <div style=\"display: flex; gap: 8px;\">\n      <span style=\"background: #e3f2fd; color: #1565c0; padding: 4px 10px; border-radius: 12px; font-size: 11px;\">Environment</span>\n      <span style=\"background: #f5f5f5; color: #666; padding: 4px 10px; border-radius: 12px; font-size: 11px;\">Federal Office for the Environment FOEN</span>\n    </div>\n  </div>\n</a>"
-      }
-    },
-    {
-      "type": "text",
-      "title": "",
-      "gridPos": { "h": 4, "w": 19, "x": 5, "y": 14 },
-      "id": 11,
-      "transparent": true,
-      "options": {
-        "mode": "html",
-        "content": "<a href=\"/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/mf008/4\" style=\"text-decoration: none; display: block;\">\n  <div style=\"background: white; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px 20px; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n    <div style=\"font-size: 12px; color: #888; margin-bottom: 6px;\">08.12.2025</div>\n    <div style=\"font-size: 16px; font-weight: 500; color: #1565c0; margin-bottom: 8px;\">Fine particulate-matter concentration along the A2 and A13</div>\n    <div style=\"font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 10px;\">The survey on air quality along transit routes through Switzerland assesses traffic-related air pollutants that are relevant to health.</div>\n    <div style=\"display: flex; gap: 8px;\">\n      <span style=\"background: #e3f2fd; color: #1565c0; padding: 4px 10px; border-radius: 12px; font-size: 11px;\">Environment</span>\n      <span style=\"background: #f5f5f5; color: #666; padding: 4px 10px; border-radius: 12px; font-size: 11px;\">Federal Office for the Environment FOEN</span>\n    </div>\n  </div>\n</a>"
-      }
-    },
-    {
-      "type": "text",
-      "title": "",
-      "gridPos": { "h": 4, "w": 19, "x": 5, "y": 18 },
-      "id": 12,
-      "transparent": true,
-      "options": {
-        "mode": "html",
-        "content": "<a href=\"/d/lindas-description?var-cube=https://energy.ld.admin.ch/elcom/sunshine-median\" style=\"text-decoration: none; display: block;\">\n  <div style=\"background: white; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px 20px; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n    <div style=\"font-size: 12px; color: #888; margin-bottom: 6px;\">18.12.2025</div>\n    <div style=\"font-size: 16px; font-weight: 500; color: #1565c0; margin-bottom: 8px;\">Median of Electricity Indicators</div>\n    <div style=\"font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 10px;\">Key efficiency indicators for electricity including price trends, consumption patterns, and distribution metrics across Swiss municipalities.</div>\n    <div style=\"display: flex; gap: 8px;\">\n      <span style=\"background: #fff3e0; color: #e65100; padding: 4px 10px; border-radius: 12px; font-size: 11px;\">Energy</span>\n      <span style=\"background: #f5f5f5; color: #666; padding: 4px 10px; border-radius: 12px; font-size: 11px;\">Federal Electricity Commission ElCom</span>\n    </div>\n  </div>\n</a>"
-      }
-    },
-    {
-      "type": "text",
-      "title": "",
-      "gridPos": { "h": 3, "w": 19, "x": 5, "y": 22 },
-      "id": 13,
-      "transparent": true,
-      "options": {
-        "mode": "html",
-        "content": "<a href=\"/d/lindas-browser\" style=\"text-decoration: none; display: block;\">\n  <div style=\"background: white; border: 2px dashed #ccc; border-radius: 6px; padding: 24px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n    <div style=\"font-size: 15px; font-weight: 500; color: #1565c0; margin-bottom: 6px;\">Browse all datasets</div>\n    <div style=\"font-size: 13px; color: #666;\">Search and filter through 236 available datasets in LINDAS</div>\n  </div>\n</a>"
+        "afterRender": "",
+        "content": "<style>\n.catalog-container {\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  padding: 20px 0;\n}\n.catalog-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 20px;\n  padding: 0 4px;\n}\n.catalog-title {\n  font-size: 16px;\n  font-weight: 600;\n  color: #1a1a1a;\n}\n.catalog-count {\n  font-size: 13px;\n  color: #666;\n}\n.dataset-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));\n  gap: 16px;\n}\n.dataset-card {\n  background: white;\n  border: 1px solid #e0e0e0;\n  border-radius: 8px;\n  padding: 20px;\n  text-decoration: none;\n  display: block;\n  transition: all 0.2s ease;\n}\n.dataset-card:hover {\n  box-shadow: 0 4px 12px rgba(0,0,0,0.1);\n  border-color: #ccc;\n  transform: translateY(-2px);\n}\n.card-date {\n  font-size: 12px;\n  color: #888;\n  margin-bottom: 8px;\n}\n.card-title {\n  font-size: 17px;\n  font-weight: 500;\n  color: #1565c0;\n  margin-bottom: 10px;\n  line-height: 1.4;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n}\n.card-desc {\n  font-size: 14px;\n  color: #555;\n  line-height: 1.5;\n  margin-bottom: 12px;\n  display: -webkit-box;\n  -webkit-line-clamp: 3;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n}\n.card-meta {\n  display: flex;\n  gap: 8px;\n  flex-wrap: wrap;\n}\n.card-tag {\n  padding: 4px 12px;\n  border-radius: 14px;\n  font-size: 12px;\n  font-weight: 500;\n}\n.tag-org {\n  background: #f5f5f5;\n  color: #666;\n}\n</style>\n\n<div class=\"catalog-container\">\n  <div class=\"catalog-header\">\n    <span class=\"catalog-title\">Available Datasets</span>\n    <span class=\"catalog-count\">{{data.length}} datasets loaded</span>\n  </div>\n  <div class=\"dataset-grid\">\n    {{#each data}}\n    <a href=\"/d/lindas-description?var-cube={{encodeURIComponent cubeUri}}\" class=\"dataset-card\">\n      <div class=\"card-date\">{{dateModified}}</div>\n      <div class=\"card-title\">{{name}}</div>\n      <div class=\"card-desc\">{{description}}</div>\n      <div class=\"card-meta\">\n        <span class=\"card-tag tag-org\">{{creator}}</span>\n      </div>\n    </a>\n    {{/each}}\n  </div>\n</div>",
+        "contentPartials": [],
+        "defaultContent": "<div style=\"padding: 40px; text-align: center; color: #666;\">Loading datasets from LINDAS...</div>",
+        "editor": { "format": "auto", "language": "html" },
+        "editors": ["default"],
+        "externalStyles": [],
+        "helpers": "handlebars.registerHelper('encodeURIComponent', function(str) {\n  return encodeURIComponent(str || '');\n});",
+        "renderMode": "allRows",
+        "status": "default",
+        "styles": "",
+        "wrap": true
       }
     }
   ],

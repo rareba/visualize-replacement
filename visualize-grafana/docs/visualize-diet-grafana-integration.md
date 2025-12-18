@@ -30,8 +30,14 @@ The visualize frontend is fully functional:
 
 ## New Pages
 
-### `/create/grafana?cube=<cubeIri>`
-Redirects to Grafana template dashboard with the cube IRI set as a variable.
+### `/create/new?cube=<cubeIri>` (Redirect to Grafana)
+When a user clicks "Create visualization" on a dataset, they are redirected to:
+`/create/new?cube=<cubeIri>`
+
+This page detects the `cube` parameter and redirects to Grafana:
+`http://localhost:3003/d/lindas-template?var-cube=<encodedCubeIri>`
+
+The Grafana template dashboard automatically loads with the cube IRI set, allowing users to immediately query and visualize the dataset.
 
 ### `/dashboards`
 Dashboard manager for saving/loading Grafana dashboard JSON exports:
@@ -40,8 +46,8 @@ Dashboard manager for saving/loading Grafana dashboard JSON exports:
 - List of saved dashboards (localStorage)
 - Download/delete saved dashboards
 
-### `/embed/grafana/[dashboardId]`
-Embeds Grafana panels for external websites.
+### `/v/[chartId]` and `/embed/[chartId]` (Legacy Redirects)
+Legacy URLs redirect to `/browse` for backwards compatibility.
 
 ## Grafana Configuration
 
@@ -49,21 +55,28 @@ Embeds Grafana panels for external websites.
 Location: `grafana/provisioning/dashboards/lindas-template.json`
 
 Features:
-- `cube` variable for cube IRI (passed via URL)
+- `cube` variable for cube IRI (passed via URL from visualize)
 - `limit` variable for row limit (100-10000)
 - Pre-configured panels:
-  - Getting Started info panel
-  - Table panel with SPARQL query
-  - Time series template
-  - Bar chart template
-  - Pie chart template
-  - Statistics panel
+  - **Getting Started** - Instructions for using the sandbox
+  - **Cube Dimensions** - Shows all dimensions in the cube with names and datatypes
+  - **Dataset Observations** - Sample data from the cube (configurable row limit)
+  - **Dataset Statistics** - Count of observations and dimensions
+  - **Time Series template** - Customize for time-based data
+  - **Bar Chart template** - Customize for categorical data
+  - **Pie Chart template** - Customize for distribution data
+  - **Example Queries** - SPARQL patterns for reference
+
+The Cube Dimensions and Dataset Observations panels work out-of-the-box with any LINDAS cube.
+The chart templates require customization with specific dimension predicates from the cube.
 
 ### Authentication
 
 Two modes available:
-1. **Development** (default): Anonymous access with Editor role
+1. **Development** (default): Anonymous access with Admin role (required to read dashboards)
 2. **Production**: ADFS OAuth (same login as visualize app)
+
+Note: Anonymous users need Admin role to access provisioned dashboards. Editor role is insufficient.
 
 Set via environment variables:
 ```

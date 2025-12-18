@@ -78,7 +78,7 @@
       "targets": [
         {
           "refId": "A",
-          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\n\nSELECT DISTINCT \n  (ENCODE_FOR_URI(STR(?cube)) AS ?cubeUriEncoded)\n  (COALESCE(?name_en, ?name_any, REPLACE(STR(?cube), \"^.*/\", \"\")) AS ?name)\n  (COALESCE(?desc_en, ?desc_any, \"No description available\") AS ?description)\n  (COALESCE(?creatorName, \"Unknown\") AS ?creator)\n  (COALESCE(SUBSTR(STR(?modified), 1, 10), \"\") AS ?dateModified)\nWHERE {\n  ?cube a cube:Cube .\n  \n  OPTIONAL { ?cube schema:name ?name_en . FILTER(LANG(?name_en) = \"en\") }\n  OPTIONAL { ?cube schema:name ?name_any . }\n  \n  OPTIONAL { ?cube schema:description ?desc_en . FILTER(LANG(?desc_en) = \"en\") }\n  OPTIONAL { ?cube schema:description ?desc_any . }\n  \n  OPTIONAL { ?cube dcterms:creator/schema:name ?creatorName . }\n  OPTIONAL { ?cube schema:dateModified ?modified . }\n}\nORDER BY DESC(?modified)\nLIMIT 50"
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\n\nSELECT \n  (ENCODE_FOR_URI(STR(?cube)) AS ?cubeUriEncoded)\n  (SAMPLE(?cubeName) AS ?name)\n  (SAMPLE(?cubeDesc) AS ?description)\n  (SAMPLE(?creatorName) AS ?creator)\n  (SAMPLE(SUBSTR(STR(?modified), 1, 10)) AS ?dateModified)\nWHERE {\n  ?cube a cube:Cube .\n  \n  OPTIONAL { ?cube schema:name ?cubeName . }\n  OPTIONAL { ?cube schema:description ?cubeDesc . }\n  OPTIONAL { ?cube dcterms:creator/schema:name ?creatorName . }\n  OPTIONAL { ?cube schema:dateModified ?modified . }\n}\nGROUP BY ?cube\nORDER BY DESC(?dateModified)\nLIMIT 50"
         }
       ],
       "options": {

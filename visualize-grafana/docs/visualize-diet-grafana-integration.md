@@ -180,19 +180,21 @@ Location: `grafana/provisioning/dashboards/lindas-template.json`
 
 Features:
 - `cube` variable for cube IRI (passed via URL from visualize)
-- `limit` variable for row limit (100-10000)
-- Pre-configured panels:
-  - **Getting Started** - Instructions for using the sandbox
-  - **Cube Dimensions** - Shows all dimensions in the cube with names and datatypes
-  - **Dataset Observations** - Sample data from the cube (configurable row limit)
-  - **Dataset Statistics** - Count of observations and dimensions
-  - **Time Series template** - Customize for time-based data
-  - **Bar Chart template** - Customize for categorical data
-  - **Pie Chart template** - Customize for distribution data
-  - **Example Queries** - SPARQL patterns for reference
+- Pre-configured panels that work with ANY LINDAS cube:
+  - **Dataset Observations** - Full tabular view with ALL columns automatically detected
+    - Uses SPARQL to query all observation properties
+    - Grafana's `groupingToMatrix` transformation pivots data into proper columns
+    - No row limit - shows all available data
+  - **Available Dimensions** - Column names with data types and predicate URIs
+    - Useful for building custom SPARQL queries
+  - **How to Create Charts** - Instructions with example SPARQL query patterns
 
-The Cube Dimensions and Dataset Observations panels work out-of-the-box with any LINDAS cube.
-The chart templates require customization with specific dimension predicates from the cube.
+The Dataset Observations table uses a dynamic query that:
+1. Fetches all properties from each observation
+2. Resolves labels for IRI values (preferring English)
+3. Automatically pivots into columns using Grafana transformations
+
+This provides ready-to-use tabular data for creating charts immediately.
 
 ### Authentication
 

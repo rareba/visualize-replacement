@@ -29,7 +29,7 @@
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<style>\n  .viz-desc * { box-sizing: border-box; margin: 0; padding: 0; }\n  .viz-desc { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }\n  .viz-header { display: flex; align-items: center; padding: 12px 24px; background: white; border-bottom: 1px solid #d5d5d5; height: 56px; }\n  .viz-logo { display: flex; align-items: center; gap: 12px; }\n  .viz-coat { width: 20px; height: 24px; position: relative; }\n  .viz-coat-shield { width: 20px; height: 24px; background: #ff0000; clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%); display: flex; align-items: center; justify-content: center; }\n  .viz-coat-cross { color: white; font-weight: bold; font-size: 14px; margin-top: -2px; }\n  .viz-lang { font-size: 10px; line-height: 1.35; color: #1a1a1a; }\n  .viz-brand { margin-left: 24px; font-weight: 600; font-size: 15px; color: #1a1a1a; }\n</style>\n<div class=\"viz-desc\">\n  <div class=\"viz-header\">\n    <div class=\"viz-logo\">\n      <div class=\"viz-coat\">\n        <div class=\"viz-coat-shield\"><span class=\"viz-coat-cross\">+</span></div>\n      </div>\n      <div class=\"viz-lang\">\n        <div>Schweizerische Eidgenossenschaft</div>\n        <div>Confederation suisse</div>\n        <div>Confederazione Svizzera</div>\n        <div>Confederaziun svizra</div>\n      </div>\n    </div>\n    <div class=\"viz-brand\">visualize.admin.ch</div>\n  </div>\n</div>"
+        "content": "<div style=\"display: flex; align-items: center; padding: 12px 24px; background: white; border-bottom: 1px solid #d5d5d5; height: 56px; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <div style=\"display: flex; align-items: center; gap: 12px;\">\n    <div style=\"width: 20px; height: 24px; background: #ff0000; display: flex; align-items: center; justify-content: center; clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%);\">\n      <span style=\"color: white; font-weight: bold; font-size: 14px; margin-top: -2px;\">+</span>\n    </div>\n    <div style=\"font-size: 10px; line-height: 1.35; color: #1a1a1a;\">\n      <div>Schweizerische Eidgenossenschaft</div>\n      <div>Confederation suisse</div>\n      <div>Confederazione Svizzera</div>\n      <div>Confederaziun svizra</div>\n    </div>\n  </div>\n  <div style=\"margin-left: 24px; font-weight: 600; font-size: 15px; color: #1a1a1a;\">visualize.admin.ch</div>\n</div>"
       }
     },
     {
@@ -40,24 +40,24 @@
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<style>\n  .viz-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }\n  .viz-back { color: #1565c0; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 6px; }\n  .viz-back:hover { text-decoration: underline; }\n  .viz-cta { background: #1565c0; color: white; padding: 12px 24px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }\n  .viz-cta:hover { background: #0d47a1; }\n</style>\n<div class=\"viz-nav\">\n  <a href=\"/d/lindas-catalog\" class=\"viz-back\">&#8592; Back to datasets</a>\n  <a href=\"/d/lindas-template?var-cube=${cube:raw}\" class=\"viz-cta\">Create visualization &#8594;</a>\n</div>"
+        "content": "<div style=\"display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <a href=\"/d/lindas-catalog\" style=\"color: #1565c0; text-decoration: none; font-size: 14px;\">&#8592; Back to datasets</a>\n  <a href=\"/d/lindas-template?var-cube=${cube:raw}\" style=\"background: #1565c0; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500;\">Create visualization &#8594;</a>\n</div>"
       }
     },
     {
       "type": "text",
       "title": "",
-      "gridPos": { "h": 1, "w": 6, "x": 0, "y": 5 },
+      "gridPos": { "h": 1, "w": 5, "x": 0, "y": 5 },
       "id": 3,
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px 0 8px 0;\"><span style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px;\">Source</span></div>"
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 12px 0 4px 0;\"><span style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px;\">Source</span></div>"
       }
     },
     {
       "type": "table",
       "title": "",
-      "gridPos": { "h": 2, "w": 6, "x": 0, "y": 6 },
+      "gridPos": { "h": 2, "w": 5, "x": 0, "y": 6 },
       "id": 4,
       "transparent": true,
       "datasource": {
@@ -83,18 +83,18 @@
     {
       "type": "text",
       "title": "",
-      "gridPos": { "h": 1, "w": 6, "x": 0, "y": 8 },
+      "gridPos": { "h": 1, "w": 5, "x": 0, "y": 8 },
       "id": 5,
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 12px 0 8px 0;\"><span style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px;\">Date Modified</span></div>"
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 8px 0 4px 0;\"><span style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px;\">Date Modified</span></div>"
       }
     },
     {
       "type": "table",
       "title": "",
-      "gridPos": { "h": 2, "w": 6, "x": 0, "y": 9 },
+      "gridPos": { "h": 2, "w": 5, "x": 0, "y": 9 },
       "id": 6,
       "transparent": true,
       "datasource": {
@@ -120,29 +120,29 @@
     {
       "type": "text",
       "title": "",
-      "gridPos": { "h": 1, "w": 6, "x": 0, "y": 11 },
+      "gridPos": { "h": 1, "w": 5, "x": 0, "y": 11 },
       "id": 7,
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 12px 0 8px 0;\"><span style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px;\">More Information</span></div>"
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 8px 0 4px 0;\"><span style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px;\">More Information</span></div>"
       }
     },
     {
       "type": "text",
       "title": "",
-      "gridPos": { "h": 3, "w": 6, "x": 0, "y": 12 },
+      "gridPos": { "h": 3, "w": 5, "x": 0, "y": 12 },
       "id": 8,
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; line-height: 2;\">\n  <div><a href=\"https://lindas.admin.ch\" style=\"color: #1565c0; text-decoration: none;\">&#8599; LINDAS Portal</a></div>\n  <div><a href=\"https://opendata.swiss\" style=\"color: #1565c0; text-decoration: none;\">&#8599; OpenData.swiss</a></div>\n</div>"
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; font-size: 13px; line-height: 2;\">\n  <div><a href=\"https://lindas.admin.ch\" style=\"color: #1565c0; text-decoration: none;\">&#8599; LINDAS Portal</a></div>\n  <div><a href=\"https://opendata.swiss\" style=\"color: #1565c0; text-decoration: none;\">&#8599; OpenData.swiss</a></div>\n</div>"
       }
     },
     {
       "type": "table",
       "title": "",
-      "gridPos": { "h": 3, "w": 18, "x": 6, "y": 5 },
+      "gridPos": { "h": 3, "w": 19, "x": 5, "y": 5 },
       "id": 20,
       "transparent": true,
       "datasource": {
@@ -176,7 +176,7 @@
     {
       "type": "table",
       "title": "",
-      "gridPos": { "h": 3, "w": 18, "x": 6, "y": 8 },
+      "gridPos": { "h": 3, "w": 19, "x": 5, "y": 8 },
       "id": 21,
       "transparent": true,
       "datasource": {
@@ -202,19 +202,19 @@
     {
       "type": "text",
       "title": "",
-      "gridPos": { "h": 1, "w": 18, "x": 6, "y": 11 },
+      "gridPos": { "h": 1, "w": 19, "x": 5, "y": 11 },
       "id": 25,
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 12px 0 8px 0; border-top: 1px solid #e0e0e0; margin-top: 8px;\"><span style=\"font-size: 14px; font-weight: 600; color: #1a1a1a;\">Data Preview</span></div>"
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 8px 0; border-top: 1px solid #e0e0e0;\"><span style=\"font-size: 14px; font-weight: 600; color: #1a1a1a;\">Data Preview</span></div>"
       }
     },
     {
       "type": "table",
       "title": "",
       "description": "Sample observations from this dataset",
-      "gridPos": { "h": 8, "w": 18, "x": 6, "y": 12 },
+      "gridPos": { "h": 8, "w": 19, "x": 5, "y": 12 },
       "id": 30,
       "datasource": {
         "type": "flandersmake-sparql-datasource",

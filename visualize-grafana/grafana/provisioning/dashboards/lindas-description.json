@@ -46,7 +46,7 @@
     {
       "type": "marcusolsson-dynamictext-panel",
       "title": "",
-      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 5 },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 5 },
       "id": 10,
       "transparent": true,
       "datasource": {
@@ -55,31 +55,141 @@
       },
       "targets": [
         {
-          "refId": "metadata",
+          "refId": "A",
           "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\n\nSELECT \n  (COALESCE(?name_en, ?name_any, REPLACE(STR(<${cube}>), \"^.*/\", \"\")) AS ?name)\n  (COALESCE(?desc_en, ?desc_any, \"No description available\") AS ?description)\n  (COALESCE(?creatorName, \"Unknown\") AS ?creator)\n  (COALESCE(SUBSTR(STR(?modified), 1, 10), \"N/A\") AS ?dateModified)\nWHERE {\n  <${cube}> a cube:Cube .\n  OPTIONAL { <${cube}> schema:name ?name_en . FILTER(LANG(?name_en) = \"en\") }\n  OPTIONAL { <${cube}> schema:name ?name_any . }\n  OPTIONAL { <${cube}> schema:description ?desc_en . FILTER(LANG(?desc_en) = \"en\") }\n  OPTIONAL { <${cube}> schema:description ?desc_any . }\n  OPTIONAL { <${cube}> dcterms:creator/schema:name ?creatorName . }\n  OPTIONAL { <${cube}> schema:dateModified ?modified . }\n}\nLIMIT 1"
-        },
-        {
-          "refId": "dimensions",
-          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX schema: <http://schema.org/>\n\nSELECT \n  (COALESCE(?label, REPLACE(STR(?dimension), \"^.*/\", \"\")) AS ?columnName)\n  (IF(BOUND(?dt), REPLACE(STR(?dt), \"^.*#\", \"\"), \"IRI/text\") AS ?dataType)\n  (STR(?dimension) AS ?predicateUri)\nWHERE {\n  <${cube}> cube:observationConstraint/sh:property ?prop .\n  ?prop sh:path ?dimension .\n  OPTIONAL { ?prop schema:name ?label . FILTER(LANG(?label) = \"en\" || LANG(?label) = \"\") }\n  OPTIONAL { ?prop sh:datatype ?dt . }\n  FILTER(?dimension != cube:observedBy)\n  FILTER(?dimension != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n}\nORDER BY ?columnName"
-        },
-        {
-          "refId": "count",
-          "queryText": "PREFIX cube: <https://cube.link/>\n\nSELECT (COUNT(?obs) AS ?observationCount) WHERE {\n  <${cube}> cube:observationSet/cube:observation ?obs .\n}"
         }
       ],
       "options": {
         "afterRender": "",
-        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; max-width: 1200px;\">\n  {{#each data}}\n  {{#if (eq @index 0)}}\n  <div style=\"margin-bottom: 32px;\">\n    <h1 style=\"font-size: 28px; font-weight: 400; color: #1a1a1a; margin: 0 0 16px 0; line-height: 1.3;\">{{name}}</h1>\n    <p style=\"font-size: 16px; color: #555; line-height: 1.6; margin: 0 0 24px 0;\">{{description}}</p>\n    <div style=\"display: flex; gap: 32px; flex-wrap: wrap;\">\n      <div style=\"min-width: 200px;\">\n        <div style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;\">Source</div>\n        <div style=\"font-size: 14px; color: #1a1a1a;\">{{creator}}</div>\n      </div>\n      <div style=\"min-width: 200px;\">\n        <div style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;\">Last Modified</div>\n        <div style=\"font-size: 14px; color: #1a1a1a;\">{{dateModified}}</div>\n      </div>\n    </div>\n  </div>\n  {{/if}}\n  {{/each}}\n\n  <div style=\"display: flex; gap: 24px; margin-bottom: 24px;\">\n    {{#each (lookup data 2)}}\n    <div style=\"background: #f0f7ff; border: 1px solid #1565c0; border-radius: 8px; padding: 16px 24px; text-align: center;\">\n      <div style=\"font-size: 28px; font-weight: 600; color: #1565c0;\">{{observationCount}}</div>\n      <div style=\"font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;\">Observations</div>\n    </div>\n    {{/each}}\n    <div style=\"background: #f0f7ff; border: 1px solid #1565c0; border-radius: 8px; padding: 16px 24px; text-align: center;\">\n      <div style=\"font-size: 28px; font-weight: 600; color: #1565c0;\">{{len (lookup data 1)}}</div>\n      <div style=\"font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;\">Dimensions</div>\n    </div>\n  </div>\n\n  <div style=\"background: white; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;\">\n    <div style=\"padding: 16px 20px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0;\">\n      <h2 style=\"font-size: 16px; font-weight: 600; color: #1a1a1a; margin: 0;\">Available Dimensions (Columns)</h2>\n      <p style=\"font-size: 13px; color: #666; margin: 4px 0 0 0;\">Use these predicates in your SPARQL queries to build charts</p>\n    </div>\n    <table style=\"width: 100%; border-collapse: collapse;\">\n      <thead>\n        <tr style=\"background: #fafafa;\">\n          <th style=\"text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e0e0e0;\">Column Name</th>\n          <th style=\"text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e0e0e0;\">Data Type</th>\n          <th style=\"text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e0e0e0;\">Predicate URI (for SPARQL)</th>\n        </tr>\n      </thead>\n      <tbody>\n        {{#each (lookup data 1)}}\n        <tr style=\"border-bottom: 1px solid #f0f0f0;\">\n          <td style=\"padding: 12px 16px; font-size: 14px; color: #1a1a1a; font-weight: 500;\">{{columnName}}</td>\n          <td style=\"padding: 12px 16px; font-size: 13px; color: #666;\">\n            <span style=\"background: #e8f4fd; color: #1565c0; padding: 2px 8px; border-radius: 4px; font-size: 12px;\">{{dataType}}</span>\n          </td>\n          <td style=\"padding: 12px 16px; font-size: 12px; color: #888; font-family: 'SF Mono', Monaco, Consolas, monospace; word-break: break-all;\">{{predicateUri}}</td>\n        </tr>\n        {{/each}}\n      </tbody>\n    </table>\n  </div>\n\n  <div style=\"margin-top: 24px; padding: 20px; background: #fff8e1; border: 1px solid #ffc107; border-radius: 8px;\">\n    <h3 style=\"font-size: 14px; font-weight: 600; color: #856404; margin: 0 0 8px 0;\">How to use this data</h3>\n    <p style=\"font-size: 13px; color: #856404; margin: 0 0 12px 0; line-height: 1.5;\">Click \"Create visualization\" to open the Grafana sandbox. Use the predicate URIs above in your SPARQL queries to select specific columns for charts.</p>\n    <div style=\"font-size: 12px; color: #856404; font-family: 'SF Mono', Monaco, Consolas, monospace; background: rgba(0,0,0,0.05); padding: 12px; border-radius: 4px; overflow-x: auto;\">\n      SELECT ?column1 ?column2 WHERE {<br/>\n      &nbsp;&nbsp;?obs a cube:Observation .<br/>\n      &nbsp;&nbsp;?obs &lt;predicate_uri_1&gt; ?column1 .<br/>\n      &nbsp;&nbsp;?obs &lt;predicate_uri_2&gt; ?column2 .<br/>\n      }\n    </div>\n  </div>\n\n  <div style=\"margin-top: 24px; padding: 16px 20px; background: #f8f9fa; border-radius: 8px;\">\n    <h3 style=\"font-size: 14px; font-weight: 600; color: #1a1a1a; margin: 0 0 12px 0;\">More Information</h3>\n    <div style=\"display: flex; gap: 24px;\">\n      <a href=\"https://lindas.admin.ch\" target=\"_blank\" style=\"color: #1565c0; text-decoration: none; font-size: 13px;\">&#8599; LINDAS Portal</a>\n      <a href=\"https://opendata.swiss\" target=\"_blank\" style=\"color: #1565c0; text-decoration: none; font-size: 13px;\">&#8599; OpenData.swiss</a>\n    </div>\n  </div>\n</div>",
+        "content": "{{#each data}}\n<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 24px;\">\n  <h1 style=\"font-size: 28px; font-weight: 400; color: #1a1a1a; margin: 0 0 16px 0; line-height: 1.3;\">{{name}}</h1>\n  <p style=\"font-size: 16px; color: #555; line-height: 1.6; margin: 0 0 24px 0;\">{{description}}</p>\n  <div style=\"display: flex; gap: 32px; flex-wrap: wrap;\">\n    <div style=\"min-width: 200px;\">\n      <div style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;\">Source</div>\n      <div style=\"font-size: 14px; color: #1a1a1a;\">{{creator}}</div>\n    </div>\n    <div style=\"min-width: 200px;\">\n      <div style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;\">Last Modified</div>\n      <div style=\"font-size: 14px; color: #1a1a1a;\">{{dateModified}}</div>\n    </div>\n  </div>\n</div>\n{{/each}}",
         "contentPartials": [],
-        "defaultContent": "<div style=\"padding: 40px; text-align: center; color: #666; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">Loading dataset details...</div>",
+        "defaultContent": "<div style=\"padding: 40px; text-align: center; color: #666;\">Loading dataset details...</div>",
         "editor": { "format": "auto", "language": "html" },
         "editors": ["default"],
         "externalStyles": [],
-        "helpers": "handlebars.registerHelper('eq', function(a, b) {\n  return a === b;\n});\n\nhandlebars.registerHelper('len', function(arr) {\n  return arr ? arr.length : 0;\n});\n\nhandlebars.registerHelper('lookup', function(data, index) {\n  if (!data || !data.series) return [];\n  const series = data.series[index];\n  if (!series || !series.fields) return [];\n  const fields = series.fields;\n  if (!fields.length) return [];\n  const rows = [];\n  const len = fields[0].values ? fields[0].values.length : 0;\n  for (let i = 0; i < len; i++) {\n    const row = {};\n    fields.forEach(f => { row[f.name] = f.values[i]; });\n    rows.push(row);\n  }\n  return rows;\n});",
+        "helpers": "",
         "renderMode": "allRows",
         "status": "default",
         "styles": "",
         "wrap": true
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Observations",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 11 },
+      "id": 15,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\n\nSELECT (COUNT(?obs) AS ?count) WHERE {\n  <${cube}> cube:observationSet/cube:observation ?obs .\n}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "#1565c0", "value": null }] }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Dimensions",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 11 },
+      "id": 16,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\n\nSELECT (COUNT(DISTINCT ?dimension) AS ?count) WHERE {\n  <${cube}> cube:observationConstraint/sh:property ?prop .\n  ?prop sh:path ?dimension .\n  FILTER(?dimension != cube:observedBy)\n  FILTER(?dimension != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "#1565c0", "value": null }] }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      }
+    },
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 11 },
+      "id": 17,
+      "transparent": true,
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 16px;\">\n  <h3 style=\"font-size: 14px; font-weight: 600; color: #1a1a1a; margin: 0 0 12px 0;\">More Information</h3>\n  <div style=\"display: flex; gap: 24px;\">\n    <a href=\"https://lindas.admin.ch\" target=\"_blank\" style=\"color: #1565c0; text-decoration: none; font-size: 13px;\">&#8599; LINDAS Portal</a>\n    <a href=\"https://opendata.swiss\" target=\"_blank\" style=\"color: #1565c0; text-decoration: none; font-size: 13px;\">&#8599; OpenData.swiss</a>\n  </div>\n</div>"
+      }
+    },
+    {
+      "type": "table",
+      "title": "Available Dimensions (Columns)",
+      "description": "Use these predicates in your SPARQL queries to build charts",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 15 },
+      "id": 30,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX schema: <http://schema.org/>\n\nSELECT \n  (COALESCE(?label, REPLACE(STR(?dimension), \"^.*/\", \"\")) AS ?column)\n  (IF(BOUND(?dt), REPLACE(STR(?dt), \"^.*#\", \"\"), \"IRI/text\") AS ?type)\n  (STR(?dimension) AS ?predicate_uri)\nWHERE {\n  <${cube}> cube:observationConstraint/sh:property ?prop .\n  ?prop sh:path ?dimension .\n  OPTIONAL { ?prop schema:name ?label . FILTER(LANG(?label) = \"en\" || LANG(?label) = \"\") }\n  OPTIONAL { ?prop sh:datatype ?dt . }\n  FILTER(?dimension != cube:observedBy)\n  FILTER(?dimension != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n}\nORDER BY ?column"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": true, "filterable": true },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "column" }, "properties": [{ "id": "displayName", "value": "Column Name" }, { "id": "custom.width", "value": 250 }] },
+          { "matcher": { "id": "byName", "options": "type" }, "properties": [{ "id": "displayName", "value": "Data Type" }, { "id": "custom.width", "value": 120 }] },
+          { "matcher": { "id": "byName", "options": "predicate_uri" }, "properties": [{ "id": "displayName", "value": "Predicate URI (for SPARQL)" }] }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": true, "reducer": ["count"], "countRows": true, "fields": "" }
+      }
+    },
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 25 },
+      "id": 40,
+      "transparent": true,
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"margin: 0; padding: 20px; background: #fff8e1; border: 1px solid #ffc107; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <h3 style=\"font-size: 14px; font-weight: 600; color: #856404; margin: 0 0 8px 0;\">How to use this data</h3>\n  <p style=\"font-size: 13px; color: #856404; margin: 0 0 12px 0; line-height: 1.5;\">Click \"Create visualization\" to open the Grafana sandbox. Use the predicate URIs above in your SPARQL queries to select specific columns for charts.</p>\n  <div style=\"font-size: 12px; color: #856404; font-family: SF Mono, Monaco, Consolas, monospace; background: rgba(0,0,0,0.05); padding: 12px; border-radius: 4px; overflow-x: auto;\">\n    SELECT ?column1 ?column2 WHERE {<br/>\n    &nbsp;&nbsp;?obs a cube:Observation .<br/>\n    &nbsp;&nbsp;?obs &lt;predicate_uri_1&gt; ?column1 .<br/>\n    &nbsp;&nbsp;?obs &lt;predicate_uri_2&gt; ?column2 .<br/>\n    }\n  </div>\n</div>"
       }
     }
   ],

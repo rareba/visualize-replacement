@@ -20,10 +20,8 @@ import {
     CardContent,
     Grid,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import DownloadIcon from "@mui/icons-material/Download";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
+import { Icon } from "@/icons";
 import { AppLayout } from "@/components/layout";
 
 type SavedDashboard = {
@@ -206,7 +204,7 @@ const DashboardsPage: NextPage = () => {
                                 </Typography>
                                 <Button
                                     variant="outlined"
-                                    startIcon={<OpenInNewIcon />}
+                                    startIcon={<Icon name="legacyLinkExternal" size={16} />}
                                     onClick={() =>
                                         window.open(`${grafanaUrl}/dashboards`, "_blank")
                                     }
@@ -244,7 +242,7 @@ const DashboardsPage: NextPage = () => {
                                 </Typography>
                                 <Button
                                     variant="outlined"
-                                    startIcon={<OpenInNewIcon />}
+                                    startIcon={<Icon name="legacyLinkExternal" size={16} />}
                                     onClick={handleOpenGrafanaImport}
                                     sx={{ mt: 2 }}
                                 >
@@ -330,7 +328,7 @@ const DashboardsPage: NextPage = () => {
                                                         onClick={() => handleCopyToClipboard(dashboard)}
                                                         title="Copy JSON to clipboard"
                                                     >
-                                                        <OpenInNewIcon />
+                                                        <Icon name="copy" size={20} />
                                                     </IconButton>
                                                     <IconButton
                                                         edge="end"
@@ -338,7 +336,7 @@ const DashboardsPage: NextPage = () => {
                                                         title="Download JSON file"
                                                         sx={{ ml: 1 }}
                                                     >
-                                                        <DownloadIcon />
+                                                        <Icon name="download" size={20} />
                                                     </IconButton>
                                                     <IconButton
                                                         edge="end"
@@ -347,7 +345,7 @@ const DashboardsPage: NextPage = () => {
                                                         sx={{ ml: 1 }}
                                                         color="error"
                                                     >
-                                                        <DeleteIcon />
+                                                        <Icon name="trash" size={20} />
                                                     </IconButton>
                                                 </ListItemSecondaryAction>
                                             </ListItem>

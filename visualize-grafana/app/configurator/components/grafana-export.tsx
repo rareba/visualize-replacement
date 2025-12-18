@@ -39,7 +39,7 @@ export function generateSparqlQuery(chartConfig: ChartConfig): string {
   const uniqueFieldIris = [...new Set(fieldIris)];
 
   // Build SELECT variables
-  const selectVars = uniqueFieldIris.map((_iri, i) => {
+  const selectVars = uniqueFieldIris.map((iri, i) => {
     const varName = `dim${i}`;
     return `?${varName} ?${varName}_label`;
   }).join(" ");
@@ -118,7 +118,7 @@ export function generateGrafanaEmbedUrl(query: string): string {
 /**
  * Generate Grafana Dashboard Builder URL
  */
-export function generateGrafanaDashboardUrl(_query: string, _title: string): string {
+export function generateGrafanaDashboardUrl(query: string, title: string): string {
   // For dashboard creation, we go to dashboard/new with pre-configured panel
   return `${GRAFANA_URL}/dashboard/new?orgId=1&kiosk`;
 }

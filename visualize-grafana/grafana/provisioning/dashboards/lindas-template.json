@@ -15,7 +15,7 @@
         "label": "Cube IRI",
         "description": "The IRI of the LINDAS cube",
         "current": { "text": "", "value": "" },
-        "hide": 0,
+        "hide": 2,
         "skipUrlSync": false
       },
       {
@@ -48,14 +48,25 @@
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<div style=\"display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <div>\n    <span style=\"font-size: 18px; font-weight: 600; color: #1a1a1a;\">Visualization Sandbox</span>\n    <span style=\"font-size: 13px; color: #666; margin-left: 16px;\">Create charts from your data</span>\n  </div>\n  <a href=\"/d/lindas-description?var-cube=${cube:raw}\" style=\"color: #1565c0; text-decoration: none; font-size: 14px;\">&#8592; Back to dataset details</a>\n</div>"
+        "content": "<div style=\"display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <div>\n    <span style=\"font-size: 18px; font-weight: 600; color: #1a1a1a;\">Visualization Sandbox</span>\n    <span style=\"font-size: 13px; color: #666; margin-left: 16px;\">Create charts from your pre-loaded data</span>\n  </div>\n  <a href=\"/d/lindas-description?var-cube=${cube:raw}\" style=\"color: #1565c0; text-decoration: none; font-size: 14px;\">Back to dataset details</a>\n</div>"
+      }
+    },
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 2 },
+      "id": 2,
+      "transparent": true,
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"background: #e8f4fd; border: 1px solid #1565c0; border-radius: 4px; padding: 12px 16px; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <strong style=\"color: #1565c0;\">How to create new charts:</strong>\n  <span style=\"color: #333; margin-left: 8px;\">1. Duplicate any chart panel below (right-click > More > Duplicate)</span>\n  <span style=\"color: #333; margin-left: 8px;\">2. Or click Add > Visualization and select <code style=\"background: #fff; padding: 2px 6px; border-radius: 3px;\">-- Dashboard --</code> as datasource</span>\n  <span style=\"color: #333; margin-left: 8px;\">3. Choose <code style=\"background: #fff; padding: 2px 6px; border-radius: 3px;\">Panel: Source Data Table</code> to use the pre-loaded data</span>\n</div>"
       }
     },
     {
       "type": "table",
-      "title": "Dataset - Source Data",
-      "description": "This is the master data table. Other panels can reference this data using the Dashboard datasource.",
-      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 2 },
+      "title": "Source Data Table",
+      "description": "MASTER DATA - All charts below use this data. Do not delete this panel.",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 5 },
       "id": 100,
       "datasource": {
         "type": "flandersmake-sparql-datasource",
@@ -94,10 +105,21 @@
       }
     },
     {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 15 },
+      "id": 3,
+      "transparent": true,
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"padding: 8px 0; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; border-bottom: 2px solid #1565c0;\">\n  <span style=\"font-size: 16px; font-weight: 600; color: #1a1a1a;\">Chart Templates</span>\n  <span style=\"font-size: 13px; color: #666; margin-left: 12px;\">Duplicate any panel below to create your own visualization</span>\n</div>"
+      }
+    },
+    {
       "type": "barchart",
-      "title": "Bar Chart (uses Dashboard data)",
-      "description": "This chart uses data from the Source Data table above. Edit to customize which columns to display.",
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 16 },
+      "title": "Bar Chart Template",
+      "description": "Duplicate this panel to create bar charts. Uses Dashboard datasource.",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 17 },
       "id": 101,
       "datasource": {
         "type": "datasource",
@@ -126,7 +148,7 @@
         "groupWidth": 0.7,
         "barWidth": 0.9,
         "tooltip": { "mode": "single" },
-        "legend": { "showLegend": false }
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
       },
       "fieldConfig": {
         "defaults": {
@@ -137,10 +159,294 @@
       }
     },
     {
+      "type": "timeseries",
+      "title": "Line Chart Template",
+      "description": "Duplicate this panel to create line/time series charts. Uses Dashboard datasource.",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 17 },
+      "id": 102,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "panelId": 100
+        }
+      ],
+      "transformations": [],
+      "options": {
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "piechart",
+      "title": "Pie Chart Template",
+      "description": "Duplicate this panel to create pie charts. Uses Dashboard datasource.",
+      "gridPos": { "h": 10, "w": 8, "x": 0, "y": 27 },
+      "id": 103,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "panelId": 100
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {}
+          }
+        }
+      ],
+      "options": {
+        "pieType": "pie",
+        "tooltip": { "mode": "single" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "right" },
+        "displayLabels": ["name", "percent"]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Stat Panel Template",
+      "description": "Duplicate this panel to show single statistics. Uses Dashboard datasource.",
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 27 },
+      "id": 104,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "panelId": 100
+        }
+      ],
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "reducers": ["count"]
+          }
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Gauge Template",
+      "description": "Duplicate this panel to create gauge visualizations. Uses Dashboard datasource.",
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 27 },
+      "id": 105,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "panelId": 100
+        }
+      ],
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "reducers": ["mean"]
+          }
+        }
+      ],
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 80 }
+            ]
+          },
+          "color": { "mode": "thresholds" },
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      }
+    },
+    {
       "type": "table",
-      "title": "Available Dimensions",
-      "description": "Column names and their predicate URIs for building custom queries.",
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 16 },
+      "title": "Filtered Table Template",
+      "description": "Duplicate this panel to create filtered data tables. Uses Dashboard datasource.",
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 32 },
+      "id": 106,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "panelId": 100
+        }
+      ],
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [{ "desc": true }]
+          }
+        },
+        {
+          "id": "limit",
+          "options": {
+            "limitField": 10
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": true, "filterable": true },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": false }
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Bar Gauge Template",
+      "description": "Duplicate this panel to create horizontal bar gauges. Uses Dashboard datasource.",
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 32 },
+      "id": 107,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "panelId": 100
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {}
+          }
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 10
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 37 },
+      "id": 4,
+      "transparent": true,
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"padding: 8px 0; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; border-bottom: 2px solid #666;\">\n  <span style=\"font-size: 16px; font-weight: 600; color: #1a1a1a;\">Reference Information</span>\n</div>"
+      }
+    },
+    {
+      "type": "table",
+      "title": "Available Columns",
+      "description": "Column names and their data types from the dataset.",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 39 },
       "id": 7,
       "datasource": {
         "type": "flandersmake-sparql-datasource",
@@ -172,12 +478,12 @@
     },
     {
       "type": "text",
-      "title": "How to Use This Dashboard",
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 26 },
+      "title": "Transformation Guide",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 39 },
       "id": 20,
       "options": {
         "mode": "markdown",
-        "content": "## Working with the Data\n\n**The Source Data table (panel ID 100) contains all observations from the cube.** Other panels can reference this data without re-running the query.\n\n### To create a new visualization:\n1. Click **Add** > **Visualization**\n2. Select **-- Dashboard --** as the data source\n3. Choose **Panel: Dataset - Source Data** to use the pre-loaded data\n4. Use **Transformations** to filter, aggregate, or reshape the data\n5. Configure your visualization settings\n\n### Tips:\n- Use **Group by** transformation to aggregate data for charts\n- Use **Filter by value** to focus on specific data\n- Use **Reduce** to calculate statistics\n- The **Available Dimensions** table shows all column names and types"
+        "content": "## Common Transformations\n\nWhen editing a panel, use the **Transform** tab to shape your data:\n\n### Group By\nAggregate values by a category column:\n- Group by: `year` or `category`\n- Calculate: `sum`, `mean`, `count`\n\n### Filter by Value\nShow only specific rows:\n- Filter: `year = 2020`\n- Or: `value > 100`\n\n### Sort By\nOrder your data:\n- Sort by numeric column descending\n\n### Limit\nShow only top N rows:\n- Limit to 10 results\n\n### Reduce\nCalculate statistics:\n- Count, Sum, Mean, Min, Max"
       }
     }
   ],

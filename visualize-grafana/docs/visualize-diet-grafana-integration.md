@@ -6,14 +6,22 @@ This document describes the architectural changes made to simplify the visualize
 
 The original visualize application was a full-fledged data visualization platform with D3.js-based chart rendering, complex configuration UI, and PostgreSQL persistence. The "diet" transformation simplifies this by:
 
-1. **Keeping**: Static pages, dataset browser
-2. **Removing**: Native chart creation, database storage
-3. **Adding**: Grafana integration for visualization
+1. **Keeping**: Static pages, dataset browser, full frontend functionality
+2. **Adding**: Grafana integration for visualization creation
+3. **Future**: Potentially remove unused D3.js rendering code (see "Future Work" section)
+
+## Current State
+
+The visualize frontend is fully functional:
+- Dataset browsing and selection works
+- Dataset preview and description display works
+- All existing functionality is preserved
+- Grafana integration added for creating visualizations
 
 ## User Flow
 
 1. User browses datasets at `/browse`
-2. Selects a dataset and previews it
+2. Selects a dataset and previews it (with description and data preview)
 3. Clicks "Create visualization"
 4. Redirected to Grafana template dashboard with dataset pre-loaded
 5. Creates panels/visualizations in Grafana
@@ -34,11 +42,6 @@ Dashboard manager for saving/loading Grafana dashboard JSON exports:
 
 ### `/embed/grafana/[dashboardId]`
 Embeds Grafana panels for external websites.
-
-## Legacy URL Redirects
-
-- `/v/[chartId]` -> Redirects to `/browse`
-- `/embed/[chartId]` -> Redirects to `/browse`
 
 ## Grafana Configuration
 
@@ -75,51 +78,17 @@ ADFS_ISSUER=https://your-adfs-server
 
 ### Docker Compose
 
-PostgreSQL removed (no longer needed). Only Grafana service remains:
+Grafana service configured:
 - Port: 3003
 - SPARQL plugin: flandersmake-sparql-datasource
 - Datasource: LINDAS (https://lindas.admin.ch/query)
 
-## Files Moved to /Removed
+## What's Currently Active
 
-The following directories/files were moved to reduce codebase size:
-
-### Database Layer
-- `app/prisma/` - Prisma schema and migrations
-- `app/db/` - Database client and operations
-
-### Charts (D3.js)
-- `app/charts/` - All D3.js chart implementations
-
-### API Routes
-- `app/pages/api/config/` - Chart config CRUD endpoints
-- `app/pages/api/config-create.ts`
-- `app/pages/api/config-update.ts`
-- `app/pages/api/config-remove.ts`
-- `app/pages/api/user/` - User preferences
-
-### Pages
-- `app/pages/v/[chartId].tsx` - Original published chart view
-- `app/pages/embed/[chartId].tsx` - Original embed page
-- `app/pages/preview.tsx` - Chart preview
-- `app/pages/preview_post.tsx` - Chart preview (POST)
-- `app/pages/_charts.tsx` - Charts helper
-- `app/pages/_pivot.tsx` - Pivot table
-- `app/pages/_preview.tsx` - Preview helper
-- `app/pages/_preview_post.tsx` - Preview POST helper
-- `app/pages/profile.tsx` - User profile
-
-### Other
-- `app/embed-templates/` - Embed template files
-- `embed/` - Embed script source
-- `e2e/` - End-to-end tests
-
-## What Remains
-
-### Active Pages
+### All Pages
 - `/` - Homepage (static MDX)
 - `/[slug]` - Legal pages (static MDX)
-- `/browse/**` - Dataset browser
+- `/browse/**` - Dataset browser (fully functional)
 - `/create/grafana` - Grafana redirect
 - `/embed/grafana/[dashboardId]` - Grafana embed
 - `/dashboards` - Dashboard manager
@@ -127,28 +96,16 @@ The following directories/files were moved to reduce codebase size:
 - `/docs` - Documentation catalog
 - `/api/auth/*` - Authentication
 - `/api/graphql` - Browse queries
+- All original pages (preview, profile, etc.)
 
 ### Core Functionality
 - Dataset discovery and browsing
+- Dataset description and preview
 - SPARQL/RDF data access
 - Grafana integration for visualization
 - Authentication via ADFS
 - Internationalization (4 languages)
 - Static content pages
-
-## Future Work
-
-### Recommended Cleanup (Phase 2)
-The following can be removed after verifying browse functionality:
-- `app/configurator/` - Most components (currently kept for browse dependencies)
-- D3.js packages from package.json
-- Database packages (Prisma)
-- Map packages (deck.gl, maplibre-gl)
-
-### Statistics Page
-Update `/statistics` to use SPARQL-only statistics:
-- Remove database queries
-- Add cube/dataset statistics from SPARQL
 
 ## Environment Variables
 
@@ -194,3 +151,60 @@ yarn dev
 6. Edit panels and customize SPARQL queries
 7. Use Share > Export to save dashboard JSON
 8. Go to `/dashboards` to save the export for later
+
+## Future Work: Code Removal (Phase 2)
+
+**IMPORTANT**: The following is optional cleanup that should only be done after thorough testing and with extreme care. The browse functionality depends on many shared utilities.
+
+### Why Previous Removal Failed
+
+The initial attempt to remove the `app/charts/` directory failed because many non-chart components depend on shared utilities:
+
+1. **Shared utilities used by browse**:
+   - `@/charts/shared/use-size.tsx` - Used for resize events
+   - `@/charts/shared/chart-helpers.tsx` - Used for label formatting
+   - Many other helpers used across components
+
+2. **Deep dependencies**:
+   - `app/browse/ui/` components import from `@/charts/shared/`
+   - `app/components/` depend on chart helpers
+   - `app/configurator/` depends on chart state management
+   - `app/stores/` depend on chart configuration types
+
+### Safe Removal Strategy (If Needed)
+
+If codebase reduction is truly needed in the future:
+
+1. **Do NOT remove entire directories** - The `app/charts/` directory contains shared utilities that are used throughout the app, not just for rendering charts.
+
+2. **Identify actual D3.js rendering code** - Only the SVG/Canvas rendering code can potentially be removed:
+   - `app/charts/area/areas.tsx` - D3 area rendering
+   - `app/charts/bar/bars.tsx` - D3 bar rendering
+   - `app/charts/line/lines.tsx` - D3 line rendering
+   - etc.
+
+3. **Keep all shared utilities**:
+   - `app/charts/shared/` - Contains helpers used by browse
+   - `app/charts/index.ts` - Type definitions
+   - `app/charts/chart-config-ui-options.ts` - Configuration types
+
+4. **Test extensively** - Before any removal, ensure:
+   - `/browse` page loads and works
+   - Dataset selection and preview work
+   - Create visualization button works
+   - All API endpoints work
+
+5. **Package.json cleanup** - Only after successful code removal:
+   - D3.js packages (d3, d3-array, d3-scale, etc.)
+   - Map packages (deck.gl, maplibre-gl)
+   - These should NOT be removed until rendering code is removed
+
+### Recommended Approach
+
+For now, the safest approach is to:
+1. **Keep the full codebase working** - Current state
+2. **Use Grafana for new visualizations** - Users create charts in Grafana
+3. **Let unused code naturally deprecate** - Over time, as Grafana becomes the primary visualization tool
+4. **Revisit removal later** - Once the system is stable and well-tested
+
+The current implementation successfully achieves the goal of delegating visualization to Grafana while keeping the browse functionality intact.

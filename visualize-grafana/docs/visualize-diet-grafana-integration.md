@@ -39,11 +39,18 @@ The dashboards use a single consolidated HTML panel per page where possible to a
 For dynamic content (SPARQL query results), transparent table panels are positioned alongside the static HTML structure. The table panels have headers hidden and minimal styling to blend seamlessly.
 
 ### Key Styling Decisions
-1. **Consolidated panels**: Reduced from 10+ panels to fewer, larger panels
+1. **Inline styles only**: Grafana sanitizes `<style>` tags, so all CSS must be inline
 2. **Transparent backgrounds**: All panels use `transparent: true`
-3. **CSS namespacing**: All styles prefixed with `.viz-` to avoid conflicts
-4. **Responsive layout**: Flexbox-based sidebar and content layout
-5. **Hover states**: Cards lift and add shadow on hover
+3. **Multiple panels for layout**: Use Grafana's grid system for sidebar/content positioning
+4. **System font stack**: `-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif`
+5. **Swiss Federal colors**: Blue accent (#1565c0), red coat of arms (#ff0000)
+
+### Grafana HTML Sanitization
+**Important**: Grafana sanitizes HTML content in text panels for security. This means:
+- `<style>` tags are stripped or displayed as raw text
+- `<script>` tags are not allowed
+- Only inline `style` attributes work for styling
+- Some CSS properties like `clip-path` may work in inline styles
 
 ## Current State
 

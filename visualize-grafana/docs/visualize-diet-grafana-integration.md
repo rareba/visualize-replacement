@@ -82,10 +82,15 @@ The visualize frontend is fully functional:
 When a user clicks "Create visualization" on a dataset, they are redirected to:
 `/create/new?cube=<cubeIri>`
 
-This page detects the `cube` parameter and redirects to Grafana:
-`http://localhost:3003/d/lindas-template?var-cube=<encodedCubeIri>`
+This page generates SPARQL queries and redirects to Grafana with pre-built queries:
+`http://localhost:3003/d/lindas-template?var-cube=<cubeIri>&var-query=<sparqlQuery>&var-dimensionsQuery=<dimensionsQuery>`
 
-The Grafana template dashboard automatically loads with the cube IRI set, allowing users to immediately query and visualize the dataset.
+The redirect includes:
+- **var-cube**: The cube IRI for reference
+- **var-query**: Pre-built SPARQL query that fetches all observations with proper column pivoting
+- **var-dimensionsQuery**: Pre-built SPARQL query for dimension metadata
+
+The Grafana template dashboard loads with the data ready for immediate visualization - no additional configuration needed.
 
 ### `/dashboards`
 Dashboard manager for saving/loading Grafana dashboard JSON exports:
@@ -179,22 +184,85 @@ The SPARQL query fetches:
 Location: `grafana/provisioning/dashboards/lindas-template.json`
 
 Features:
-- `cube` variable for cube IRI (passed via URL from visualize)
-- Pre-configured panels that work with ANY LINDAS cube:
-  - **Dataset Observations** - Full tabular view with ALL columns automatically detected
-    - Uses SPARQL to query all observation properties
+- **Variables** (passed via URL from web app):
+  - `cube` - The cube IRI for reference
+  - `query` - Pre-built SPARQL query for observations (hidden)
+  - `dimensionsQuery` - Pre-built SPARQL query for dimensions (hidden)
+
+- **Dashboard Datasource Pattern**:
+  The template uses Grafana's Dashboard datasource to share data between panels:
+  - **Panel 100 (Source Data)**: Executes the SPARQL query once and displays tabular data
+  - **Other panels**: Reference Panel 100 via `-- Dashboard --` datasource
+  - This avoids duplicate queries and provides a single source of truth
+
+- **Pre-configured panels**:
+  - **Dataset - Source Data (ID 100)** - Full tabular view with ALL columns automatically detected
+    - Uses `${query}` variable for the SPARQL query
     - Grafana's `groupingToMatrix` transformation pivots data into proper columns
     - No row limit - shows all available data
+  - **Bar Chart** - Example visualization using Dashboard datasource
+    - References Panel 100's data without re-running queries
+    - Users can configure which columns to aggregate/display
   - **Available Dimensions** - Column names with data types and predicate URIs
-    - Useful for building custom SPARQL queries
-  - **How to Create Charts** - Instructions with example SPARQL query patterns
+    - Uses `${dimensionsQuery}` variable
+    - Useful for understanding the data structure
+  - **How to Use This Dashboard** - Instructions for creating visualizations
 
-The Dataset Observations table uses a dynamic query that:
+### SPARQL Query Generation
+
+The web app generates SPARQL queries in `app/utils/grafana-sparql.ts`:
+
+**Observations Query** (`generateCubeTableQuery`):
+```sparql
+PREFIX cube: <https://cube.link/>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?obs ?column ?value WHERE {
+  <cubeIri> cube:observationSet/cube:observation ?obs .
+  ?obs ?property ?rawValue .
+  FILTER(?property != rdf:type)
+  FILTER(?property != cube:observedBy)
+
+  OPTIONAL { ?rawValue schema:name ?label . FILTER(LANG(?label) = "en" || LANG(?label) = "") }
+  BIND(COALESCE(?label, IF(isLiteral(?rawValue), STR(?rawValue), REPLACE(STR(?rawValue), "^.*/", ""))) AS ?value)
+  BIND(REPLACE(STR(?property), "^.*/", "") AS ?column)
+}
+ORDER BY ?obs ?column
+```
+
+This query:
 1. Fetches all properties from each observation
 2. Resolves labels for IRI values (preferring English)
-3. Automatically pivots into columns using Grafana transformations
+3. Returns data in `?obs ?column ?value` format for pivoting
 
-This provides ready-to-use tabular data for creating charts immediately.
+**Dimensions Query** (`generateCubeDimensionsQuery`):
+```sparql
+PREFIX cube: <https://cube.link/>
+PREFIX sh: <http://www.w3.org/ns/shacl#>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?column_name ?data_type ?predicate_uri WHERE {
+  <cubeIri> cube:observationConstraint/sh:property ?prop .
+  ?prop sh:path ?dimension .
+  OPTIONAL { ?prop schema:name ?label . }
+  OPTIONAL { ?prop sh:datatype ?dt . }
+}
+```
+
+This provides metadata about available columns for users building custom queries.
+
+### Creating New Visualizations
+
+Users can create charts using the pre-loaded data:
+
+1. Click **Add** > **Visualization**
+2. Select **-- Dashboard --** as the data source
+3. Choose **Panel: Dataset - Source Data** to use the pre-loaded data
+4. Use **Transformations** to filter, aggregate, or reshape the data:
+   - **Group by**: Aggregate values by category
+   - **Filter by value**: Focus on specific data
+   - **Reduce**: Calculate statistics
+5. Configure visualization settings
 
 ### Authentication
 

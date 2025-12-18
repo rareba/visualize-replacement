@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { Box, Typography, Button, Paper, CircularProgress } from "@mui/material";
 
-import { generateGrafanaDashboardUrl } from "@/utils/grafana-sparql";
+import { generateGrafanaDashboardWithQuery } from "@/utils/grafana-sparql";
 
 type PageProps = {
     grafanaUrl: string;
@@ -18,14 +18,19 @@ type PageProps = {
  * Grafana Dashboard Redirect Page
  *
  * This page redirects users to the Grafana template dashboard
- * with the selected cube IRI pre-loaded as a variable.
+ * with pre-built SPARQL queries for immediate data access.
  *
  * URL: /create/grafana?cube=<cubeIri>
  *
- * The template dashboard includes:
- * - A table panel showing raw observations
- * - Template panels for time series, bar charts, and pie charts
- * - Instructions for customizing queries and exporting dashboards
+ * The redirect includes:
+ * - var-cube: The cube IRI
+ * - var-query: Pre-built SPARQL query for observations (pivoted to columns)
+ * - var-dimensionsQuery: Pre-built SPARQL query for dimension metadata
+ *
+ * The template dashboard displays:
+ * - Table with all observations (columns auto-detected)
+ * - Dimensions reference table
+ * - Instructions for creating custom charts
  */
 export const getServerSideProps: GetServerSideProps<PageProps> = async ({
     query,
@@ -38,8 +43,9 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async ({
         process.env.NEXT_PUBLIC_GRAFANA_DASHBOARD_UID || "lindas-template";
 
     // If we have a cube IRI, redirect directly to Grafana template dashboard
+    // The new function passes pre-built SPARQL queries for immediate data access
     if (cubeIri) {
-        const redirectUrl = generateGrafanaDashboardUrl(
+        const redirectUrl = generateGrafanaDashboardWithQuery(
             grafanaUrl,
             dashboardUid,
             cubeIri

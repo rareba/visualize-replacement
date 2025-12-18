@@ -4,7 +4,7 @@ import Head from "next/head";
 import { AppLayout } from "@/components/layout";
 import { Configurator, ConfiguratorStateProvider } from "@/configurator";
 import { AddNewDatasetPanel } from "@/configurator/components/add-new-dataset-panel";
-import { generateGrafanaDashboardUrl } from "@/utils/grafana-sparql";
+import { generateGrafanaDashboardWithQuery } from "@/utils/grafana-sparql";
 
 type PageProps = {
   locale: string;
@@ -28,7 +28,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async ({
       const dashboardUid =
         process.env.NEXT_PUBLIC_GRAFANA_DASHBOARD_UID || "lindas-template";
 
-      const redirectUrl = generateGrafanaDashboardUrl(
+      const redirectUrl = generateGrafanaDashboardWithQuery(
         grafanaUrl,
         dashboardUid,
         cubeIri

@@ -1,7 +1,7 @@
 {
   "uid": "lindas-template",
   "title": "LINDAS Dataset Explorer",
-  "description": "Template dashboard for exploring LINDAS RDF datasets via SPARQL. Select a cube and create visualizations.",
+  "description": "Template dashboard for exploring LINDAS RDF datasets. Data is pre-loaded from the web app.",
   "tags": ["lindas", "sparql", "template"],
   "editable": true,
   "schemaVersion": 39,
@@ -13,9 +13,27 @@
         "name": "cube",
         "type": "textbox",
         "label": "Cube IRI",
-        "description": "The IRI of the LINDAS cube to query",
+        "description": "The IRI of the LINDAS cube",
         "current": { "text": "", "value": "" },
         "hide": 0,
+        "skipUrlSync": false
+      },
+      {
+        "name": "query",
+        "type": "textbox",
+        "label": "Data Query",
+        "description": "SPARQL query for observations (passed from web app)",
+        "current": { "text": "", "value": "" },
+        "hide": 2,
+        "skipUrlSync": false
+      },
+      {
+        "name": "dimensionsQuery",
+        "type": "textbox",
+        "label": "Dimensions Query",
+        "description": "SPARQL query for dimension metadata (passed from web app)",
+        "current": { "text": "", "value": "" },
+        "hide": 2,
         "skipUrlSync": false
       }
     ]
@@ -35,10 +53,10 @@
     },
     {
       "type": "table",
-      "title": "Dataset Observations",
-      "description": "All observations from the cube with their properties. Click Edit to modify the query or add filters.",
-      "gridPos": { "h": 16, "w": 24, "x": 0, "y": 2 },
-      "id": 10,
+      "title": "Dataset - Source Data",
+      "description": "This is the master data table. Other panels can reference this data using the Dashboard datasource.",
+      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 2 },
+      "id": 100,
       "datasource": {
         "type": "flandersmake-sparql-datasource",
         "uid": "lindas-datasource"
@@ -46,7 +64,7 @@
       "targets": [
         {
           "refId": "A",
-          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\n\nSELECT ?obs ?column ?value WHERE {\n  <${cube}> cube:observationSet/cube:observation ?obs .\n  ?obs ?property ?rawValue .\n  FILTER(?property != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n  FILTER(?property != cube:observedBy)\n  \n  OPTIONAL { ?rawValue schema:name ?label . FILTER(LANG(?label) = \"en\" || LANG(?label) = \"\") }\n  BIND(COALESCE(?label, IF(isLiteral(?rawValue), STR(?rawValue), REPLACE(STR(?rawValue), \"^.*/\", \"\"))) AS ?value)\n  BIND(REPLACE(STR(?property), \"^.*/\", \"\") AS ?column)\n}\nORDER BY ?obs ?column"
+          "queryText": "${query}"
         }
       ],
       "transformations": [
@@ -76,10 +94,53 @@
       }
     },
     {
+      "type": "barchart",
+      "title": "Bar Chart (uses Dashboard data)",
+      "description": "This chart uses data from the Source Data table above. Edit to customize which columns to display.",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 16 },
+      "id": 101,
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "panelId": 100
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {}
+          }
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "barRadius": 0.1,
+        "xTickLabelRotation": 0,
+        "showValue": "auto",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.9,
+        "tooltip": { "mode": "single" },
+        "legend": { "showLegend": false }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      }
+    },
+    {
       "type": "table",
       "title": "Available Dimensions",
       "description": "Column names and their predicate URIs for building custom queries.",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 16 },
       "id": 7,
       "datasource": {
         "type": "flandersmake-sparql-datasource",
@@ -88,7 +149,7 @@
       "targets": [
         {
           "refId": "A",
-          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX schema: <http://schema.org/>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nSELECT \n  (COALESCE(?label, REPLACE(STR(?dimension), \"^.*/\", \"\")) AS ?column_name)\n  (IF(BOUND(?dt), REPLACE(STR(?dt), \"^.*#\", \"\"), \"IRI/text\") AS ?data_type)\n  (STR(?dimension) AS ?predicate_uri)\nWHERE {\n  <${cube}> cube:observationConstraint/sh:property ?prop .\n  ?prop sh:path ?dimension .\n  OPTIONAL { ?prop schema:name ?label . FILTER(LANG(?label) = \"en\" || LANG(?label) = \"\") }\n  OPTIONAL { ?prop sh:datatype ?dt . }\n  FILTER(?dimension != cube:observedBy)\n  FILTER(?dimension != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n}\nORDER BY ?column_name"
+          "queryText": "${dimensionsQuery}"
         }
       ],
       "fieldConfig": {
@@ -111,12 +172,12 @@
     },
     {
       "type": "text",
-      "title": "How to Create Charts",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
+      "title": "How to Use This Dashboard",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 26 },
       "id": 20,
       "options": {
         "mode": "markdown",
-        "content": "## Create Your Visualization\n\n1. **Add a new panel**: Click \"Add\" button in the top menu\n\n2. **Select visualization**: Choose Bar chart, Time series, Pie chart, etc.\n\n3. **Write a SPARQL query** using predicates from the dimensions table:\n```sparql\nPREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nSELECT ?label (SUM(?val) AS ?total)\nWHERE {\n  <${cube}> cube:observationSet/cube:observation ?obs .\n  ?obs <DIMENSION_URI> ?dim .\n  ?obs <VALUE_URI> ?val .\n  ?dim schema:name ?label .\n}\nGROUP BY ?label\n```\n\n4. **Save**: Use Share > Export to save as JSON"
+        "content": "## Working with the Data\n\n**The Source Data table (panel ID 100) contains all observations from the cube.** Other panels can reference this data without re-running the query.\n\n### To create a new visualization:\n1. Click **Add** > **Visualization**\n2. Select **-- Dashboard --** as the data source\n3. Choose **Panel: Dataset - Source Data** to use the pre-loaded data\n4. Use **Transformations** to filter, aggregate, or reshape the data\n5. Configure your visualization settings\n\n### Tips:\n- Use **Group by** transformation to aggregate data for charts\n- Use **Filter by value** to focus on specific data\n- Use **Reduce** to calculate statistics\n- The **Available Dimensions** table shows all column names and types"
       }
     }
   ],

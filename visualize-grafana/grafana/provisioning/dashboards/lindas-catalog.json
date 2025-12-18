@@ -1,107 +1,24 @@
 {
   "uid": "lindas-catalog",
-  "title": "LINDAS Dataset Catalog",
-  "description": "Curated catalog of Swiss open data cubes. Browse by category and click to visualize.",
+  "title": "Swiss Open Government Data",
+  "description": "Browse LINDAS datasets - Swiss Federal Design",
   "tags": ["lindas", "catalog", "home"],
   "editable": true,
   "schemaVersion": 39,
   "style": "light",
   "timezone": "browser",
-  "templating": {
-    "list": []
-  },
-  "annotations": {
-    "list": []
-  },
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
   "panels": [
     {
       "type": "text",
       "title": "",
-      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 0 },
+      "gridPos": { "h": 24, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<div style=\"text-align: center; padding: 20px;\">\n  <h1 style=\"font-size: 2.5em; margin-bottom: 10px;\">LINDAS Dataset Catalog</h1>\n  <p style=\"font-size: 1.2em; color: #666;\">Swiss Linked Data Service - Open Government Data</p>\n  <p>Select a dataset below to explore and create visualizations</p>\n</div>",
-        "code": { "language": "html", "showLineNumbers": false, "showMiniMap": false }
-      }
-    },
-    {
-      "type": "text",
-      "title": "Environment & Climate",
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 5 },
-      "id": 10,
-      "options": {
-        "mode": "markdown",
-        "content": "### Water Quality\n\n**[Bathing Water Quality](/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/ubd01041prod/6)**\nAssessment of bathing waters based on hygienic quality indicators.\n*Federal Office for the Environment*\n\n---\n\n### Air Quality\n\n**[Air Quality Measurements](/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/mf008/4)**\nMeasurement stations tracking air quality across Switzerland.\n*Federal Office for the Environment*\n\n---\n\n### Climate\n\n**[Climate Indicators](/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/climate)**\nSwiss climate change indicators and measurements.\n*Federal Office for the Environment*",
-        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
-      }
-    },
-    {
-      "type": "text",
-      "title": "Energy & Infrastructure",
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 5 },
-      "id": 11,
-      "options": {
-        "mode": "markdown",
-        "content": "### Electricity\n\n**[Electricity Indicators](/d/lindas-description?var-cube=https://energy.ld.admin.ch/elcom/sunshine-median)**\nKey efficiency indicators including price trends.\n*Federal Electricity Commission*\n\n---\n\n**[Indicators by Category](/d/lindas-description?var-cube=https://energy.ld.admin.ch/elcom/sunshine-cat)**\nElectricity indicators organized by category.\n*Federal Electricity Commission*\n\n---\n\n### Energy Production\n\n**[Renewable Energy](/d/lindas-description?var-cube=https://energy.ld.admin.ch/sfoe/renewable)**\nRenewable energy production statistics.\n*Swiss Federal Office of Energy*",
-        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
-      }
-    },
-    {
-      "type": "text",
-      "title": "Demographics & Society",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 5 },
-      "id": 12,
-      "options": {
-        "mode": "markdown",
-        "content": "### Population\n\n**[Population Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/bfs/population)**\nSwiss population data by canton, age, and gender.\n*Federal Statistical Office*\n\n---\n\n### Health\n\n**[Health Indicators](/d/lindas-description?var-cube=https://ld.admin.ch/bfs/health)**\nPublic health statistics and indicators.\n*Federal Statistical Office*\n\n---\n\n### Education\n\n**[Education Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/bfs/education)**\nEducation levels and enrollment data.\n*Federal Statistical Office*",
-        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
-      }
-    },
-    {
-      "type": "text",
-      "title": "Economy & Finance",
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 13 },
-      "id": 13,
-      "options": {
-        "mode": "markdown",
-        "content": "### Economic Indicators\n\n**[GDP Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/seco/gdp)**\nGross domestic product and economic growth.\n*State Secretariat for Economic Affairs*\n\n---\n\n### Employment\n\n**[Labor Market](/d/lindas-description?var-cube=https://ld.admin.ch/seco/employment)**\nEmployment and unemployment statistics.\n*State Secretariat for Economic Affairs*\n\n---\n\n### Trade\n\n**[Foreign Trade](/d/lindas-description?var-cube=https://ld.admin.ch/bazg/trade)**\nImport and export statistics.\n*Federal Office for Customs*",
-        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
-      }
-    },
-    {
-      "type": "text",
-      "title": "Transport & Mobility",
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 13 },
-      "id": 14,
-      "options": {
-        "mode": "markdown",
-        "content": "### Rail Transport\n\n**[SBB Punctuality](/d/lindas-description?var-cube=https://ld.admin.ch/sbb/punctuality)**\nTrain punctuality and performance data.\n*Swiss Federal Railways*\n\n---\n\n### Road Traffic\n\n**[Traffic Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/astra/traffic)**\nRoad traffic volumes and accidents.\n*Federal Roads Office*\n\n---\n\n### Aviation\n\n**[Airport Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/bazl/aviation)**\nPassenger and flight statistics.\n*Federal Office of Civil Aviation*",
-        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
-      }
-    },
-    {
-      "type": "text",
-      "title": "Agriculture & Land Use",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 13 },
-      "id": 15,
-      "options": {
-        "mode": "markdown",
-        "content": "### Agriculture\n\n**[Agricultural Production](/d/lindas-description?var-cube=https://ld.admin.ch/blw/agriculture)**\nCrop and livestock production data.\n*Federal Office for Agriculture*\n\n---\n\n### Forestry\n\n**[Forest Statistics](/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/forest)**\nForest coverage and timber production.\n*Federal Office for the Environment*\n\n---\n\n### Land Use\n\n**[Land Use Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/are/landuse)**\nLand use categories and changes.\n*Federal Office for Spatial Development*",
-        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
-      }
-    },
-    {
-      "type": "text",
-      "title": "",
-      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 21 },
-      "id": 20,
-      "transparent": true,
-      "options": {
-        "mode": "markdown",
-        "content": "---\n\n**Can't find what you're looking for?** [Browse all LINDAS cubes](/d/lindas-browser) | [Search LINDAS directly](https://lindas.admin.ch)\n\n*This catalog shows a curated selection of datasets. More datasets are available in the full LINDAS knowledge graph.*",
-        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+        "content": "<style>\n  .viz-catalog * { box-sizing: border-box; margin: 0; padding: 0; }\n  .viz-catalog { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f5f5f5; min-height: 100vh; }\n  .viz-header { display: flex; align-items: center; padding: 12px 24px; background: white; border-bottom: 1px solid #d5d5d5; height: 56px; }\n  .viz-logo { display: flex; align-items: center; gap: 12px; }\n  .viz-coat { width: 20px; height: 24px; position: relative; }\n  .viz-coat-shield { width: 20px; height: 24px; background: #ff0000; clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%); display: flex; align-items: center; justify-content: center; }\n  .viz-coat-cross { color: white; font-weight: bold; font-size: 14px; margin-top: -2px; }\n  .viz-lang { font-size: 10px; line-height: 1.35; color: #1a1a1a; }\n  .viz-brand { margin-left: 24px; font-weight: 600; font-size: 15px; color: #1a1a1a; }\n  .viz-hero { background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 50%, #3d5a7f 100%); padding: 48px 24px; color: white; }\n  .viz-hero h1 { font-size: 32px; font-weight: 300; margin-bottom: 16px; letter-spacing: -0.5px; }\n  .viz-hero p { font-size: 16px; opacity: 0.9; max-width: 680px; line-height: 1.6; margin-bottom: 24px; }\n  .viz-search { background: white; border-radius: 4px; padding: 14px 16px; width: 100%; max-width: 560px; display: flex; align-items: center; gap: 12px; }\n  .viz-search input { border: none; outline: none; font-size: 15px; flex: 1; color: #333; }\n  .viz-search input::placeholder { color: #999; }\n  .viz-search-icon { color: #666; font-size: 18px; }\n  .viz-main { display: flex; padding: 0 24px; gap: 32px; margin-top: -1px; }\n  .viz-sidebar { width: 240px; flex-shrink: 0; padding-top: 24px; }\n  .viz-section-title { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 12px; padding-left: 12px; border-left: 3px solid #2c5282; }\n  .viz-filter-list { margin-bottom: 32px; }\n  .viz-filter-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e8e8e8; cursor: pointer; font-size: 13px; color: #333; }\n  .viz-filter-item:hover { color: #2c5282; }\n  .viz-filter-count { background: #e3f2fd; color: #1565c0; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }\n  .viz-content { flex: 1; padding-top: 24px; padding-bottom: 48px; }\n  .viz-results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 4px; }\n  .viz-results-title { font-size: 14px; color: #666; }\n  .viz-results-title strong { color: #1a1a1a; }\n  .viz-sort { font-size: 13px; color: #666; }\n  .viz-card { background: white; border: 1px solid #e0e0e0; border-radius: 6px; padding: 20px 24px; margin-bottom: 16px; transition: all 0.2s ease; cursor: pointer; text-decoration: none; display: block; }\n  .viz-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #ccc; transform: translateY(-1px); }\n  .viz-card-date { font-size: 12px; color: #888; margin-bottom: 8px; }\n  .viz-card-title { font-size: 17px; font-weight: 500; color: #1565c0; margin-bottom: 10px; line-height: 1.4; }\n  .viz-card-desc { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }\n  .viz-card-tags { display: flex; gap: 8px; flex-wrap: wrap; }\n  .viz-tag { padding: 5px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; }\n  .viz-tag-cat { background: #e3f2fd; color: #1565c0; }\n  .viz-tag-org { background: #f5f5f5; color: #666; }\n  .viz-tag-energy { background: #fff3e0; color: #e65100; }\n  .viz-browse-all { background: white; border: 2px dashed #ccc; border-radius: 6px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s ease; display: block; text-decoration: none; }\n  .viz-browse-all:hover { border-color: #1565c0; background: #fafafa; }\n  .viz-browse-all h3 { font-size: 16px; font-weight: 500; color: #1565c0; margin-bottom: 8px; }\n  .viz-browse-all p { font-size: 14px; color: #666; }\n</style>\n<div class=\"viz-catalog\">\n  <div class=\"viz-header\">\n    <div class=\"viz-logo\">\n      <div class=\"viz-coat\">\n        <div class=\"viz-coat-shield\"><span class=\"viz-coat-cross\">+</span></div>\n      </div>\n      <div class=\"viz-lang\">\n        <div>Schweizerische Eidgenossenschaft</div>\n        <div>Confederation suisse</div>\n        <div>Confederazione Svizzera</div>\n        <div>Confederaziun svizra</div>\n      </div>\n    </div>\n    <div class=\"viz-brand\">visualize.admin.ch</div>\n  </div>\n  \n  <div class=\"viz-hero\">\n    <h1>Swiss Open Government Data</h1>\n    <p>Explore datasets from the LINDAS Linked Data Service. Filter by category or organization, or search by keyword. Click on a dataset for details and to start creating visualizations.</p>\n    <div class=\"viz-search\">\n      <span class=\"viz-search-icon\">&#128269;</span>\n      <input type=\"text\" placeholder=\"Search by name, organization, or keyword...\" disabled />\n    </div>\n  </div>\n  \n  <div class=\"viz-main\">\n    <div class=\"viz-sidebar\">\n      <div class=\"viz-section-title\">Categories</div>\n      <div class=\"viz-filter-list\">\n        <div class=\"viz-filter-item\"><span>Territory and environment</span><span class=\"viz-filter-count\">42</span></div>\n        <div class=\"viz-filter-item\"><span>Agriculture, forestry</span><span class=\"viz-filter-count\">86</span></div>\n        <div class=\"viz-filter-item\"><span>National economy</span><span class=\"viz-filter-count\">52</span></div>\n        <div class=\"viz-filter-item\"><span>Energy</span><span class=\"viz-filter-count\">28</span></div>\n        <div class=\"viz-filter-item\"><span>Health</span><span class=\"viz-filter-count\">24</span></div>\n        <div class=\"viz-filter-item\"><span>Administration</span><span class=\"viz-filter-count\">56</span></div>\n        <div class=\"viz-filter-item\"><span>Mobility and Transport</span><span class=\"viz-filter-count\">35</span></div>\n      </div>\n      \n      <div class=\"viz-section-title\">Organizations</div>\n      <div class=\"viz-filter-list\">\n        <div class=\"viz-filter-item\"><span>Federal Office for the Environment</span><span class=\"viz-filter-count\">48</span></div>\n        <div class=\"viz-filter-item\"><span>Federal Office for Agriculture</span><span class=\"viz-filter-count\">49</span></div>\n        <div class=\"viz-filter-item\"><span>Federal Statistical Office</span><span class=\"viz-filter-count\">32</span></div>\n        <div class=\"viz-filter-item\"><span>Federal Electricity Commission</span><span class=\"viz-filter-count\">3</span></div>\n      </div>\n    </div>\n    \n    <div class=\"viz-content\">\n      <div class=\"viz-results-header\">\n        <span class=\"viz-results-title\"><strong>Featured datasets</strong> - Click to explore and visualize</span>\n        <span class=\"viz-sort\">Sort by: Newest</span>\n      </div>\n      \n      <a href=\"/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/ubd01041prod/6\" class=\"viz-card\">\n        <div class=\"viz-card-date\">08.12.2025</div>\n        <div class=\"viz-card-title\">Bathing Water Quality</div>\n        <div class=\"viz-card-desc\">The assessment of bathing waters is made on the basis of hygienic quality indicators. These pollutants typically arise from wastewater and agricultural runoff.</div>\n        <div class=\"viz-card-tags\">\n          <span class=\"viz-tag viz-tag-cat\">Environment</span>\n          <span class=\"viz-tag viz-tag-org\">Federal Office for the Environment FOEN</span>\n        </div>\n      </a>\n      \n      <a href=\"/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/mf008/4\" class=\"viz-card\">\n        <div class=\"viz-card-date\">08.12.2025</div>\n        <div class=\"viz-card-title\">Fine particulate-matter concentration along the A2 and A13</div>\n        <div class=\"viz-card-desc\">The survey on air quality along transit routes through Switzerland assesses traffic-related air pollutants that are relevant to health. These pollutants typically arise from combustion and abrasion processes in motorised transport.</div>\n        <div class=\"viz-card-tags\">\n          <span class=\"viz-tag viz-tag-cat\">Environment</span>\n          <span class=\"viz-tag viz-tag-org\">Federal Office for the Environment FOEN</span>\n        </div>\n      </a>\n      \n      <a href=\"/d/lindas-description?var-cube=https://energy.ld.admin.ch/elcom/sunshine-median\" class=\"viz-card\">\n        <div class=\"viz-card-date\">18.12.2025</div>\n        <div class=\"viz-card-title\">Median of Electricity Indicators</div>\n        <div class=\"viz-card-desc\">Key efficiency indicators for electricity including price trends, consumption patterns, and distribution metrics across Swiss municipalities.</div>\n        <div class=\"viz-card-tags\">\n          <span class=\"viz-tag viz-tag-energy\">Energy</span>\n          <span class=\"viz-tag viz-tag-org\">Federal Electricity Commission ElCom</span>\n        </div>\n      </a>\n      \n      <a href=\"/d/lindas-browser\" class=\"viz-browse-all\">\n        <h3>Browse all datasets</h3>\n        <p>Search and filter through 236 available datasets in LINDAS</p>\n      </a>\n    </div>\n  </div>\n</div>"
       }
     }
   ],

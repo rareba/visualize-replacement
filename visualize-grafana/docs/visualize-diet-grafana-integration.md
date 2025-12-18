@@ -17,9 +17,33 @@ The original visualize application was a full-fledged data visualization platfor
 ### Option B: Grafana-Only (Recommended for simplicity)
 - **Grafana**: Everything - catalog, descriptions, visualization
 - **Pro**: Single application, simple deployment
-- **Con**: Less polished browse UI (table vs cards)
+- **Con**: Requires custom HTML/CSS styling to match visualize design
 
 This document covers both options.
+
+## Swiss Federal Design Implementation
+
+The Grafana dashboards have been styled to match the Swiss Federal design system (Oblique framework) used by visualize.admin.ch. Key design elements include:
+
+### Visual Components
+- **Swiss Coat of Arms**: CSS-based shield with cross using clip-path
+- **Header**: Federal branding with four-language text
+- **Color Palette**: Blue accent (#1565c0), neutral grays, white backgrounds
+- **Typography**: System font stack (-apple-system, BlinkMacSystemFont, Segoe UI, Roboto)
+- **Cards**: Subtle borders, hover effects with shadow and transform
+- **Tags**: Rounded pills with category-specific colors
+
+### Implementation Approach
+The dashboards use a single consolidated HTML panel per page where possible to avoid Grafana's panel padding creating visual gaps. Inline CSS with namespaced classes (`.viz-*`) prevents style conflicts.
+
+For dynamic content (SPARQL query results), transparent table panels are positioned alongside the static HTML structure. The table panels have headers hidden and minimal styling to blend seamlessly.
+
+### Key Styling Decisions
+1. **Consolidated panels**: Reduced from 10+ panels to fewer, larger panels
+2. **Transparent backgrounds**: All panels use `transparent: true`
+3. **CSS namespacing**: All styles prefixed with `.viz-` to avoid conflicts
+4. **Responsive layout**: Flexbox-based sidebar and content layout
+5. **Hover states**: Cards lift and add shadow on hover
 
 ## Current State
 

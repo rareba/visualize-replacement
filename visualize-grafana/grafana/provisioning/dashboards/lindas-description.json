@@ -1,0 +1,247 @@
+{
+  "uid": "lindas-description",
+  "title": "Cube Description",
+  "description": "View cube metadata and dimensions before creating visualizations.",
+  "tags": ["lindas", "sparql", "description"],
+  "editable": true,
+  "schemaVersion": 39,
+  "style": "light",
+  "timezone": "browser",
+  "templating": {
+    "list": [
+      {
+        "name": "cube",
+        "type": "textbox",
+        "label": "Cube IRI",
+        "description": "The IRI of the cube to display",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "hide": 0,
+        "skipUrlSync": false
+      },
+      {
+        "name": "language",
+        "type": "custom",
+        "label": "Language",
+        "description": "Display language",
+        "current": {
+          "selected": true,
+          "text": "English",
+          "value": "en"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [
+          { "selected": true, "text": "English", "value": "en" },
+          { "selected": false, "text": "Deutsch", "value": "de" },
+          { "selected": false, "text": "Francais", "value": "fr" },
+          { "selected": false, "text": "Italiano", "value": "it" }
+        ],
+        "query": "en,de,fr,it",
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "Navigation",
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
+      "id": 10,
+      "options": {
+        "mode": "markdown",
+        "content": "[< Back to Browser](/d/lindas-browser) | **Cube Description** | [Create Visualization >](/d/lindas-template?var-cube=${cube:raw})",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Cube Metadata",
+      "description": "Basic information about this cube",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 2 },
+      "id": 1,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\n\nSELECT ?property ?value\nWHERE {\n  {\n    SELECT (\"Name\" AS ?property) ?value WHERE {\n      <${cube}> schema:name ?value .\n      FILTER(LANG(?value) = \"${language}\" || LANG(?value) = \"\")\n    } LIMIT 1\n  }\n  UNION\n  {\n    SELECT (\"Description\" AS ?property) ?value WHERE {\n      <${cube}> schema:description ?value .\n      FILTER(LANG(?value) = \"${language}\" || LANG(?value) = \"\")\n    } LIMIT 1\n  }\n  UNION\n  {\n    SELECT (\"Creator\" AS ?property) ?value WHERE {\n      <${cube}> dcterms:creator/schema:name ?value .\n    } LIMIT 1\n  }\n  UNION\n  {\n    SELECT (\"Date Modified\" AS ?property) (STR(?date) AS ?value) WHERE {\n      <${cube}> schema:dateModified ?date .\n    } LIMIT 1\n  }\n  UNION\n  {\n    SELECT (\"Date Created\" AS ?property) (STR(?date) AS ?value) WHERE {\n      <${cube}> schema:dateCreated ?date .\n    } LIMIT 1\n  }\n  UNION\n  {\n    SELECT (\"Cube IRI\" AS ?property) (\"${cube}\" AS ?value) WHERE {}\n  }\n}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "property" },
+            "properties": [
+              { "id": "custom.width", "value": 150 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": false }
+      }
+    },
+    {
+      "type": "text",
+      "title": "Create Visualization",
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 8 },
+      "id": 6,
+      "options": {
+        "mode": "markdown",
+        "content": "## Ready to visualize this data?\n\n[**Open Visualization Sandbox**](/d/lindas-template?var-cube=${cube:raw}) - Create charts, tables, and dashboards with this cube's data.",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Available Dimensions",
+      "description": "Dimensions you can use in your queries",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 11 },
+      "id": 2,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX schema: <http://schema.org/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\nSELECT ?dimension ?name ?datatype\nWHERE {\n  <${cube}> cube:observationConstraint/sh:property ?prop .\n  ?prop sh:path ?dimension .\n  OPTIONAL {\n    ?prop schema:name ?name_lang .\n    FILTER(LANG(?name_lang) = \"${language}\")\n  }\n  OPTIONAL {\n    ?prop schema:name ?name_any .\n  }\n  BIND(COALESCE(?name_lang, ?name_any, \"\") AS ?name)\n  OPTIONAL { ?prop sh:datatype ?datatype . }\n  FILTER(?dimension != cube:observedBy)\n  FILTER(?dimension != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n}\nORDER BY ?name"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": true,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": true,
+          "reducer": ["count"],
+          "countRows": true,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Sample Data",
+      "description": "First 100 observations from this cube",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 11 },
+      "id": 3,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n\nSELECT ?predicate ?value\nWHERE {\n  <${cube}> cube:observationSet/cube:observation ?observation .\n  ?observation ?predicate ?value .\n  FILTER(?predicate != rdf:type)\n  FILTER(?predicate != cube:observedBy)\n}\nLIMIT 100"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": true,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": true,
+          "reducer": ["count"],
+          "countRows": true,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Statistics",
+      "description": "Cube statistics",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 21 },
+      "id": 5,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\n\nSELECT \n  (COUNT(DISTINCT ?observation) AS ?totalObservations)\n  (COUNT(DISTINCT ?dimension) AS ?dimensions)\nWHERE {\n  <${cube}> cube:observationSet/cube:observation ?observation .\n  <${cube}> cube:observationConstraint/sh:property ?prop .\n  ?prop sh:path ?dimension .\n  FILTER(?dimension != cube:observedBy)\n}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "cellOptions": { "type": "auto" },
+            "inspect": false,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md",
+        "footer": { "show": false }
+      }
+    }
+  ],
+  "time": { "from": "now-1y", "to": "now" },
+  "timepicker": { "hidden": true },
+  "version": 1
+}

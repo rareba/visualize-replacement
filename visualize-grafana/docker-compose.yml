@@ -42,8 +42,8 @@ services:
       # Server configuration
       - GF_SERVER_ROOT_URL=${NEXT_PUBLIC_GRAFANA_URL:-http://localhost:3003}
 
-      # Default home dashboard
-      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/lindas-template.json
+      # Default home dashboard - static catalog
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/lindas-catalog.json
 
       # UI customization
       - GF_USERS_DEFAULT_THEME=light

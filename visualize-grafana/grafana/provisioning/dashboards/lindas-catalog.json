@@ -1,0 +1,111 @@
+{
+  "uid": "lindas-catalog",
+  "title": "LINDAS Dataset Catalog",
+  "description": "Curated catalog of Swiss open data cubes. Browse by category and click to visualize.",
+  "tags": ["lindas", "catalog", "home"],
+  "editable": true,
+  "schemaVersion": 39,
+  "style": "light",
+  "timezone": "browser",
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "transparent": true,
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"text-align: center; padding: 20px;\">\n  <h1 style=\"font-size: 2.5em; margin-bottom: 10px;\">LINDAS Dataset Catalog</h1>\n  <p style=\"font-size: 1.2em; color: #666;\">Swiss Linked Data Service - Open Government Data</p>\n  <p>Select a dataset below to explore and create visualizations</p>\n</div>",
+        "code": { "language": "html", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "text",
+      "title": "Environment & Climate",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 5 },
+      "id": 10,
+      "options": {
+        "mode": "markdown",
+        "content": "### Water Quality\n\n**[Bathing Water Quality](/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/ubd01041prod/6)**\nAssessment of bathing waters based on hygienic quality indicators.\n*Federal Office for the Environment*\n\n---\n\n### Air Quality\n\n**[Air Quality Measurements](/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/mf008/4)**\nMeasurement stations tracking air quality across Switzerland.\n*Federal Office for the Environment*\n\n---\n\n### Climate\n\n**[Climate Indicators](/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/climate)**\nSwiss climate change indicators and measurements.\n*Federal Office for the Environment*",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "text",
+      "title": "Energy & Infrastructure",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 5 },
+      "id": 11,
+      "options": {
+        "mode": "markdown",
+        "content": "### Electricity\n\n**[Electricity Indicators](/d/lindas-description?var-cube=https://energy.ld.admin.ch/elcom/sunshine-median)**\nKey efficiency indicators including price trends.\n*Federal Electricity Commission*\n\n---\n\n**[Indicators by Category](/d/lindas-description?var-cube=https://energy.ld.admin.ch/elcom/sunshine-cat)**\nElectricity indicators organized by category.\n*Federal Electricity Commission*\n\n---\n\n### Energy Production\n\n**[Renewable Energy](/d/lindas-description?var-cube=https://energy.ld.admin.ch/sfoe/renewable)**\nRenewable energy production statistics.\n*Swiss Federal Office of Energy*",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "text",
+      "title": "Demographics & Society",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 5 },
+      "id": 12,
+      "options": {
+        "mode": "markdown",
+        "content": "### Population\n\n**[Population Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/bfs/population)**\nSwiss population data by canton, age, and gender.\n*Federal Statistical Office*\n\n---\n\n### Health\n\n**[Health Indicators](/d/lindas-description?var-cube=https://ld.admin.ch/bfs/health)**\nPublic health statistics and indicators.\n*Federal Statistical Office*\n\n---\n\n### Education\n\n**[Education Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/bfs/education)**\nEducation levels and enrollment data.\n*Federal Statistical Office*",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "text",
+      "title": "Economy & Finance",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 13 },
+      "id": 13,
+      "options": {
+        "mode": "markdown",
+        "content": "### Economic Indicators\n\n**[GDP Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/seco/gdp)**\nGross domestic product and economic growth.\n*State Secretariat for Economic Affairs*\n\n---\n\n### Employment\n\n**[Labor Market](/d/lindas-description?var-cube=https://ld.admin.ch/seco/employment)**\nEmployment and unemployment statistics.\n*State Secretariat for Economic Affairs*\n\n---\n\n### Trade\n\n**[Foreign Trade](/d/lindas-description?var-cube=https://ld.admin.ch/bazg/trade)**\nImport and export statistics.\n*Federal Office for Customs*",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "text",
+      "title": "Transport & Mobility",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 13 },
+      "id": 14,
+      "options": {
+        "mode": "markdown",
+        "content": "### Rail Transport\n\n**[SBB Punctuality](/d/lindas-description?var-cube=https://ld.admin.ch/sbb/punctuality)**\nTrain punctuality and performance data.\n*Swiss Federal Railways*\n\n---\n\n### Road Traffic\n\n**[Traffic Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/astra/traffic)**\nRoad traffic volumes and accidents.\n*Federal Roads Office*\n\n---\n\n### Aviation\n\n**[Airport Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/bazl/aviation)**\nPassenger and flight statistics.\n*Federal Office of Civil Aviation*",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "text",
+      "title": "Agriculture & Land Use",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 13 },
+      "id": 15,
+      "options": {
+        "mode": "markdown",
+        "content": "### Agriculture\n\n**[Agricultural Production](/d/lindas-description?var-cube=https://ld.admin.ch/blw/agriculture)**\nCrop and livestock production data.\n*Federal Office for Agriculture*\n\n---\n\n### Forestry\n\n**[Forest Statistics](/d/lindas-description?var-cube=https://environment.ld.admin.ch/foen/forest)**\nForest coverage and timber production.\n*Federal Office for the Environment*\n\n---\n\n### Land Use\n\n**[Land Use Statistics](/d/lindas-description?var-cube=https://ld.admin.ch/are/landuse)**\nLand use categories and changes.\n*Federal Office for Spatial Development*",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 21 },
+      "id": 20,
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "---\n\n**Can't find what you're looking for?** [Browse all LINDAS cubes](/d/lindas-browser) | [Search LINDAS directly](https://lindas.admin.ch)\n\n*This catalog shows a curated selection of datasets. More datasets are available in the full LINDAS knowledge graph.*",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    }
+  ],
+  "time": { "from": "now-1y", "to": "now" },
+  "timepicker": { "hidden": true },
+  "version": 1
+}

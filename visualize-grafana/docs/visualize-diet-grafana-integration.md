@@ -4,11 +4,22 @@ This document describes the architectural changes made to simplify the visualize
 
 ## Overview
 
-The original visualize application was a full-fledged data visualization platform with D3.js-based chart rendering, complex configuration UI, and PostgreSQL persistence. The "diet" transformation simplifies this by:
+The original visualize application was a full-fledged data visualization platform with D3.js-based chart rendering, complex configuration UI, and PostgreSQL persistence. The "diet" transformation simplifies this by delegating visualization to Grafana.
 
-1. **Keeping**: Static pages, dataset browser, full frontend functionality
-2. **Adding**: Grafana integration for visualization creation
-3. **Future**: Potentially remove unused D3.js rendering code (see "Future Work" section)
+## Two Architecture Options
+
+### Option A: Hybrid (Next.js + Grafana)
+- **Next.js**: Dataset browsing, descriptions, authentication
+- **Grafana**: Visualization creation only
+- **Pro**: Rich browse UI, full feature set
+- **Con**: Two applications to maintain
+
+### Option B: Grafana-Only (Recommended for simplicity)
+- **Grafana**: Everything - catalog, descriptions, visualization
+- **Pro**: Single application, simple deployment
+- **Con**: Less polished browse UI (table vs cards)
+
+This document covers both options.
 
 ## Current State
 
@@ -48,6 +59,64 @@ Dashboard manager for saving/loading Grafana dashboard JSON exports:
 
 ### `/v/[chartId]` and `/embed/[chartId]` (Legacy Redirects)
 Legacy URLs redirect to `/browse` for backwards compatibility.
+
+## Grafana-Only Architecture (Option B)
+
+For the simplest deployment, Grafana can handle everything:
+
+### Dashboard Structure
+
+1. **lindas-catalog** (Home page)
+   - Static curated dataset catalog
+   - Organized by category (Environment, Energy, Demographics, etc.)
+   - Clickable links to description pages
+   - Easy to maintain - just edit the JSON
+
+2. **lindas-description** (Cube details)
+   - Shows cube metadata (name, description, creator, date)
+   - Lists available dimensions
+   - Shows sample data
+   - Link to visualization sandbox
+
+3. **lindas-template** (Visualization sandbox)
+   - Pre-configured SPARQL queries
+   - Template panels for customization
+   - Export/import dashboard JSON
+
+4. **lindas-browser** (Optional dynamic browser)
+   - SPARQL-powered cube search
+   - Filters by language
+   - Alternative to static catalog
+
+### User Flow (Grafana-Only)
+
+```
+http://localhost:3003/d/lindas-catalog
+    |
+    v
+[Static Catalog] -- click dataset --> [Description Page]
+    |                                        |
+    v                                        v
+[See metadata, dimensions]           [Open Visualization Sandbox]
+                                             |
+                                             v
+                                    [Create charts & panels]
+                                             |
+                                             v
+                                    [Export dashboard JSON]
+```
+
+### Adding New Datasets to Catalog
+
+Edit `grafana/provisioning/dashboards/lindas-catalog.json`:
+
+```markdown
+**[Dataset Name](/d/lindas-description?var-cube=https://your-cube-iri)**
+Description of the dataset.
+*Publisher name*
+```
+
+Then restart Grafana: `docker-compose restart grafana`
 
 ## Grafana Configuration
 

@@ -253,16 +253,31 @@ This provides metadata about available columns for users building custom queries
 
 ### Creating New Visualizations
 
-Users can create charts using the pre-loaded data:
+**IMPORTANT: Users should NEVER use the LINDAS SPARQL datasource directly when creating charts.**
+
+The Dashboard datasource pattern ensures users can create visualizations without writing SPARQL queries:
+
+1. **Panel 100 (Source Data Table)** already executes the SPARQL query with all the dataset's data
+2. **All new panels** reference Panel 100's data via the `-- Dashboard --` datasource
+3. Users work with **ready-to-use tabular data** - no query writing needed
+
+**Step-by-step to create a new visualization:**
 
 1. Click **Add** > **Visualization**
-2. Select **-- Dashboard --** as the data source
-3. Choose **Panel: Dataset - Source Data** to use the pre-loaded data
-4. Use **Transformations** to filter, aggregate, or reshape the data:
-   - **Group by**: Aggregate values by category
-   - **Filter by value**: Focus on specific data
-   - **Reduce**: Calculate statistics
-5. Configure visualization settings
+2. In the data source dropdown, select **-- Dashboard --** (NOT LINDAS SPARQL)
+3. In the "Use results from panel" dropdown, choose **Source Data Table**
+4. The data immediately appears in the panel preview
+5. Use **Transformations** to filter, aggregate, or reshape the data:
+   - **Group by**: Aggregate values by category (e.g., sum messwert by year)
+   - **Filter by value**: Focus on specific data (e.g., only 2020 data)
+   - **Reduce**: Calculate statistics (e.g., average, sum, count)
+6. Configure visualization settings (chart type, colors, axes)
+
+**Why this pattern works:**
+- The SPARQL query is complex and users shouldn't need to understand it
+- The Dashboard datasource shares Panel 100's results without re-executing queries
+- Users can create unlimited charts from the same data source
+- This is a standard Grafana pattern for data sharing between panels
 
 ### Authentication
 

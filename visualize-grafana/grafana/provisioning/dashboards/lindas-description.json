@@ -88,7 +88,7 @@
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 8px 0 4px 0;\"><span style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px;\">Date Modified</span></div>"
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 8px 0 4px 0;\"><span style=\"font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px;\">Observations</span></div>"
       }
     },
     {
@@ -104,7 +104,7 @@
       "targets": [
         {
           "refId": "A",
-          "queryText": "PREFIX schema: <http://schema.org/>\n\nSELECT (SUBSTR(STR(?date), 1, 10) AS ?modified) WHERE {\n  <${cube}> schema:dateModified ?date .\n} LIMIT 1"
+          "queryText": "PREFIX cube: <https://cube.link/>\n\nSELECT (COUNT(?obs) AS ?count) WHERE {\n  <${cube}> cube:observationSet/cube:observation ?obs .\n}"
         }
       ],
       "fieldConfig": {
@@ -113,7 +113,7 @@
           "mappings": [],
           "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
         },
-        "overrides": [{ "matcher": { "id": "byName", "options": "modified" }, "properties": [{ "id": "displayName", "value": " " }] }]
+        "overrides": [{ "matcher": { "id": "byName", "options": "count" }, "properties": [{ "id": "displayName", "value": " " }] }]
       },
       "options": { "showHeader": false, "cellHeight": "sm", "footer": { "show": false } }
     },
@@ -207,13 +207,13 @@
       "transparent": true,
       "options": {
         "mode": "html",
-        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 8px 0; border-top: 1px solid #e0e0e0;\"><span style=\"font-size: 14px; font-weight: 600; color: #1a1a1a;\">Data Preview</span></div>"
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 8px 0; border-top: 1px solid #e0e0e0;\"><span style=\"font-size: 14px; font-weight: 600; color: #1a1a1a;\">Available Dimensions (Columns)</span></div>"
       }
     },
     {
       "type": "table",
       "title": "",
-      "description": "Sample observations from this dataset",
+      "description": "These are the columns available in this dataset. Use them in your visualization queries.",
       "gridPos": { "h": 8, "w": 19, "x": 5, "y": 12 },
       "id": 30,
       "datasource": {
@@ -223,7 +223,7 @@
       "targets": [
         {
           "refId": "A",
-          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\n\nSELECT *\nWHERE {\n  <${cube}> cube:observationSet/cube:observation ?obs .\n  ?obs ?predicate ?value .\n  FILTER(?predicate != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n  FILTER(?predicate != cube:observedBy)\n}\nLIMIT 30"
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX schema: <http://schema.org/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nSELECT \n  (COALESCE(?label, REPLACE(STR(?dimension), \"^.*/\", \"\")) AS ?column)\n  (IF(BOUND(?dt), REPLACE(STR(?dt), \"^.*#\", \"\"), \"IRI/text\") AS ?type)\n  (STR(?dimension) AS ?predicate_uri)\nWHERE {\n  <${cube}> cube:observationConstraint/sh:property ?prop .\n  ?prop sh:path ?dimension .\n  OPTIONAL { ?prop schema:name ?label . FILTER(LANG(?label) = \"en\" || LANG(?label) = \"\") }\n  OPTIONAL { ?prop sh:datatype ?dt . }\n  OPTIONAL { ?prop sh:nodeKind ?nk . }\n  FILTER(?dimension != cube:observedBy)\n  FILTER(?dimension != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n}\nORDER BY ?column"
         }
       ],
       "fieldConfig": {
@@ -232,7 +232,11 @@
           "mappings": [],
           "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
         },
-        "overrides": []
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "column" }, "properties": [{ "id": "displayName", "value": "Column Name" }, { "id": "custom.width", "value": 250 }] },
+          { "matcher": { "id": "byName", "options": "type" }, "properties": [{ "id": "displayName", "value": "Data Type" }, { "id": "custom.width", "value": 120 }] },
+          { "matcher": { "id": "byName", "options": "predicate_uri" }, "properties": [{ "id": "displayName", "value": "Predicate URI (for SPARQL)" }] }
+        ]
       },
       "options": {
         "showHeader": true,

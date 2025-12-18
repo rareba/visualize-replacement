@@ -26,12 +26,12 @@ This document covers both options.
 The Grafana dashboards have been styled to match the Swiss Federal design system (Oblique framework) used by visualize.admin.ch. Key design elements include:
 
 ### Visual Components
-- **Swiss Coat of Arms**: CSS-based shield with cross using clip-path
-- **Header**: Federal branding with four-language text
-- **Color Palette**: Blue accent (#1565c0), neutral grays, white backgrounds
+- **Swiss Coat of Arms**: CSS-based cross using positioned divs (SVG is sanitized by Grafana)
+- **Header**: Federal branding with four-language text (Schweizerische Eidgenossenschaft, etc.)
+- **Color Palette**: Blue accent (#1565c0), red coat of arms (#ff0000), neutral grays
 - **Typography**: System font stack (-apple-system, BlinkMacSystemFont, Segoe UI, Roboto)
-- **Cards**: Subtle borders, hover effects with shadow and transform
-- **Tags**: Rounded pills with category-specific colors
+- **Cards**: Subtle borders (#e0e0e0), light blue creator tags (#e3f2fd)
+- **Sidebar**: Organization facets with counts, blue underline headers
 
 ### Implementation Approach
 The dashboards use the **Dynamic Text (Business Text) plugin** (`marcusolsson-dynamictext-panel`) to combine SPARQL query results with Handlebars templates. This allows rich, styled layouts that render data dynamically.
@@ -104,18 +104,28 @@ For the simplest deployment, Grafana can handle everything:
 ### Dashboard Structure
 
 1. **lindas-catalog** (Home page)
-   - **Dynamic dataset catalog** using Dynamic Text plugin
-   - Queries LINDAS for all available cubes (50 most recent)
-   - Handlebars template renders styled dataset cards
-   - Shows name, description, creator, and last modified date
-   - Clicking a card navigates to the description page
+   - **Swiss Federal header** with CSS-based coat of arms and four-language text
+   - **Blue hero section** with title and description
+   - **Left sidebar** (5 columns): Organizations filter with dataset counts
+   - **Right content** (19 columns): Dataset cards in vertical list layout
+   - Each card shows: title (blue link), description, creator tag, modified date
+   - SPARQL queries for organizations facet and dataset listing
+   - Clicking a card navigates to the description page with cube IRI parameter
 
 2. **lindas-description** (Cube details)
-   - **Dynamic metadata display** using Dynamic Text plugin
-   - Three SPARQL queries: metadata, dimensions, observation count
-   - Shows cube name, description, creator, last modified
-   - Displays all available dimensions in a table (column name, data type, predicate URI)
-   - Includes usage instructions with example SPARQL query pattern
+   - **Swiss Federal header** matching the catalog page design
+   - **Navigation bar**: "Back to datasets" and "Start a visualization" buttons
+   - **Left sidebar** (5 columns): Metadata display
+     - Source (creator organization)
+     - Date created
+     - Version
+     - Contact (if available)
+     - Further information links (LINDAS portal, OpenData.swiss)
+   - **Right content** (19 columns):
+     - Dataset title and description
+     - "Data Preview" section header
+     - Tabular data preview with proper column names (Year, Location, Value)
+     - Row count footer (20 rows shown)
    - Link to visualization sandbox with cube pre-loaded
 
 3. **lindas-template** (Visualization sandbox)
@@ -243,14 +253,17 @@ Two plugins are required:
 
 **Custom helpers (defined in panel options):**
 ```javascript
-handlebars.registerHelper('encodeURIComponent', function(str) {
-  return encodeURIComponent(str || '');
-});
-
-handlebars.registerHelper('len', function(arr) {
+// NOTE: Use context.handlebars (not just handlebars)
+context.handlebars.registerHelper('len', function(arr) {
   return arr ? arr.length : 0;
 });
 ```
+
+**Recommended: Use SPARQL for URL encoding instead of Handlebars helpers:**
+```sparql
+SELECT (ENCODE_FOR_URI(STR(?cube)) AS ?cubeUriEncoded) WHERE { ... }
+```
+This avoids the need for custom JavaScript helpers and is more reliable.
 
 ## What's Currently Active
 

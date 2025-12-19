@@ -308,7 +308,7 @@ Grafana service configured:
 
 ### Plugins
 
-Two plugins are required:
+Three plugins are required:
 
 1. **flandersmake-sparql-datasource** (unsigned, local)
    - Enables SPARQL queries to RDF endpoints
@@ -319,6 +319,17 @@ Two plugins are required:
    - Enables Handlebars templates with query data
    - Installed via: `GF_INSTALL_PLUGINS=marcusolsson-dynamictext-panel`
    - Documentation: https://grafana.com/docs/plugins/marcusolsson-dynamictext-panel/
+
+3. **lindas-visualizer-app** (unsigned, local)
+   - Custom Grafana App Plugin for browsing and visualizing LINDAS datasets
+   - Provides a user-friendly interface similar to visualize.admin.ch
+   - Features:
+     - **Browse Datasets tab**: Search and explore LINDAS cubes with descriptions
+     - **Create Chart tab**: Select dimensions/measures and generate SPARQL queries
+   - Access at: `http://localhost:3003/a/lindas-visualizer-app`
+   - Built with React and Grafana UI components
+   - Source: `grafana/plugins/lindas-visualizer-app/`
+   - Requires: `GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=...,lindas-visualizer-app`
 
 ### Handlebars Template Examples
 

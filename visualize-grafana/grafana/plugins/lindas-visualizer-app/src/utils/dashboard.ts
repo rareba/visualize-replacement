@@ -11,7 +11,7 @@ export type GrafanaChartType =
   | 'piechart'
   | 'table';
 
-export interface ChartConfig {
+export interface DatasetConfig {
   cubeIri: string;
   chartType: GrafanaChartType;
   title: string;
@@ -21,9 +21,15 @@ export interface ChartConfig {
     series?: string;
     value?: string;
     segment?: string;
+    filters?: Record<string, string[]>; // dimensionIri -> selectedValueIris
   };
   dimensions: Dimension[];
   measures: Measure[];
+}
+
+export interface ChartConfig {
+  title: string;
+  datasets: DatasetConfig[];
 }
 
 function getGrafanaPanelType(chartType: GrafanaChartType): string {
@@ -43,23 +49,21 @@ function getGrafanaPanelType(chartType: GrafanaChartType): string {
   }
 }
 
-function generateSparqlQuery(config: ChartConfig): string {
+export function generateSparqlQuery(config: DatasetConfig): string {
   const { cubeIri, fieldMapping, dimensions, measures, chartType } = config;
   const selectVars: string[] = [];
   const patterns: string[] = [];
 
-  patterns.push(`?obs a <https://cube.link/Observation> .`);
-  patterns.push(`?obs <https://cube.link/observedBy> <${cubeIri}> .`);
+  patterns.push(`<${cubeIri}> <https://cube.link/observationSet>/<https://cube.link/observation> ?obs .`);
 
   if (chartType === 'table') {
-    // All fields for table
-    dimensions.forEach((d, i) => {
+    dimensions.forEach((d: Dimension, i: number) => {
       selectVars.push(`?dim${i}`);
-      patterns.push(`OPTIONAL { ?obs <${d.iri}> ?dim${i} . }`);
+      patterns.push(`?obs <${d.iri}> ?dim${i} .`);
     });
-    measures.forEach((m, i) => {
+    measures.forEach((m: Measure, i: number) => {
       selectVars.push(`?measure${i}`);
-      patterns.push(`OPTIONAL { ?obs <${m.iri}> ?measure${i} . }`);
+      patterns.push(`?obs <${m.iri}> ?measure${i} .`);
     });
   } else if (chartType === 'piechart') {
     if (fieldMapping.value) {
@@ -85,6 +89,24 @@ function generateSparqlQuery(config: ChartConfig): string {
     }
   }
 
+  if (fieldMapping.filters) {
+    Object.entries(fieldMapping.filters).forEach(([dimIri, values]) => {
+      const vals = values as string[];
+      if (vals && vals.length > 0) {
+        let varName = `?obs_filter_${Math.random().toString(36).substring(7)}`;
+        if (fieldMapping.x === dimIri) varName = '?x';
+        else if (fieldMapping.series === dimIri) varName = '?series';
+        else if (fieldMapping.segment === dimIri) varName = '?segment';
+        else {
+          patterns.push(`?obs <${dimIri}> ${varName} .`);
+        }
+        
+        const filterVals = vals.map(v => `<${v}>`).join(', ');
+        patterns.push(`FILTER(${varName} IN (${filterVals}))`);
+      }
+    });
+  }
+
   return `SELECT ${selectVars.join(' ')} WHERE {
   ${patterns.join('\n  ')}
 }
@@ -106,9 +128,6 @@ function getPanelOptions(chartType: GrafanaChartType): any {
         legend: { displayMode: 'list', placement: 'right' },
       };
     case 'timeseries':
-      return {
-        legend: { displayMode: 'list', placement: 'bottom' },
-      };
     case 'timeseries-area':
       return {
         legend: { displayMode: 'list', placement: 'bottom' },
@@ -141,37 +160,49 @@ function getFieldConfig(chartType: GrafanaChartType): any {
 }
 
 export async function createGrafanaDashboard(config: ChartConfig): Promise<string> {
-  const panelType = getGrafanaPanelType(config.chartType);
-  const query = generateSparqlQuery(config);
-  const options = getPanelOptions(config.chartType);
-  const fieldConfig = getFieldConfig(config.chartType);
+  // Add timestamp to title to avoid conflicts
+  const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const dashboardTitle = `${config.title} (${timestamp})`;
+
+  const panels = config.datasets.map((dataset, index) => {
+    const panelType = getGrafanaPanelType(dataset.chartType);
+    const query = generateSparqlQuery(dataset);
+    const options = getPanelOptions(dataset.chartType);
+    const fieldConfig = getFieldConfig(dataset.chartType);
+
+    // Arrange in a grid: 2 panels per row
+    const w = 12;
+    const h = 10;
+    const x = (index % 2) * 12;
+    const y = Math.floor(index / 2) * 10;
+
+    return {
+      id: index + 1,
+      type: panelType,
+      title: dataset.title,
+      gridPos: { x, y, w, h },
+      datasource: {
+        type: 'flandersmake-sparql-datasource',
+        uid: 'lindas-datasource',
+      },
+      targets: [
+        {
+          refId: 'A',
+          rawQuery: query,
+          format: 'table',
+        },
+      ],
+      options,
+      fieldConfig,
+    };
+  });
 
   const dashboard = {
-    title: config.title,
+    title: dashboardTitle,
     tags: ['lindas', 'auto-generated'],
     timezone: 'browser',
     schemaVersion: 38,
-    panels: [
-      {
-        id: 1,
-        type: panelType,
-        title: config.title,
-        gridPos: { x: 0, y: 0, w: 24, h: 16 },
-        datasource: {
-          type: 'flandersmake-sparql-datasource',
-          uid: 'lindas-datasource',
-        },
-        targets: [
-          {
-            refId: 'A',
-            rawQuery: query,
-            format: 'table',
-          },
-        ],
-        options,
-        fieldConfig,
-      },
-    ],
+    panels,
     annotations: {
       list: [
         {
@@ -188,21 +219,19 @@ export async function createGrafanaDashboard(config: ChartConfig): Promise<strin
     templating: { list: [] },
     time: { from: 'now-6h', to: 'now' },
     refresh: '',
-    links: [
-      {
-        title: 'Source Cube',
-        url: config.cubeIri,
-        icon: 'external link',
-        type: 'link',
-        targetBlank: true,
-      },
-    ],
+    links: config.datasets.map(d => ({
+      title: `Source: ${d.title}`,
+      url: d.cubeIri,
+      icon: 'external link',
+      type: 'link',
+      targetBlank: true,
+    })),
   };
 
   const response = await getBackendSrv().post('/api/dashboards/db', {
     dashboard,
     folderUid: '',
-    message: `Created from LINDAS cube: ${config.cubeIri}`,
+    message: `Created from LINDAS cubes`,
     overwrite: false,
   });
 

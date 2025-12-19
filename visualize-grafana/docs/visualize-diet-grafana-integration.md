@@ -321,14 +321,19 @@ Three plugins are required:
    - Documentation: https://grafana.com/docs/plugins/marcusolsson-dynamictext-panel/
 
 3. **lindas-visualizer-app** (unsigned, local)
-   - Custom Grafana App Plugin for browsing and visualizing LINDAS datasets
-   - Provides a user-friendly interface similar to visualize.admin.ch
+   - Custom Grafana App Plugin for creating visualizations from LINDAS cube data
+   - Provides a chart creation interface similar to visualize.admin.ch
+   - **One focused job**: Help users create charts (dataset browsing handled by main app)
    - Features:
-     - **Browse Datasets tab**: Search and explore LINDAS cubes with descriptions
-     - **Create Chart tab**: Select dimensions/measures and generate SPARQL queries
-   - Access at: `http://localhost:3003/a/lindas-visualizer-app`
-   - Built with React and Grafana UI components
-   - Source: `grafana/plugins/lindas-visualizer-app/`
+     - **Chart Type Selector**: Column, Bar, Line, Area, Pie, Table (visual icons)
+     - **Field Mapping**: Assign dimensions to X axis, measures to Y axis, optional series
+     - **Auto Dashboard Creation**: Generates Grafana dashboards with SPARQL queries
+     - **Cube URL Parameter**: Pass cube IRI via `?cube=<cubeIri>` URL parameter
+   - Access at: `http://localhost:3003/a/lindas-visualizer-app?cube=<cubeIri>`
+   - Uses Grafana's datasource proxy to avoid CORS issues
+   - Built with React, TypeScript, and Grafana UI components
+   - Source: `grafana/plugins/lindas-visualizer-app/src/`
+   - Build: `cd grafana/plugins/lindas-visualizer-app && npm install && npm run build`
    - Requires: `GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=...,lindas-visualizer-app`
 
 ### Handlebars Template Examples

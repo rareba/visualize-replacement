@@ -1,12 +1,20 @@
 apiVersion: 1
 
-datasources:
+# Delete old datasource if it exists (name change)
+deleteDatasources:
   - name: LINDAS
+    orgId: 1
+
+datasources:
+  # LINDAS SPARQL datasource - INTERNAL USE ONLY
+  # This datasource is used by Panel 100 to load data
+  # Users should NOT use this directly - use Dashboard datasource instead
+  - name: LINDAS (System)
     uid: lindas-datasource
     type: flandersmake-sparql-datasource
     access: proxy
     url: https://lindas.admin.ch/query
-    isDefault: true
-    editable: true
+    isDefault: false
+    editable: false
     jsonData:
       source: https://lindas.admin.ch/query

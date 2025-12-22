@@ -8,7 +8,7 @@
  * - Simple card grid, not a complex multi-panel layout
  * - One-click dashboard creation with template (instructions + histogram)
  * - Let Grafana handle visualization via native panel editing
- * - Multi-language support (DE, FR, IT, EN)
+ * - Multi-language support (DE, FR, IT, EN) with URL param persistence
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -23,13 +23,13 @@ import {
   Button,
   Card,
   LinkButton,
-  Select,
   RadioButtonGroup,
 } from '@grafana/ui';
 import { getBackendSrv, locationService } from '@grafana/runtime';
 import type { Dataset, SparqlResult } from '../types';
 
 const LINDAS_ENDPOINT = 'https://lindas.admin.ch/query';
+const LANGUAGE_STORAGE_KEY = 'lindas-catalog-language';
 
 /** Available languages for dataset labels */
 type Language = 'de' | 'fr' | 'it' | 'en';
@@ -40,6 +40,49 @@ const LANGUAGE_OPTIONS: Array<SelectableValue<Language>> = [
   { label: 'IT', value: 'it', description: 'Italiano' },
   { label: 'EN', value: 'en', description: 'English' },
 ];
+
+const VALID_LANGUAGES: Language[] = ['de', 'fr', 'it', 'en'];
+
+/**
+ * Get initial language from URL param, localStorage, or default
+ */
+function getInitialLanguage(): Language {
+  // Check URL parameter first
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlLang = urlParams.get('lang');
+  if (urlLang && VALID_LANGUAGES.includes(urlLang as Language)) {
+    return urlLang as Language;
+  }
+
+  // Check localStorage
+  try {
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (stored && VALID_LANGUAGES.includes(stored as Language)) {
+      return stored as Language;
+    }
+  } catch (e) {
+    // localStorage might not be available
+  }
+
+  // Default to German
+  return 'de';
+}
+
+/**
+ * Save language to localStorage and update URL
+ */
+function saveLanguage(lang: Language): void {
+  try {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+  } catch (e) {
+    // Ignore localStorage errors
+  }
+
+  // Update URL parameter without reload
+  const url = new URL(window.location.href);
+  url.searchParams.set('lang', lang);
+  window.history.replaceState({}, '', url.toString());
+}
 
 /**
  * Generate SPARQL query for cubes with language preference
@@ -184,73 +227,68 @@ function parseResults(result: SparqlResult, searchTerm: string): Dataset[] {
  * Instructions text for the dashboard template
  */
 const DASHBOARD_INSTRUCTIONS = `
-# How to Customize Your Dashboard
+# Welcome to Your Dataset Dashboard
 
-Welcome to your new Swiss Open Data dashboard! Here's how to make it your own:
+This dashboard was created from a Swiss Open Data dataset. You can customize it to your needs.
 
-## Adding New Panels
+## Quick Start
 
-1. Click the **"Add"** button in the top menu bar
-2. Select **"Visualization"** to add a new panel
-3. The LINDAS datasource is already configured - just select your dataset
+1. **Edit panels**: Hover over a panel title and click to open the menu, then select "Edit"
+2. **Add panels**: Click "Add" in the top menu bar, then "Visualization"
+3. **Change visualization**: In the panel editor, switch between Table, Bar chart, Pie chart, etc.
+4. **Save changes**: Press Ctrl+S or click the save icon in the top right
 
-## Editing Panels
+## Panel Types Available
 
-1. **Hover** over any panel and click the **title** to open the menu
-2. Select **"Edit"** to modify the visualization
-3. In the panel editor:
-   - **Query tab**: Change the dataset or limit
-   - **Panel options**: Change title, description
-   - **Visualization**: Switch between Table, Bar chart, Pie chart, etc.
-
-## Visualization Types
-
-- **Table**: Best for exploring raw data
-- **Bar chart**: Compare values across categories
-- **Time series**: Show trends over time
-- **Stat**: Display a single important number
-- **Pie chart**: Show proportions
+| Type | Best For |
+|------|----------|
+| Table | Exploring raw data |
+| Bar chart | Comparing categories |
+| Pie chart | Showing proportions |
+| Time series | Trends over time |
+| Stat | Single important numbers |
 
 ## Tips
 
-- Use **Ctrl+S** (or Cmd+S) to save your dashboard
-- Click the **floppy disk icon** in the top right to save
-- Use **Variables** (gear icon > Variables) to make interactive filters
+- The data comes from LINDAS (Swiss Linked Data Service)
+- Use the row limit in queries to control data volume
+- Create variables for interactive filtering (Settings > Variables)
 
 ---
-*This panel can be deleted once you're familiar with the dashboard.*
+
+**You can safely delete this panel** once you are familiar with the dashboard. Just hover over the title and select "Remove".
 `;
 
 /**
  * Create a dashboard with template panels:
  * 1. Instructions panel at top
- * 2. Bar chart (histogram) showing the data
+ * 2. Pie chart showing data distribution (clean, visual)
  * 3. Table panel for raw data exploration
  */
-async function createDashboard(dataset: Dataset): Promise<string> {
+async function createDashboard(dataset: Dataset, lang: Language): Promise<string> {
   const dashboard = {
     title: dataset.label,
-    tags: ['lindas', 'swiss-data'],
+    tags: ['lindas', 'swiss-data', `lang-${lang}`],
     timezone: 'browser',
     schemaVersion: 38,
     panels: [
-      // Instructions panel at top
+      // Instructions panel at top (collapsible row-style)
       {
         id: 1,
         type: 'text',
-        title: 'Getting Started',
-        gridPos: { x: 0, y: 0, w: 24, h: 8 },
+        title: 'Getting Started (click to collapse, or delete this panel)',
+        gridPos: { x: 0, y: 0, w: 24, h: 6 },
         options: {
           mode: 'markdown',
           content: DASHBOARD_INSTRUCTIONS,
         },
       },
-      // Bar chart (histogram) panel
+      // Pie chart - clean visual representation
       {
         id: 2,
-        type: 'barchart',
-        title: `${dataset.label} - Bar Chart`,
-        gridPos: { x: 0, y: 8, w: 24, h: 10 },
+        type: 'piechart',
+        title: dataset.label,
+        gridPos: { x: 0, y: 6, w: 12, h: 12 },
         datasource: {
           type: 'lindas-datasource',
           uid: 'lindas-datasource',
@@ -260,19 +298,75 @@ async function createDashboard(dataset: Dataset): Promise<string> {
             refId: 'A',
             cubeUri: dataset.uri,
             cubeLabel: dataset.label,
-            limit: 100,
+            limit: 20,
           },
         ],
         options: {
-          orientation: 'horizontal',
+          reduceOptions: {
+            values: true,
+            calcs: [],
+            fields: '',
+          },
+          pieType: 'pie',
+          legend: {
+            displayMode: 'table',
+            placement: 'right',
+            showLegend: true,
+            values: ['value', 'percent'],
+          },
+          tooltip: {
+            mode: 'single',
+            sort: 'none',
+          },
+          displayLabels: ['name', 'percent'],
+        },
+        fieldConfig: {
+          defaults: {
+            color: {
+              mode: 'palette-classic',
+            },
+            custom: {
+              hideFrom: {
+                legend: false,
+                tooltip: false,
+                viz: false,
+              },
+            },
+          },
+          overrides: [],
+        },
+      },
+      // Bar chart - vertical, clean style
+      {
+        id: 3,
+        type: 'barchart',
+        title: `${dataset.label} - Distribution`,
+        gridPos: { x: 12, y: 6, w: 12, h: 12 },
+        datasource: {
+          type: 'lindas-datasource',
+          uid: 'lindas-datasource',
+        },
+        targets: [
+          {
+            refId: 'A',
+            cubeUri: dataset.uri,
+            cubeLabel: dataset.label,
+            limit: 20,
+          },
+        ],
+        options: {
+          orientation: 'vertical',
           showValue: 'auto',
           stacking: 'none',
-          groupWidth: 0.7,
-          barWidth: 0.97,
+          groupWidth: 0.8,
+          barWidth: 0.9,
+          barRadius: 0.1,
+          xTickLabelRotation: -45,
+          xTickLabelMaxLength: 20,
           legend: {
             displayMode: 'list',
             placement: 'bottom',
-            showLegend: true,
+            showLegend: false,
           },
           tooltip: {
             mode: 'single',
@@ -289,27 +383,36 @@ async function createDashboard(dataset: Dataset): Promise<string> {
               axisColorMode: 'text',
               axisLabel: '',
               axisPlacement: 'auto',
-              fillOpacity: 80,
-              gradientMode: 'none',
+              fillOpacity: 85,
+              gradientMode: 'hue',
               hideFrom: {
                 legend: false,
                 tooltip: false,
                 viz: false,
               },
-              lineWidth: 1,
+              lineWidth: 0,
               scaleDistribution: {
                 type: 'linear',
               },
+              thresholdsStyle: {
+                mode: 'off',
+              },
+            },
+            thresholds: {
+              mode: 'absolute',
+              steps: [
+                { color: 'green', value: null },
+              ],
             },
           },
           overrides: [],
         },
       },
-      // Data table panel
+      // Data table panel - full width, clean look
       {
-        id: 3,
+        id: 4,
         type: 'table',
-        title: `${dataset.label} - Data Table`,
+        title: 'Data Table',
         gridPos: { x: 0, y: 18, w: 24, h: 10 },
         datasource: {
           type: 'lindas-datasource',
@@ -320,7 +423,7 @@ async function createDashboard(dataset: Dataset): Promise<string> {
             refId: 'A',
             cubeUri: dataset.uri,
             cubeLabel: dataset.label,
-            limit: 1000,
+            limit: 500,
           },
         ],
         options: {
@@ -329,11 +432,22 @@ async function createDashboard(dataset: Dataset): Promise<string> {
           footer: {
             show: true,
             reducer: ['count'],
+            countRows: true,
             fields: '',
           },
+          sortBy: [],
         },
         fieldConfig: {
-          defaults: {},
+          defaults: {
+            custom: {
+              align: 'auto',
+              cellOptions: {
+                type: 'auto',
+              },
+              inspect: true,
+              filterable: true,
+            },
+          },
           overrides: [],
         },
       },
@@ -344,13 +458,23 @@ async function createDashboard(dataset: Dataset): Promise<string> {
     templating: {
       list: [],
     },
+    // Store dataset info and language in dashboard metadata
+    links: [
+      {
+        title: 'View in Swiss Open Data Catalog',
+        url: `/a/lindas-visualizer-app?lang=${lang}`,
+        icon: 'external link',
+        type: 'link',
+        targetBlank: false,
+      },
+    ],
   };
 
   // Use Grafana's backend service - this uses the current session auth
   const result = await getBackendSrv().post('/api/dashboards/db', {
     dashboard,
     folderUid: '',
-    message: `Created from LINDAS dataset: ${dataset.label}`,
+    message: `Created from LINDAS dataset: ${dataset.label} (${lang})`,
     overwrite: true,
   });
 
@@ -363,11 +487,17 @@ async function createDashboard(dataset: Dataset): Promise<string> {
 export const DatasetCatalog: React.FC<AppRootProps> = () => {
   const styles = useStyles2(getStyles);
   const [searchTerm, setSearchTerm] = useState('');
-  const [language, setLanguage] = useState<Language>('de');
+  const [language, setLanguage] = useState<Language>(getInitialLanguage);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState<string | null>(null);
+
+  // Handle language change
+  const handleLanguageChange = useCallback((newLang: Language) => {
+    setLanguage(newLang);
+    saveLanguage(newLang);
+  }, []);
 
   // Load datasets when search term or language changes
   useEffect(() => {
@@ -404,13 +534,13 @@ export const DatasetCatalog: React.FC<AppRootProps> = () => {
     setCreating(dataset.uri);
     setError(null);
     try {
-      const uid = await createDashboard(dataset);
+      const uid = await createDashboard(dataset, language);
       locationService.push(`/d/${uid}`);
     } catch (err: any) {
       setError(`Failed to create dashboard: ${err.message}`);
       setCreating(null);
     }
-  }, []);
+  }, [language]);
 
   return (
     <div className={styles.container}>
@@ -428,7 +558,7 @@ export const DatasetCatalog: React.FC<AppRootProps> = () => {
             <RadioButtonGroup
               options={LANGUAGE_OPTIONS}
               value={language}
-              onChange={(v) => setLanguage(v)}
+              onChange={handleLanguageChange}
               size="sm"
             />
           </div>

@@ -1,7 +1,7 @@
-# LINDAS Grafana Integration v5.0
+# LINDAS Grafana Integration v5.2
 
 This document describes the LINDAS Grafana integration comprising two plugins:
-1. **Swiss Open Data** (App Plugin v5.0) - Simple dataset catalog with one-click dashboard creation
+1. **Swiss Open Data** (App Plugin v5.2) - Simple dataset catalog with one-click dashboard creation
 2. **LINDAS Datasource** (Datasource Plugin v1.0) - Dataset selector for Grafana panels
 
 Both plugins ensure **users never see or write SPARQL** - they work with datasets through visual interfaces only.
@@ -54,6 +54,7 @@ No complex custom chart builder needed - Grafana already has excellent visualiza
 |---------|-------------|
 | Search | Filter datasets by name, description, or publisher |
 | Cards | Clean display with title, publisher, and description |
+| Language | DE, FR, IT, EN selector with URL param persistence (?lang=de) |
 | One-Click | "Create Dashboard" instantly creates and opens a Grafana dashboard |
 | Grafana Native | Users customize visualizations using Grafana's panel editor |
 
@@ -62,12 +63,15 @@ No complex custom chart builder needed - Grafana already has excellent visualiza
 ```
 +------------------------------------------+
 |        Swiss Open Data                   |
-|        (App Plugin v5.0)                 |
+|        (App Plugin v5.2)                 |
 +------------------------------------------+
 |                                          |
 |  DatasetCatalog.tsx (Main Component)     |
 |  +------------------------------------+  |
 |  |                                    |  |
+|  |  Language Selector (DE/FR/IT/EN)  |  |
+|  |       |                           |  |
+|  |       v                           |  |
 |  |  Search Bar (filter datasets)     |  |
 |  |       |                           |  |
 |  |       v                           |  |
@@ -290,6 +294,20 @@ npm run dev  # Watch mode
 ```
 
 ## Changelog
+
+### v5.2.0 (2025-12-22)
+
+**Language Selection and Improved Dashboard Template**
+
+- Added language selector (DE, FR, IT, EN) with URL parameter and localStorage persistence
+- Language preference passed to dashboard creation and stored in dashboard tags
+- Improved dashboard template with side-by-side layout:
+  - Getting Started panel with clear delete instructions
+  - Pie chart for visual data distribution
+  - Bar chart with vertical orientation and gradient fill
+  - Data table with filtering and row count footer
+- Dashboard link back to catalog with language preserved
+- Fixed RadioButtonGroup handler for proper language switching
 
 ### v5.0.0 (2025-12-22)
 

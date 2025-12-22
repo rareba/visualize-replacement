@@ -1,7 +1,7 @@
 {
   "name": "lindas-visualizer-app",
-  "version": "2.1.0",
-  "description": "SPARQL Data Explorer - Discover and visualize RDF Data Cubes with ephemeral Grafana Scenes dashboards",
+  "version": "4.0.0",
+  "description": "LINDAS Chart Studio - Create beautiful visualizations from Swiss Open Data with live preview",
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch"

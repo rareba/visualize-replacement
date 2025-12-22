@@ -1,14 +1,14 @@
 {
   "type": "app",
-  "name": "LINDAS Data Browser",
+  "name": "LINDAS Chart Studio",
   "id": "lindas-visualizer-app",
   "info": {
-    "description": "Browse Swiss Linked Data (LINDAS) cubes and create visualizations using Grafana's native tools. Locked to LINDAS datasource only.",
+    "description": "Create beautiful visualizations from Swiss Open Data (LINDAS). Visual chart builder with live preview. No SPARQL knowledge required.",
     "author": {
       "name": "Swiss Federal Administration"
     },
-    "keywords": ["lindas", "sparql", "swiss", "opendata", "linked-data", "rdf", "data-cube", "browser"],
-    "version": "3.0.0",
+    "keywords": ["lindas", "chart", "swiss", "opendata", "visualization", "data-cube", "studio"],
+    "version": "4.0.0",
     "updated": "2025-12-22",
     "logos": {
       "small": "img/logo.svg",
@@ -18,7 +18,7 @@
   "includes": [
     {
       "type": "page",
-      "name": "Data Browser",
+      "name": "Chart Studio",
       "path": "/a/lindas-visualizer-app",
       "role": "Viewer",
       "addToNav": true,

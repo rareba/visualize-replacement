@@ -1,296 +1,239 @@
-define(["@grafana/data","react","@emotion/css","@grafana/ui","@grafana/runtime"],function(e,a,t,n,s){return function(){"use strict";var r={7:function(e){e.exports=n},89:function(e){e.exports=t},531:function(e){e.exports=s},781:function(a){a.exports=e},959:function(e){e.exports=a}},i={};function l(e){var a=i[e];if(void 0!==a)return a.exports;var t=i[e]={exports:{}};return r[e](t,t.exports,l),t.exports}l.n=function(e){var a=e&&e.__esModule?function(){return e.default}:function(){return e};return l.d(a,{a:a}),a},l.d=function(e,a){for(var t in a)l.o(a,t)&&!l.o(e,t)&&Object.defineProperty(e,t,{enumerable:!0,get:a[t]})},l.o=function(e,a){return Object.prototype.hasOwnProperty.call(e,a)},l.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})};var o={};l.r(o),l.d(o,{plugin:function(){return C}});var c=l(781),u=l(959),d=l.n(u),m=l(89),p=l(7),h=l(531);const g=({onSearch:e,onSelectCube:a,onQueryConfigChange:t,onRunQuery:n,isLoading:s=!1,error:r,initialResults:i=[]})=>{const l=(0,p.useStyles2)(f),[o,c]=(0,u.useState)(""),[m,h]=(0,u.useState)(i),[g,$]=(0,u.useState)(!1),[E,v]=(0,u.useState)(null),[x,w]=(0,u.useState)(!1),[S,N]=(0,u.useState)(new Set),[C,T]=(0,u.useState)(new Set),[k,I]=(0,u.useState)([]),[z,L]=(0,u.useState)(1e4),[O,M]=(0,u.useState)(!0),[P,A]=(0,u.useState)(!0),[D,F]=(0,u.useState)(!1);(0,u.useEffect)(()=>{if(E){const e={cubeUri:E.uri,selectedDimensions:Array.from(S),selectedMeasures:Array.from(C),filters:k,limit:z};t(e)}},[E,S,C,k,z,t]);const R=(0,u.useCallback)(async()=>{$(!0);try{const a=await e(o);h(a)}catch(e){console.error("Search failed:",e)}finally{$(!1)}},[o,e]),B=(0,u.useCallback)(async e=>{w(!0);try{const t=await a(e);t&&(v(t),N(new Set(t.dimensions.map(e=>e.uri))),T(new Set(t.measures.map(e=>e.uri))),I([]))}catch(e){console.error("Failed to load cube:",e)}finally{w(!1)}},[a]),q=(0,u.useCallback)(e=>{N(a=>{const t=new Set(a);return t.has(e)?t.delete(e):t.add(e),t})},[]),G=(0,u.useCallback)(e=>{T(a=>{const t=new Set(a);return t.has(e)?t.delete(e):t.add(e),t})},[]),Q=(0,u.useCallback)(()=>{v(null),N(new Set),T(new Set),I([])},[]),j=[{label:"100 rows",value:100},{label:"1,000 rows",value:1e3},{label:"10,000 rows",value:1e4},{label:"50,000 rows",value:5e4}];return d().createElement("div",{className:l.container},r&&d().createElement(p.Alert,{title:"Error",severity:"error",className:l.alert},r),!E&&d().createElement("div",{className:l.section},d().createElement("h4",{className:l.sectionTitle},d().createElement(p.Icon,{name:"search",className:l.sectionIcon}),"Search Data Cubes"),d().createElement("div",{className:l.searchRow},d().createElement(p.Input,{value:o,onChange:e=>c(e.currentTarget.value),onKeyDown:e=>"Enter"===e.key&&R(),placeholder:"Search by name or keyword...",className:l.searchInput}),d().createElement(p.Button,{onClick:R,disabled:g},g?d().createElement(p.Spinner,{inline:!0,size:"sm"}):"Search")),d().createElement("div",{className:l.resultsList},0===m.length&&!g&&d().createElement("p",{className:l.hint},"Enter a search term or click Search to browse available cubes"),m.map(e=>d().createElement("div",{key:e.uri,className:l.resultItem,onClick:()=>B(e),role:"button",tabIndex:0,onKeyDown:a=>"Enter"===a.key&&B(e)},d().createElement("div",{className:l.resultTitle},e.label),e.description&&d().createElement("div",{className:l.resultDesc},e.description.length>100?`${e.description.slice(0,100)}...`:e.description),e.publisher&&d().createElement("div",{className:l.resultMeta},e.publisher)))),x&&d().createElement("div",{className:l.loadingOverlay},d().createElement(p.Spinner,null)," Loading cube metadata...")),E&&d().createElement(d().Fragment,null,d().createElement("div",{className:l.section},d().createElement("div",{className:l.selectedCubeHeader},d().createElement("div",null,d().createElement("h4",{className:l.sectionTitle},d().createElement(p.Icon,{name:"database",className:l.sectionIcon}),"Selected Cube"),d().createElement("div",{className:l.selectedCubeLabel},E.label),E.publisher&&d().createElement("div",{className:l.selectedCubeMeta},E.publisher)),d().createElement(p.Button,{variant:"secondary",size:"sm",onClick:Q,icon:"times"},"Change"))),d().createElement("div",{className:l.section},d().createElement(p.Collapse,{label:d().createElement("span",{className:l.collapseLabel},d().createElement(p.Icon,{name:"list-ul",className:l.sectionIcon}),"Dimensions (",E.dimensions.length,")"),isOpen:O,onToggle:()=>M(!O)},d().createElement("div",{className:l.checkboxList},E.dimensions.map(e=>d().createElement(b,{key:e.uri,dimension:e,checked:S.has(e.uri),onChange:()=>q(e.uri)})),0===E.dimensions.length&&d().createElement("p",{className:l.hint},"No dimensions found")))),d().createElement("div",{className:l.section},d().createElement(p.Collapse,{label:d().createElement("span",{className:l.collapseLabel},d().createElement(p.Icon,{name:"calculator-alt",className:l.sectionIcon}),"Measures (",E.measures.length,")"),isOpen:P,onToggle:()=>A(!P)},d().createElement("div",{className:l.checkboxList},E.measures.map(e=>d().createElement(y,{key:e.uri,measure:e,checked:C.has(e.uri),onChange:()=>G(e.uri)})),0===E.measures.length&&d().createElement("p",{className:l.hint},"No measures found")))),d().createElement("div",{className:l.section},d().createElement(p.Collapse,{label:d().createElement("span",{className:l.collapseLabel},d().createElement(p.Icon,{name:"cog",className:l.sectionIcon}),"Query Options"),isOpen:D,onToggle:()=>F(!D)},d().createElement("div",{className:l.optionRow},d().createElement("label",null,"Row Limit:"),d().createElement(p.Select,{options:j,value:j.find(e=>e.value===z),onChange:e=>e.value&&L(e.value),width:20})))),d().createElement("div",{className:l.actionSection},d().createElement(p.Button,{variant:"primary",size:"lg",onClick:n,disabled:s||0===S.size&&0===C.size,fullWidth:!0},s?d().createElement(d().Fragment,null,d().createElement(p.Spinner,{inline:!0,size:"sm"})," Generating..."):d().createElement(d().Fragment,null,d().createElement(p.Icon,{name:"code-branch"})," Generate Query")),d().createElement("p",{className:l.selectionSummary},S.size," dimensions, ",C.size," measures selected"))))},b=({dimension:e,checked:a,onChange:t})=>{const n=(0,p.useStyles2)(f);return d().createElement("div",{className:n.checkboxItem},d().createElement(p.Checkbox,{value:a,onChange:t,label:""}),d().createElement(p.Icon,{name:e.isTemporal||"temporal"===e.scaleType?"clock-nine":e.isNumerical||"numerical"===e.scaleType?"calculator-alt":"tag-alt",className:n.typeIcon}),d().createElement("span",{className:n.checkboxLabel},e.label),e.scaleType&&d().createElement("span",{className:n.typeBadge},e.scaleType))},y=({measure:e,checked:a,onChange:t})=>{const n=(0,p.useStyles2)(f);return d().createElement("div",{className:n.checkboxItem},d().createElement(p.Checkbox,{value:a,onChange:t,label:""}),d().createElement(p.Icon,{name:"graph-bar",className:n.typeIcon}),d().createElement("span",{className:n.checkboxLabel},e.label),e.unit&&d().createElement("span",{className:n.unitBadge},e.unit))},f=e=>({container:m.css`
-    display: flex;
-    flex-direction: column;
-    gap: ${e.spacing(2)};
-    padding: ${e.spacing(2)};
+define(["@grafana/data","react","@emotion/css","@grafana/ui","@grafana/runtime"],function(e,t,a,n,r){return function(){"use strict";var l={7:function(e){e.exports=n},89:function(e){e.exports=a},531:function(e){e.exports=r},781:function(t){t.exports=e},959:function(e){e.exports=t}},s={};function o(e){var t=s[e];if(void 0!==t)return t.exports;var a=s[e]={exports:{}};return l[e](a,a.exports,o),a.exports}o.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return o.d(t,{a:t}),t},o.d=function(e,t){for(var a in t)o.o(t,a)&&!o.o(e,a)&&Object.defineProperty(e,a,{enumerable:!0,get:t[a]})},o.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},o.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})};var i={};o.r(i),o.d(i,{plugin:function(){return N}});var c=o(781),d=o(959),m=o.n(d),p=o(89),u=o(7),h=o(531);const g=[{id:"bar",label:"Bar Chart",icon:"graph-bar",description:"Compare values across categories",supportsSeries:!0},{id:"line",label:"Line Chart",icon:"gf-interpolation-linear",description:"Show trends over time",requiresTimeDimension:!0,supportsSeries:!0},{id:"area",label:"Area Chart",icon:"gf-interpolation-linear",description:"Show cumulative trends",requiresTimeDimension:!0,supportsSeries:!0},{id:"pie",label:"Pie Chart",icon:"pie-chart",description:"Show proportions of a whole",supportsSeries:!1},{id:"scatter",label:"Scatter Plot",icon:"gf-landscape",description:"Show correlation between two measures",supportsSeries:!0},{id:"table",label:"Table",icon:"table",description:"Display raw data in rows and columns",supportsSeries:!1}],b={chartType:"bar",limit:1e4,showLegend:!0},y="\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX qudt: <http://qudt.org/schema/qudt/>\nPREFIX meta: <https://cube.link/meta/>\n";async function f(e){return await(0,h.getBackendSrv)().post("https://lindas.admin.ch/query",`query=${encodeURIComponent(e)}`,{headers:{"Content-Type":"application/x-www-form-urlencoded",Accept:"application/sparql-results+json"}})}function E(e){const t=e.split(/[/#]/);return(t[t.length-1]||"var").replace(/[^a-zA-Z0-9]/g,"_").toLowerCase()}const x=["#7EB26D","#EAB839","#6ED0E0","#EF843C","#E24D42","#1F78C1","#BA43A9","#705DA0","#508642","#CCA300"];function v(e){const t=e.split(/[/#]/);return(t[t.length-1]||"var").replace(/[^a-zA-Z0-9]/g,"_").toLowerCase()}const $=({data:e,config:t,dimensions:a,measures:n})=>{const r=(0,u.useStyles2)(L),l=(0,u.useTheme2)(),s=(0,d.useMemo)(()=>{if(!t.xAxis||!t.yAxis||0===e.length)return null;const a=v(t.xAxis),n=v(t.yAxis),r=t.groupBy?v(t.groupBy):null,l=new Map;e.forEach(e=>{const t=String(e[a]??"Unknown"),s=Number(e[n])||0,o=r?String(e[r]??"Other"):"Value";l.has(t)||l.set(t,new Map);const i=l.get(t);i.set(o,(i.get(o)||0)+s)});const s=Array.from(l.keys()).slice(0,20),o=new Set;l.forEach(e=>{e.forEach((e,t)=>o.add(t))});const i=Array.from(o).slice(0,10),c=s.map(e=>{const t=l.get(e),a={};return i.forEach(e=>{a[e]=t.get(e)||0}),{category:e,values:a}});return{categories:s,seriesNames:i,values:c}},[e,t]);if(!s)return m().createElement("div",{className:r.emptyChart},m().createElement("p",null,"Configure X-Axis and Y-Axis to see a preview"));const{categories:o,seriesNames:i,values:c}=s,p=40,h=60,g=620,b=300;let y=0;c.forEach(e=>{Object.values(e.values).forEach(e=>{e>y&&(y=e)})}),y=y||1;return m().createElement("div",{className:r.chartWrapper},(()=>{switch(t.chartType){case"bar":default:return(()=>{const e=g/o.length/(i.length+1),a=.1*e;return m().createElement("svg",{viewBox:"0 0 800 400",className:r.svg},m().createElement("line",{x1:h,y1:p,x2:h,y2:340,stroke:l.colors.text.disabled}),m().createElement("line",{x1:h,y1:340,x2:680,y2:340,stroke:l.colors.text.disabled}),c.map((t,n)=>{const r=h+(n+.5)*(g/o.length);return m().createElement("g",{key:t.category},i.map((n,l)=>{const s=t.values[n]||0,o=s/y*b,c=r-i.length*e/2+l*e+a/2,d=340-o;return m().createElement("rect",{key:n,x:c,y:d,width:e-a,height:o,fill:x[l%x.length],rx:2},m().createElement("title",null,`${t.category} - ${n}: ${s.toLocaleString()}`))}),m().createElement("text",{x:r,y:360,textAnchor:"middle",fontSize:10,fill:l.colors.text.secondary},t.category.length>10?t.category.slice(0,10)+"...":t.category))}),[0,.25,.5,.75,1].map(e=>m().createElement("g",{key:e},m().createElement("text",{x:50,y:340-e*b+4,textAnchor:"end",fontSize:10,fill:l.colors.text.secondary},(y*e).toLocaleString(void 0,{maximumFractionDigits:0})),m().createElement("line",{x1:h,y1:340-e*b,x2:680,y2:340-e*b,stroke:l.colors.border.weak,strokeDasharray:"4 4"}))),t.showLegend&&i.length>1&&m().createElement("g",{transform:"translate(690, 40)"},i.map((e,t)=>m().createElement("g",{key:e,transform:`translate(0, ${20*t})`},m().createElement("rect",{width:12,height:12,fill:x[t%x.length],rx:2}),m().createElement("text",{x:18,y:10,fontSize:11,fill:l.colors.text.primary},e.length>12?e.slice(0,12)+"...":e)))),m().createElement("text",{x:400,y:20,textAnchor:"middle",fontSize:14,fontWeight:"bold",fill:l.colors.text.primary},t.title||"Chart Preview"))})();case"line":case"area":return(()=>{const e=g/(o.length-1||1);return m().createElement("svg",{viewBox:"0 0 800 400",className:r.svg},m().createElement("line",{x1:h,y1:p,x2:h,y2:340,stroke:l.colors.text.disabled}),m().createElement("line",{x1:h,y1:340,x2:680,y2:340,stroke:l.colors.text.disabled}),[.25,.5,.75,1].map(e=>m().createElement("line",{key:e,x1:h,y1:340-e*b,x2:680,y2:340-e*b,stroke:l.colors.border.weak,strokeDasharray:"4 4"})),i.map((a,n)=>{const r=c.map((t,n)=>{const r=t.values[a]||0;return{x:h+n*e,y:340-r/y*b}}),l=r.map((e,t)=>`${0===t?"M":"L"} ${e.x} ${e.y}`).join(" ");if("area"===t.chartType){const e=`${l} L ${r[r.length-1].x} 340 L ${r[0].x} 340 Z`;return m().createElement("g",{key:a},m().createElement("path",{d:e,fill:x[n%x.length],opacity:.3}),m().createElement("path",{d:l,fill:"none",stroke:x[n%x.length],strokeWidth:2}),r.map((e,t)=>m().createElement("circle",{key:t,cx:e.x,cy:e.y,r:4,fill:x[n%x.length]},m().createElement("title",null,`${c[t].category} - ${a}: ${c[t].values[a]?.toLocaleString()}`))))}return m().createElement("g",{key:a},m().createElement("path",{d:l,fill:"none",stroke:x[n%x.length],strokeWidth:2}),r.map((e,t)=>m().createElement("circle",{key:t,cx:e.x,cy:e.y,r:4,fill:x[n%x.length]},m().createElement("title",null,`${c[t].category} - ${a}: ${c[t].values[a]?.toLocaleString()}`))))}),c.map((t,a)=>m().createElement("text",{key:a,x:h+a*e,y:360,textAnchor:"middle",fontSize:10,fill:l.colors.text.secondary},t.category.length>8?t.category.slice(0,8)+"...":t.category)),t.showLegend&&i.length>1&&m().createElement("g",{transform:"translate(690, 40)"},i.map((e,t)=>m().createElement("g",{key:e,transform:`translate(0, ${20*t})`},m().createElement("line",{x1:0,y1:6,x2:12,y2:6,stroke:x[t%x.length],strokeWidth:2}),m().createElement("text",{x:18,y:10,fontSize:11,fill:l.colors.text.primary},e.length>12?e.slice(0,12)+"...":e)))),m().createElement("text",{x:400,y:20,textAnchor:"middle",fontSize:14,fontWeight:"bold",fill:l.colors.text.primary},t.title||"Chart Preview"))})();case"pie":return(()=>{const e=Math.min(g,b)/2-20,a=c.map(e=>({category:e.category,total:Object.values(e.values).reduce((e,t)=>e+t,0)})),n=a.reduce((e,t)=>e+t.total,0)||1;let s=-Math.PI/2;return m().createElement("svg",{viewBox:"0 0 800 400",className:r.svg},a.map((t,a)=>{const r=t.total/n*2*Math.PI,l=s,o=s+r;s=o;const i=400+e*Math.cos(l),c=210+e*Math.sin(l),d=400+e*Math.cos(o),p=210+e*Math.sin(o),u=r>Math.PI?1:0,h=`M 400 210 L ${i} ${c} A ${e} ${e} 0 ${u} 1 ${d} ${p} Z`;return m().createElement("path",{key:t.category,d:h,fill:x[a%x.length]},m().createElement("title",null,`${t.category}: ${t.total.toLocaleString()} (${(t.total/n*100).toFixed(1)}%)`))}),t.showLegend&&m().createElement("g",{transform:"translate(700, 40)"},a.slice(0,10).map((e,t)=>m().createElement("g",{key:e.category,transform:`translate(0, ${18*t})`},m().createElement("rect",{width:12,height:12,fill:x[t%x.length],rx:2}),m().createElement("text",{x:18,y:10,fontSize:10,fill:l.colors.text.primary},e.category.length>15?e.category.slice(0,15)+"...":e.category)))),m().createElement("text",{x:400,y:20,textAnchor:"middle",fontSize:14,fontWeight:"bold",fill:l.colors.text.primary},t.title||"Chart Preview"))})();case"scatter":return(()=>{const e=c.map((e,t)=>{const a=t/(c.length-1||1)*g,n=(Object.values(e.values)[0]||0)/y*b;return{x:h+a,y:340-n,label:e.category}});return m().createElement("svg",{viewBox:"0 0 800 400",className:r.svg},m().createElement("line",{x1:h,y1:p,x2:h,y2:340,stroke:l.colors.text.disabled}),m().createElement("line",{x1:h,y1:340,x2:680,y2:340,stroke:l.colors.text.disabled}),e.map((e,t)=>m().createElement("circle",{key:t,cx:e.x,cy:e.y,r:6,fill:x[0],opacity:.7},m().createElement("title",null,e.label))),m().createElement("text",{x:400,y:20,textAnchor:"middle",fontSize:14,fontWeight:"bold",fill:l.colors.text.primary},t.title||"Chart Preview"))})();case"table":return m().createElement("div",{className:r.tableContainer},m().createElement("table",{className:r.table},m().createElement("thead",null,m().createElement("tr",null,m().createElement("th",null,"Category"),i.map(e=>m().createElement("th",{key:e},e)))),m().createElement("tbody",null,c.slice(0,20).map(e=>m().createElement("tr",{key:e.category},m().createElement("td",null,e.category),i.map(t=>m().createElement("td",{key:t},(e.values[t]||0).toLocaleString())))))),c.length>20&&m().createElement("div",{className:r.tableMore},"Showing 20 of ",c.length," rows"))}})())},L=e=>({chartWrapper:p.css`
+    width: 100%;
     height: 100%;
-    overflow-y: auto;
-  `,section:m.css`
-    background: ${e.colors.background.secondary};
-    border-radius: ${e.shape.radius.default};
-    padding: ${e.spacing(2)};
-  `,sectionTitle:m.css`
-    margin: 0 0 ${e.spacing(1.5)} 0;
-    font-size: ${e.typography.h5.fontSize};
-    font-weight: ${e.typography.fontWeightMedium};
-    display: flex;
-    align-items: center;
-    gap: ${e.spacing(1)};
-  `,sectionIcon:m.css`
-    color: ${e.colors.text.secondary};
-  `,searchRow:m.css`
-    display: flex;
-    gap: ${e.spacing(1)};
-    margin-bottom: ${e.spacing(2)};
-  `,searchInput:m.css`
-    flex: 1;
-  `,resultsList:m.css`
-    display: flex;
-    flex-direction: column;
-    gap: ${e.spacing(1)};
-    max-height: 300px;
-    overflow-y: auto;
-  `,resultItem:m.css`
-    padding: ${e.spacing(1.5)};
-    background: ${e.colors.background.primary};
-    border: 1px solid ${e.colors.border.weak};
-    border-radius: ${e.shape.radius.default};
-    cursor: pointer;
-    transition: border-color 0.2s;
-
-    &:hover {
-      border-color: ${e.colors.primary.main};
-    }
-
-    &:focus {
-      outline: none;
-      border-color: ${e.colors.primary.main};
-      box-shadow: 0 0 0 2px ${e.colors.primary.transparent};
-    }
-  `,resultTitle:m.css`
-    font-weight: ${e.typography.fontWeightMedium};
-    margin-bottom: ${e.spacing(.5)};
-  `,resultDesc:m.css`
-    font-size: ${e.typography.size.sm};
-    color: ${e.colors.text.secondary};
-    margin-bottom: ${e.spacing(.5)};
-  `,resultMeta:m.css`
-    font-size: ${e.typography.size.xs};
-    color: ${e.colors.text.disabled};
-  `,hint:m.css`
-    color: ${e.colors.text.secondary};
-    font-size: ${e.typography.size.sm};
-    text-align: center;
-    padding: ${e.spacing(2)};
-  `,loadingOverlay:m.css`
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: ${e.spacing(1)};
-    padding: ${e.spacing(2)};
-    color: ${e.colors.text.secondary};
-  `,selectedCubeHeader:m.css`
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  `,selectedCubeLabel:m.css`
-    font-weight: ${e.typography.fontWeightMedium};
-    margin-bottom: ${e.spacing(.5)};
-  `,selectedCubeMeta:m.css`
-    font-size: ${e.typography.size.sm};
-    color: ${e.colors.text.secondary};
-  `,collapseLabel:m.css`
+  `,svg:p.css`
+    max-width: 100%;
+    max-height: 100%;
+  `,emptyChart:p.css`
     display: flex;
     align-items: center;
-    gap: ${e.spacing(1)};
-    font-weight: ${e.typography.fontWeightMedium};
-  `,checkboxList:m.css`
+    justify-content: center;
+    height: 100%;
+    color: ${e.colors.text.secondary};
+  `,tableContainer:p.css`
+    width: 100%;
+    overflow: auto;
+    max-height: 100%;
+  `,table:p.css`
+    width: 100%;
+    border-collapse: collapse;
+    font-size: ${e.typography.size.sm};
+
+    th, td {
+      padding: ${e.spacing(1)};
+      text-align: left;
+      border-bottom: 1px solid ${e.colors.border.weak};
+    }
+
+    th {
+      background: ${e.colors.background.secondary};
+      font-weight: ${e.typography.fontWeightMedium};
+    }
+
+    tr:hover td {
+      background: ${e.colors.action.hover};
+    }
+  `,tableMore:p.css`
+    padding: ${e.spacing(1)};
+    text-align: center;
+    color: ${e.colors.text.secondary};
+    font-size: ${e.typography.size.sm};
+  `}),S=e=>({container:p.css`
     display: flex;
     flex-direction: column;
-    gap: ${e.spacing(.5)};
-    padding: ${e.spacing(1)} 0;
-  `,checkboxItem:m.css`
+    height: 100%;
+    background: ${e.colors.background.canvas};
+  `,header:p.css`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: ${e.spacing(2)} ${e.spacing(3)};
+    background: ${e.colors.background.primary};
+    border-bottom: 1px solid ${e.colors.border.weak};
+  `,headerTitle:p.css`
+    display: flex;
+    align-items: center;
+    gap: ${e.spacing(2)};
+
+    h1 {
+      margin: 0;
+      font-size: ${e.typography.h4.fontSize};
+    }
+
+    p {
+      margin: 0;
+      color: ${e.colors.text.secondary};
+      font-size: ${e.typography.size.sm};
+    }
+  `,headerActions:p.css`
+    display: flex;
+    gap: ${e.spacing(1)};
+  `,mainContent:p.css`
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  `,leftPanel:p.css`
+    width: 280px;
+    min-width: 250px;
+    background: ${e.colors.background.primary};
+    border-right: 1px solid ${e.colors.border.weak};
+    display: flex;
+    flex-direction: column;
+  `,centerPanel:p.css`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: ${e.spacing(2)};
+  `,rightPanel:p.css`
+    width: 300px;
+    min-width: 280px;
+    background: ${e.colors.background.primary};
+    border-left: 1px solid ${e.colors.border.weak};
+    overflow-y: auto;
+  `,panelHeader:p.css`
     display: flex;
     align-items: center;
     gap: ${e.spacing(1)};
-    padding: ${e.spacing(.5)} ${e.spacing(1)};
+    padding: ${e.spacing(2)};
+    font-weight: ${e.typography.fontWeightMedium};
+    border-bottom: 1px solid ${e.colors.border.weak};
+  `,searchBox:p.css`
+    padding: ${e.spacing(1)};
+    border-bottom: 1px solid ${e.colors.border.weak};
+  `,datasetList:p.css`
+    flex: 1;
+    overflow-y: auto;
+    padding: ${e.spacing(1)};
+  `,datasetItem:p.css`
+    padding: ${e.spacing(1.5)};
     border-radius: ${e.shape.radius.default};
+    cursor: pointer;
+    transition: background-color 0.2s;
 
     &:hover {
       background: ${e.colors.action.hover};
     }
-  `,checkboxLabel:m.css`
-    flex: 1;
+  `,datasetItemSelected:p.css`
+    background: ${e.colors.action.selected};
+    border-left: 3px solid ${e.colors.primary.main};
+  `,datasetName:p.css`
+    font-weight: ${e.typography.fontWeightMedium};
     font-size: ${e.typography.size.sm};
-  `,typeIcon:m.css`
-    color: ${e.colors.text.secondary};
-    font-size: ${e.typography.size.sm};
-  `,typeBadge:m.css`
+    margin-bottom: ${e.spacing(.5)};
+  `,datasetMeta:p.css`
     font-size: ${e.typography.size.xs};
-    color: ${e.colors.text.disabled};
-    background: ${e.colors.background.canvas};
-    padding: 2px 6px;
-    border-radius: ${e.shape.radius.pill};
-  `,unitBadge:m.css`
-    font-size: ${e.typography.size.xs};
-    color: ${e.colors.info.text};
-    background: ${e.colors.info.transparent};
-    padding: 2px 6px;
-    border-radius: ${e.shape.radius.pill};
-  `,optionRow:m.css`
-    display: flex;
-    align-items: center;
-    gap: ${e.spacing(2)};
-    padding: ${e.spacing(1)} 0;
-
-    label {
-      font-size: ${e.typography.size.sm};
-      color: ${e.colors.text.secondary};
-    }
-  `,actionSection:m.css`
-    margin-top: auto;
-    padding-top: ${e.spacing(2)};
-  `,selectionSummary:m.css`
-    text-align: center;
-    font-size: ${e.typography.size.sm};
     color: ${e.colors.text.secondary};
-    margin-top: ${e.spacing(1)};
-  `,alert:m.css`
-    margin-bottom: ${e.spacing(2)};
-  `}),$="PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX qb: <http://purl.org/linked-data/cube#>\nPREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX qudt: <http://qudt.org/schema/qudt/>\n";class E{constructor(e,a=[],t=[]){this.config=e,this.dimensions=a,this.measures=t}uriToVariable(e){const a=e.split(/[/#]/);return(a[a.length-1]||"var").replace(/[^a-zA-Z0-9]/g,"_").toLowerCase()}escapeString(e){return e.replace(/\\/g,"\\\\").replace(/"/g,'\\"')}buildFilterClause(e,a){if(0===e.values.length)return"";const t=e.values.map(e=>e.startsWith("http://")||e.startsWith("https://")?`<${e}>`:`"${this.escapeString(e)}"`);switch(e.operator){case"in":return`FILTER(?${a} IN (${t.join(", ")}))`;case"equals":return`FILTER(?${a} = ${t[0]})`;case"notEquals":return`FILTER(?${a} != ${t[0]})`;default:return""}}buildObservationQuery(){const{cubeUri:e,selectedDimensions:a,selectedMeasures:t,filters:n,limit:s,orderBy:r}=this.config,i=[],l=[],o=[];l.push(`<${e}> cube:observationSet/cube:observation ?obs .`),a.forEach((e,a)=>{const t=this.dimensions.find(a=>a.uri===e),s=t?this.uriToVariable(t.uri):`dim${a}`,r=`${s}_raw`,c=`${s}_label`;i.push(`?${s}`),l.push(`OPTIONAL { ?obs <${e}> ?${r} . }`),l.push(`OPTIONAL { ?${r} schema:name ?${c} . FILTER(LANG(?${c}) = "en" || LANG(?${c}) = "de" || LANG(?${c}) = "") }`),l.push(`BIND(COALESCE(?${c}, STR(?${r})) AS ?${s})`);const u=n.find(a=>a.dimensionUri===e);u&&o.push(this.buildFilterClause(u,r))}),t.forEach((e,a)=>{const t=this.measures.find(a=>a.uri===e),n=t?this.uriToVariable(t.uri):`measure${a}`;i.push(`?${n}`),l.push(`OPTIONAL { ?obs <${e}> ?${n} . }`)}),0===i.length&&(i.push("?property","?value"),l.push("?obs ?property ?value ."),l.push("FILTER(?property != rdf:type)"),l.push("FILTER(?property != cube:observedBy)"),l.push("FILTER(?property != <https://cube.link/observedBy>)"));let c="";if(r){const e=this.uriToVariable(r.variable);i.some(a=>a.includes(e))&&(c=`ORDER BY ${r.direction}(?${e})`)}return`${$}\nSELECT ${i.join(" ")} WHERE {\n  ${l.join("\n  ")}\n  ${o.join("\n  ")}\n}\n${c}\nLIMIT ${s}`.trim()}buildTimeSeriesQuery(e){const{cubeUri:a,selectedDimensions:t,selectedMeasures:n,filters:s,limit:r}=this.config,i=["?time"],l=[],o=[];l.push(`<${a}> cube:observationSet/cube:observation ?obs .`),l.push(`?obs <${e}> ?time .`);const c=s.find(a=>a.dimensionUri===e);return c&&o.push(this.buildFilterClause(c,"time")),t.filter(a=>a!==e).forEach((e,a)=>{const t=this.dimensions.find(a=>a.uri===e),n=t?this.uriToVariable(t.uri):`dim${a}`,r=`${n}_raw`,c=`${n}_label`;i.push(`?${n}`),l.push(`OPTIONAL { ?obs <${e}> ?${r} . }`),l.push(`OPTIONAL { ?${r} schema:name ?${c} . FILTER(LANG(?${c}) = "en" || LANG(?${c}) = "") }`),l.push(`BIND(COALESCE(?${c}, STR(?${r})) AS ?${n})`);const u=s.find(a=>a.dimensionUri===e);u&&o.push(this.buildFilterClause(u,r))}),n.forEach((e,a)=>{const t=this.measures.find(a=>a.uri===e),n=t?this.uriToVariable(t.uri):`value${a}`;i.push(`?${n}`),l.push(`OPTIONAL { ?obs <${e}> ?${n} . }`)}),`${$}\nSELECT ${i.join(" ")} WHERE {\n  ${l.join("\n  ")}\n  ${o.join("\n  ")}\n}\nORDER BY ASC(?time)\nLIMIT ${r}`.trim()}buildTableQuery(){return this.buildObservationQuery()}build(e="observation"){switch(e){case"timeseries":{const e=this.dimensions.find(e=>e.isTemporal||"temporal"===e.scaleType);return e&&this.config.selectedDimensions.includes(e.uri)?this.buildTimeSeriesQuery(e.uri):this.buildObservationQuery()}case"table":return this.buildTableQuery();default:return this.buildObservationQuery()}}}const v=[{uri:"https://environment.ld.admin.ch/foen/cube/air-quality-2023",label:"Air Quality Measurements Switzerland 2023",description:"Hourly air quality measurements from monitoring stations across Switzerland, including PM2.5, PM10, NO2, and O3 concentrations.",publisher:"Federal Office for the Environment FOEN",dateModified:"2024-01-15",dimensions:[{uri:"https://environment.ld.admin.ch/foen/dimension/measurementDate",label:"Measurement Date",range:"xsd:dateTime",scaleType:"temporal",isTemporal:!0,isNumerical:!1,order:1},{uri:"https://environment.ld.admin.ch/foen/dimension/station",label:"Monitoring Station",range:"xsd:string",scaleType:"nominal",isTemporal:!1,isNumerical:!1,order:2},{uri:"https://environment.ld.admin.ch/foen/dimension/canton",label:"Canton",range:"xsd:string",scaleType:"nominal",isTemporal:!1,isNumerical:!1,order:3},{uri:"https://environment.ld.admin.ch/foen/dimension/pollutant",label:"Pollutant Type",range:"xsd:string",scaleType:"nominal",isTemporal:!1,isNumerical:!1,order:4}],measures:[{uri:"https://environment.ld.admin.ch/foen/measure/concentration",label:"Concentration",unit:"ug/m3",dataType:"xsd:decimal"},{uri:"https://environment.ld.admin.ch/foen/measure/aqi",label:"Air Quality Index",unit:"index",dataType:"xsd:integer"}]},{uri:"https://agriculture.ld.admin.ch/foag/cube/MilkProduction_Canton_Year",label:"Milk Production by Canton",description:"Annual milk production statistics by canton in Switzerland, including organic and conventional production volumes.",publisher:"Federal Office for Agriculture FOAG",dateModified:"2024-02-20",dimensions:[{uri:"https://agriculture.ld.admin.ch/foag/dimension/year",label:"Year",range:"xsd:gYear",scaleType:"temporal",isTemporal:!0,isNumerical:!1,order:1},{uri:"https://agriculture.ld.admin.ch/foag/dimension/canton",label:"Canton",range:"xsd:string",scaleType:"nominal",isTemporal:!1,isNumerical:!1,order:2},{uri:"https://agriculture.ld.admin.ch/foag/dimension/productionType",label:"Production Type",range:"xsd:string",scaleType:"nominal",isTemporal:!1,isNumerical:!1,order:3}],measures:[{uri:"https://agriculture.ld.admin.ch/foag/measure/volume",label:"Production Volume",unit:"kg",dataType:"xsd:decimal"},{uri:"https://agriculture.ld.admin.ch/foag/measure/numberOfFarms",label:"Number of Farms",unit:"count",dataType:"xsd:integer"},{uri:"https://agriculture.ld.admin.ch/foag/measure/averagePrice",label:"Average Price",unit:"CHF/kg",dataType:"xsd:decimal"}]}],x={"https://environment.ld.admin.ch/foen/dimension/canton":[{value:"https://ld.admin.ch/canton/ZH",label:"Zurich"},{value:"https://ld.admin.ch/canton/BE",label:"Bern"},{value:"https://ld.admin.ch/canton/GE",label:"Geneva"},{value:"https://ld.admin.ch/canton/VD",label:"Vaud"},{value:"https://ld.admin.ch/canton/BS",label:"Basel-Stadt"},{value:"https://ld.admin.ch/canton/AG",label:"Aargau"}],"https://environment.ld.admin.ch/foen/dimension/station":[{value:"https://environment.ld.admin.ch/station/ZH-Kaserne",label:"Zurich Kaserne"},{value:"https://environment.ld.admin.ch/station/BE-Bollwerk",label:"Bern Bollwerk"},{value:"https://environment.ld.admin.ch/station/GE-Wilson",label:"Geneva Wilson"},{value:"https://environment.ld.admin.ch/station/BS-Feldberg",label:"Basel Feldberg"}],"https://environment.ld.admin.ch/foen/dimension/pollutant":[{value:"https://environment.ld.admin.ch/pollutant/PM25",label:"PM2.5"},{value:"https://environment.ld.admin.ch/pollutant/PM10",label:"PM10"},{value:"https://environment.ld.admin.ch/pollutant/NO2",label:"NO2"},{value:"https://environment.ld.admin.ch/pollutant/O3",label:"O3"}],"https://agriculture.ld.admin.ch/foag/dimension/canton":[{value:"https://ld.admin.ch/canton/ZH",label:"Zurich"},{value:"https://ld.admin.ch/canton/BE",label:"Bern"},{value:"https://ld.admin.ch/canton/LU",label:"Lucerne"},{value:"https://ld.admin.ch/canton/SG",label:"St. Gallen"},{value:"https://ld.admin.ch/canton/FR",label:"Fribourg"},{value:"https://ld.admin.ch/canton/TG",label:"Thurgau"}],"https://agriculture.ld.admin.ch/foag/dimension/productionType":[{value:"https://agriculture.ld.admin.ch/type/conventional",label:"Conventional"},{value:"https://agriculture.ld.admin.ch/type/organic",label:"Organic"},{value:"https://agriculture.ld.admin.ch/type/alpine",label:"Alpine"}],"https://agriculture.ld.admin.ch/foag/dimension/year":[{value:"2023",label:"2023"},{value:"2022",label:"2022"},{value:"2021",label:"2021"},{value:"2020",label:"2020"},{value:"2019",label:"2019"}]};const w=new class{constructor(e){this.simulateDelay=e?.simulateDelay??!0,this.delayMs=e?.delayMs??500}async delay(){if(this.simulateDelay)return new Promise(e=>setTimeout(e,this.delayMs))}async searchCubes(e=""){await this.delay();const a=e.toLowerCase();return v.filter(t=>!e||t.label.toLowerCase().includes(a)||(t.description?.toLowerCase().includes(a)??!1)||(t.publisher?.toLowerCase().includes(a)??!1)).map(e=>({uri:e.uri,label:e.label,description:e.description,publisher:e.publisher,dateModified:e.dateModified}))}async getCubeMetadata(e){return await this.delay(),v.find(a=>a.uri===e)||null}async getDimensionValues(e,a){await this.delay();return x[a]||[]}getAllCubes(){return v.map(e=>({uri:e.uri,label:e.label,description:e.description,publisher:e.publisher,dateModified:e.dateModified}))}},S="lindas-datasource",N=e=>({container:m.css`
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: ${e.spacing(2)};
-    gap: ${e.spacing(2)};
-  `,header:m.css`
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: ${e.spacing(3)};
-    flex-wrap: wrap;
-  `,headerContent:m.css`
-    h1 {
-      margin: 0 0 ${e.spacing(.5)} 0;
-      font-size: ${e.typography.h3.fontSize};
-    }
-    p {
-      margin: 0;
-      color: ${e.colors.text.secondary};
-    }
-  `,headerInfo:m.css`
-    display: flex;
-    align-items: center;
-    gap: ${e.spacing(1)};
-    padding: ${e.spacing(1)} ${e.spacing(2)};
-    background: ${e.colors.info.transparent};
-    border-radius: ${e.shape.radius.default};
-    color: ${e.colors.info.text};
-    font-size: ${e.typography.size.sm};
-    max-width: 500px;
-  `,mainContent:m.css`
-    display: flex;
+  `,placeholder:p.css`
     flex: 1;
-    gap: ${e.spacing(2)};
-    min-height: 0;
-  `,leftPane:m.css`
-    width: 400px;
-    min-width: 350px;
-    max-width: 450px;
-    background: ${e.colors.background.secondary};
-    border-radius: ${e.shape.radius.default};
-    overflow: hidden;
-  `,rightPane:m.css`
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: ${e.spacing(2)};
-    min-width: 0;
-    overflow-y: auto;
-  `,emptyState:m.css`
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: ${e.spacing(6)};
-    background: ${e.colors.background.secondary};
-    border-radius: ${e.shape.radius.default};
-    flex: 1;
+    color: ${e.colors.text.secondary};
 
     h2 {
       margin: ${e.spacing(2)} 0 ${e.spacing(1)} 0;
     }
+
     p {
-      color: ${e.colors.text.secondary};
-      max-width: 400px;
-      margin-bottom: ${e.spacing(3)};
+      margin: 0;
     }
-  `,emptyIcon:m.css`
+  `,placeholderIcon:p.css`
     color: ${e.colors.text.disabled};
-  `,features:m.css`
+  `,loadingState:p.css`
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: ${e.spacing(1)};
-    text-align: left;
-  `,feature:m.css`
+    align-items: center;
+    justify-content: center;
+    gap: ${e.spacing(2)};
+    color: ${e.colors.text.secondary};
+  `,emptyState:p.css`
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: ${e.spacing(1)};
+    padding: ${e.spacing(4)};
     color: ${e.colors.text.secondary};
     font-size: ${e.typography.size.sm};
-  `,cubeInfo:m.css`
-    padding: ${e.spacing(2)};
-    background: ${e.colors.background.secondary};
-    border-radius: ${e.shape.radius.default};
-
-    h3 {
-      margin: 0 0 ${e.spacing(1)} 0;
-    }
-  `,cubeDescription:m.css`
-    color: ${e.colors.text.secondary};
-    font-size: ${e.typography.size.sm};
-    margin: 0 0 ${e.spacing(1)} 0;
-  `,cubeMeta:m.css`
+  `,chartContainer:p.css`
+    flex: 1;
     display: flex;
-    gap: ${e.spacing(2)};
-    flex-wrap: wrap;
-    font-size: ${e.typography.size.sm};
-    color: ${e.colors.text.secondary};
-
-    span {
-      display: flex;
-      align-items: center;
-      gap: ${e.spacing(.5)};
-    }
-  `,querySection:m.css`
-    background: ${e.colors.background.secondary};
+    flex-direction: column;
+    background: ${e.colors.background.primary};
     border-radius: ${e.shape.radius.default};
     overflow: hidden;
-  `,querySectionHeader:m.css`
+  `,chartHeader:p.css`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: ${e.spacing(1.5)} ${e.spacing(2)};
+    padding: ${e.spacing(2)};
     border-bottom: 1px solid ${e.colors.border.weak};
 
-    h4 {
+    h2 {
       margin: 0;
-      font-size: ${e.typography.size.sm};
-      display: flex;
-      align-items: center;
-      gap: ${e.spacing(1)};
+      font-size: ${e.typography.h5.fontSize};
     }
-  `,queryPreview:m.css`
-    margin: 0;
-    padding: ${e.spacing(2)};
-    background: ${e.colors.background.canvas};
-    font-size: ${e.typography.size.sm};
-    font-family: ${e.typography.fontFamilyMonospace};
-    overflow-x: auto;
-    max-height: 300px;
-    white-space: pre-wrap;
-    word-break: break-word;
-  `,actions:m.css`
-    padding: ${e.spacing(2)};
-    background: ${e.colors.background.secondary};
-    border-radius: ${e.shape.radius.default};
-
-    h4 {
-      margin: 0 0 ${e.spacing(2)} 0;
-    }
-  `,actionButtons:m.css`
-    display: flex;
-    gap: ${e.spacing(2)};
-    margin-bottom: ${e.spacing(2)};
-  `,actionHint:m.css`
-    display: flex;
-    align-items: flex-start;
-    gap: ${e.spacing(1)};
+  `,chartMeta:p.css`
     font-size: ${e.typography.size.sm};
     color: ${e.colors.text.secondary};
-    margin: 0;
-  `,previewSection:m.css`
+  `,chartPreview:p.css`
+    flex: 1;
+    padding: ${e.spacing(2)};
+    min-height: 400px;
+  `,configSection:p.css`
+    padding: ${e.spacing(2)};
+    border-bottom: 1px solid ${e.colors.border.weak};
+  `,configLabel:p.css`
+    display: block;
+    font-size: ${e.typography.size.sm};
+    font-weight: ${e.typography.fontWeightMedium};
+    margin-bottom: ${e.spacing(1)};
+    color: ${e.colors.text.secondary};
+  `,configRow:p.css`
     display: flex;
-    justify-content: center;
-  `}),C=(new c.AppPlugin).setRootPage(()=>{const e=(0,p.useStyles2)(N),[a,t]=(0,u.useState)(null),[n,s]=(0,u.useState)(null),[r,i]=(0,u.useState)(null),[l,o]=(0,u.useState)(!1),[c,m]=(0,u.useState)(null),[b,y]=(0,u.useState)(null),f=(0,u.useCallback)(async e=>{try{return await w.searchCubes(e)}catch(e){return m(`Search failed: ${e instanceof Error?e.message:"Unknown error"}`),[]}},[]),$=(0,u.useCallback)(async e=>{try{m(null);const a=await w.getCubeMetadata(e.uri);return a&&(t(a),s({cubeUri:a.uri,selectedDimensions:a.dimensions.map(e=>e.uri),selectedMeasures:a.measures.map(e=>e.uri),filters:[],limit:1e4})),a}catch(e){return m(`Failed to load cube: ${e instanceof Error?e.message:"Unknown error"}`),null}},[]),v=(0,u.useCallback)(e=>{s(e)},[]),x=(0,u.useCallback)(()=>{if(!n||!a)return;const e=new E(n,a.dimensions,a.measures).build("observation");i(e)},[n,a]),C=(0,u.useCallback)(()=>{r||x();const e={datasource:S,queries:[{refId:"A",queryText:r||"",format:"table"}]},a=encodeURIComponent(JSON.stringify(e));h.locationService.push(`/explore?left=${a}`)},[r,x]),T=(0,u.useCallback)(async()=>{if(a&&n){o(!0),m(null);try{let e=r;e||(e=new E(n,a.dimensions,a.measures).build("observation"));const t=(new Date).toISOString().slice(0,16).replace("T"," "),s={title:`${a.label} - ${t}`,tags:["lindas","auto-generated"],timezone:"browser",schemaVersion:38,panels:[{id:1,type:"table",title:a.label,gridPos:{x:0,y:0,w:24,h:12},datasource:{type:"flandersmake-sparql-datasource",uid:S},targets:[{refId:"A",queryText:e,format:"table"}],options:{showHeader:!0,cellHeight:"sm"},fieldConfig:{defaults:{},overrides:[]}}],annotations:{list:[]},templating:{list:[]},time:{from:"now-6h",to:"now"},refresh:""},i=await(0,h.getBackendSrv)().post("/api/dashboards/db",{dashboard:s,folderUid:"",message:`Created from LINDAS cube: ${a.label}`,overwrite:!1});y("Dashboard created! Opening..."),setTimeout(()=>{h.locationService.push(`/d/${i.uid}`)},500)}catch(e){m(`Failed to create dashboard: ${e.message||"Unknown error"}`)}finally{o(!1)}}else m("Please select a cube and configure your query first")},[a,n,r]);return d().useEffect(()=>{if(b){const e=setTimeout(()=>y(null),3e3);return()=>clearTimeout(e)}},[b]),d().createElement("div",{className:e.container},d().createElement("div",{className:e.header},d().createElement("div",{className:e.headerContent},d().createElement("h1",null,"LINDAS Data Browser"),d().createElement("p",null,"Discover Swiss Linked Data cubes and create visualizations using Grafana's native tools.")),d().createElement("div",{className:e.headerInfo},d().createElement(p.Icon,{name:"info-circle"}),d().createElement("span",null,"This tool helps you find data and build queries. Use Grafana's ",d().createElement("strong",null,"Explore")," or ",d().createElement("strong",null,"Dashboards")," to visualize."))),c&&d().createElement(p.Alert,{title:"Error",severity:"error",onRemove:()=>m(null)},c),b&&d().createElement(p.Alert,{title:"Success",severity:"success"},b),d().createElement("div",{className:e.mainContent},d().createElement("div",{className:e.leftPane},d().createElement(g,{onSearch:f,onSelectCube:$,onQueryConfigChange:v,onRunQuery:x,isLoading:l,error:null})),d().createElement("div",{className:e.rightPane},a?d().createElement(d().Fragment,null,d().createElement("div",{className:e.cubeInfo},d().createElement("h3",null,a.label),a.description&&d().createElement("p",{className:e.cubeDescription},a.description),d().createElement("div",{className:e.cubeMeta},a.publisher&&d().createElement("span",null,d().createElement(p.Icon,{name:"building",size:"sm"})," ",a.publisher),d().createElement("span",null,d().createElement(p.Icon,{name:"list-ul",size:"sm"})," ",a.dimensions.length," dimensions"),d().createElement("span",null,d().createElement(p.Icon,{name:"calculator-alt",size:"sm"})," ",a.measures.length," measures"))),r&&d().createElement("div",{className:e.querySection},d().createElement("div",{className:e.querySectionHeader},d().createElement("h4",null,d().createElement(p.Icon,{name:"code-branch"})," Generated SPARQL Query"),d().createElement(p.ClipboardButton,{variant:"secondary",size:"sm",getText:()=>r,icon:"copy"},"Copy")),d().createElement("pre",{className:e.queryPreview},r)),d().createElement("div",{className:e.actions},d().createElement("h4",null,"What would you like to do?"),d().createElement("div",{className:e.actionButtons},d().createElement(p.Tooltip,{content:"Test your query interactively in Grafana Explore"},d().createElement(p.Button,{variant:"primary",size:"lg",icon:"compass",onClick:C,disabled:!n||0===n.selectedDimensions.length&&0===n.selectedMeasures.length},"Open in Explore")),d().createElement(p.Tooltip,{content:"Create a new dashboard with a panel using this query"},d().createElement(p.Button,{variant:"secondary",size:"lg",icon:"apps",onClick:T,disabled:l||!n||0===n.selectedDimensions.length&&0===n.selectedMeasures.length},l?d().createElement(d().Fragment,null,d().createElement(p.Spinner,{inline:!0,size:"sm"})," Creating..."):"Create Dashboard"))),d().createElement("p",{className:e.actionHint},d().createElement(p.Icon,{name:"info-circle",size:"sm"}),"After opening in Explore or Dashboard, use Grafana's panel editor to change visualization type (table, time series, bar chart, pie chart, etc.)")),!r&&n&&(n.selectedDimensions.length>0||n.selectedMeasures.length>0)&&d().createElement("div",{className:e.previewSection},d().createElement(p.Button,{variant:"secondary",icon:"eye",onClick:x},"Preview SPARQL Query"))):d().createElement("div",{className:e.emptyState},d().createElement(p.Icon,{name:"database",size:"xxxl",className:e.emptyIcon}),d().createElement("h2",null,"Select a Data Cube"),d().createElement("p",null,"Search for a LINDAS data cube in the left panel. Once selected, you can configure your query and open it in Grafana."),d().createElement("div",{className:e.features},d().createElement("div",{className:e.feature},d().createElement(p.Icon,{name:"compass"}),d().createElement("span",null,d().createElement("strong",null,"Explore")," - Interactive query testing")),d().createElement("div",{className:e.feature},d().createElement(p.Icon,{name:"apps"}),d().createElement("span",null,d().createElement("strong",null,"Dashboard")," - Create shareable visualizations")),d().createElement("div",{className:e.feature},d().createElement(p.Icon,{name:"lock"}),d().createElement("span",null,d().createElement("strong",null,"Secure")," - Only LINDAS data accessible")))))))});return o}()});
+    justify-content: space-between;
+    align-items: center;
+  `,chartTypeGrid:p.css`
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: ${e.spacing(1)};
+  `,chartTypeButton:p.css`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: ${e.spacing(.5)};
+    padding: ${e.spacing(1)};
+    background: ${e.colors.background.secondary};
+    border: 1px solid ${e.colors.border.weak};
+    border-radius: ${e.shape.radius.default};
+    cursor: pointer;
+    transition: all 0.2s;
+
+    span {
+      font-size: ${e.typography.size.xs};
+    }
+
+    &:hover {
+      border-color: ${e.colors.primary.main};
+    }
+  `,chartTypeButtonActive:p.css`
+    background: ${e.colors.primary.transparent};
+    border-color: ${e.colors.primary.main};
+    color: ${e.colors.primary.text};
+  `,modalContent:p.css`
+    display: flex;
+    flex-direction: column;
+    gap: ${e.spacing(2)};
+  `,modalActions:p.css`
+    display: flex;
+    justify-content: flex-end;
+    gap: ${e.spacing(1)};
+    margin-top: ${e.spacing(2)};
+  `}),N=(new c.AppPlugin).setRootPage(()=>{const e=(0,u.useStyles2)(S),[t,a]=(0,d.useState)(""),[n,r]=(0,d.useState)([]),[l,s]=(0,d.useState)(!1),[o,i]=(0,d.useState)(null),[c,p]=(0,d.useState)(!1),[x,v]=(0,d.useState)([]),[L,N]=(0,d.useState)([]),[w,A]=(0,d.useState)(!1),[T,C]=(0,d.useState)(b),[I,k]=(0,d.useState)(null),[R,O]=(0,d.useState)(!1),[P,z]=(0,d.useState)(""),[M,B]=(0,d.useState)(!1);(0,d.useEffect)(()=>{const e=setTimeout(async()=>{s(!0);try{const e=await async function(e=""){const t=e?`FILTER(CONTAINS(LCASE(?label), LCASE("${e.replace(/"/g,'\\"')}")) || CONTAINS(LCASE(?description), LCASE("${e.replace(/"/g,'\\"')}")))`:"",a=`${y}\nSELECT DISTINCT ?cube ?label ?description ?publisher ?dateModified WHERE {\n  ?cube a cube:Cube .\n\n  OPTIONAL {\n    ?cube schema:name ?labelRaw .\n    FILTER(LANG(?labelRaw) = "en" || LANG(?labelRaw) = "de" || LANG(?labelRaw) = "")\n  }\n  OPTIONAL {\n    ?cube schema:description ?descRaw .\n    FILTER(LANG(?descRaw) = "en" || LANG(?descRaw) = "de" || LANG(?descRaw) = "")\n  }\n  OPTIONAL {\n    ?cube schema:creator/schema:name ?publisherName .\n    FILTER(LANG(?publisherName) = "en" || LANG(?publisherName) = "de" || LANG(?publisherName) = "")\n  }\n  OPTIONAL { ?cube schema:dateModified ?dateModified }\n\n  BIND(COALESCE(?labelRaw, STR(?cube)) AS ?label)\n  BIND(COALESCE(?descRaw, "") AS ?description)\n  BIND(COALESCE(?publisherName, "") AS ?publisher)\n\n  ${t}\n}\nORDER BY DESC(?dateModified) ?label\nLIMIT 200`;try{return(await f(a)).results.bindings.map(e=>({uri:e.cube?.value||"",label:e.label?.value||"Unknown",description:e.description?.value||void 0,publisher:e.publisher?.value||void 0,dateModified:e.dateModified?.value||void 0}))}catch(e){return console.error("Failed to search cubes:",e),[]}}(t);r(e)}catch(e){k(`Failed to load datasets: ${e.message}`)}finally{s(!1)}},300);return()=>clearTimeout(e)},[t]);const D=(0,d.useCallback)(async e=>{p(!0),k(null);try{const t=await async function(e){const t=`${y}\nSELECT ?label ?description ?publisher WHERE {\n  <${e}> a cube:Cube .\n  OPTIONAL { <${e}> schema:name ?label . FILTER(LANG(?label) = "en" || LANG(?label) = "de" || LANG(?label) = "") }\n  OPTIONAL { <${e}> schema:description ?description . FILTER(LANG(?description) = "en" || LANG(?description) = "de" || LANG(?description) = "") }\n  OPTIONAL { <${e}> schema:creator/schema:name ?publisher . FILTER(LANG(?publisher) = "en" || LANG(?publisher) = "de" || LANG(?publisher) = "") }\n} LIMIT 1`,a=`${y}\nSELECT DISTINCT ?dimension ?label ?scaleType WHERE {\n  <${e}> cube:observationConstraint ?shape .\n  ?shape sh:property ?prop .\n  ?prop sh:path ?dimension .\n\n  # Exclude measures\n  FILTER NOT EXISTS { ?prop qudt:unit ?unit }\n  FILTER NOT EXISTS { ?prop schema:unitCode ?unitCode }\n  FILTER NOT EXISTS { ?prop qudt:hasUnit ?hasUnit }\n\n  OPTIONAL { ?prop schema:name ?propLabel . FILTER(LANG(?propLabel) = "en" || LANG(?propLabel) = "de" || LANG(?propLabel) = "") }\n  OPTIONAL { ?prop rdfs:label ?rdfsLabel . FILTER(LANG(?rdfsLabel) = "en" || LANG(?rdfsLabel) = "de" || LANG(?rdfsLabel) = "") }\n  OPTIONAL { ?prop meta:scaleType ?scaleTypeUri }\n\n  BIND(COALESCE(?propLabel, ?rdfsLabel, STRAFTER(STR(?dimension), "#"), REPLACE(STR(?dimension), "^.*/", "")) AS ?label)\n  BIND(STRAFTER(STR(?scaleTypeUri), "scaleType/") AS ?scaleType)\n}\nORDER BY ?label`,n=`${y}\nSELECT DISTINCT ?measure ?label ?unit WHERE {\n  <${e}> cube:observationConstraint ?shape .\n  ?shape sh:property ?prop .\n  ?prop sh:path ?measure .\n\n  # Measures have units\n  { ?prop qudt:unit ?unitUri }\n  UNION { ?prop schema:unitCode ?unitCode }\n  UNION { ?prop qudt:hasUnit ?hasUnit }\n\n  OPTIONAL { ?prop schema:name ?propLabel . FILTER(LANG(?propLabel) = "en" || LANG(?propLabel) = "de" || LANG(?propLabel) = "") }\n  OPTIONAL { ?prop rdfs:label ?rdfsLabel . FILTER(LANG(?rdfsLabel) = "en" || LANG(?rdfsLabel) = "de" || LANG(?rdfsLabel) = "") }\n  OPTIONAL { ?unitUri rdfs:label ?unitLabel }\n\n  BIND(COALESCE(?propLabel, ?rdfsLabel, STRAFTER(STR(?measure), "#"), REPLACE(STR(?measure), "^.*/", "")) AS ?label)\n  BIND(COALESCE(?unitLabel, ?unitCode, "") AS ?unit)\n}\nORDER BY ?label`;try{const[r,l,s]=await Promise.all([f(t),f(a),f(n)]),o=r.results.bindings[0],i=l.results.bindings.map(e=>{const t=e.scaleType?.value?.toLowerCase();return{uri:e.dimension?.value||"",label:e.label?.value||"Unknown",scaleType:t,isTemporal:"temporal"===t,isNumerical:"ratio"===t||"interval"===t}}),c=s.results.bindings.map(e=>({uri:e.measure?.value||"",label:e.label?.value||"Unknown",unit:e.unit?.value||void 0}));return{uri:e,label:o?.label?.value||e,description:o?.description?.value,publisher:o?.publisher?.value,dimensions:i,measures:c}}catch(e){return console.error("Failed to get cube metadata:",e),null}}(e.uri);if(t){i(t),C(e=>({...e,title:t.label,xAxis:t.dimensions[0]?.uri,yAxis:t.measures[0]?.uri,groupBy:void 0})),A(!0);const{data:e,columns:a}=await async function(e,t,a,n=1e4){const r=[],l=[];l.push(`<${e}> cube:observationSet/cube:observation ?obs .`),t.forEach(e=>{const t=E(e.uri),a=`${t}_raw`,n=`${t}_label`;r.push(`?${t}`),l.push(`OPTIONAL { ?obs <${e.uri}> ?${a} . }`),l.push(`OPTIONAL { ?${a} schema:name ?${n} . FILTER(LANG(?${n}) = "en" || LANG(?${n}) = "de" || LANG(?${n}) = "") }`),l.push(`BIND(COALESCE(?${n}, STR(?${a})) AS ?${t})`)}),a.forEach(e=>{const t=E(e.uri);r.push(`?${t}`),l.push(`OPTIONAL { ?obs <${e.uri}> ?${t} . }`)});const s=`${y}\nSELECT ${r.join(" ")} WHERE {\n  ${l.join("\n  ")}\n}\nLIMIT ${n}`;try{const e=await f(s),t=e.head.vars;return{data:e.results.bindings.map(e=>{const a={};for(const n of t){const t=e[n]?.value,r=e[n]?.datatype;void 0===t?a[n]=null:r?.includes("integer")||r?.includes("decimal")||r?.includes("float")||r?.includes("double")?a[n]=Number(t):a[n]=t}return a}),columns:t}}catch(e){return console.error("Failed to fetch cube data:",e),{data:[],columns:[]}}}(t.uri,t.dimensions,t.measures,T.limit);v(e),N(a)}}catch(e){k(`Failed to load dataset: ${e.message}`)}finally{p(!1),A(!1)}},[T.limit]),F=(0,d.useMemo)(()=>o?o.dimensions.map(e=>({label:e.label,value:e.uri,description:e.isTemporal?"Temporal":e.scaleType})):[],[o]),G=(0,d.useMemo)(()=>o?o.measures.map(e=>({label:e.label,value:e.uri,description:e.unit})):[],[o]),j=(0,d.useCallback)(e=>{C(t=>({...t,...e}))},[]),W=(0,d.useCallback)(async()=>{if(o&&T.xAxis&&T.yAxis){B(!0),k(null);try{const e="table"===T.chartType?"table":"pie"===T.chartType?"piechart":"scatter"===T.chartType?"scatter":"timeseries",t=(o.dimensions.find(e=>e.uri===T.xAxis),o.measures.find(e=>e.uri===T.yAxis),T.groupBy&&o.dimensions.find(e=>e.uri===T.groupBy),{title:P||`${o.label} - ${(new Date).toISOString().slice(0,16)}`,tags:["lindas","chart-studio"],timezone:"browser",schemaVersion:38,panels:[{id:1,type:e,title:T.title||o.label,gridPos:{x:0,y:0,w:24,h:16},datasource:{type:"lindas-datasource",uid:"lindas-datasource"},targets:[{refId:"A",cubeUri:o.uri,limit:T.limit}],fieldConfig:{defaults:{custom:{}},overrides:[]},options:"table"===e?{showHeader:!0}:{legend:{showLegend:T.showLegend}}}]}),a=await(0,h.getBackendSrv)().post("/api/dashboards/db",{dashboard:t,folderUid:"",message:`Created with Chart Studio from ${o.label}`,overwrite:!1});O(!1),h.locationService.push(`/d/${a.uid}`)}catch(e){k(`Failed to save dashboard: ${e.message}`)}finally{B(!1)}}else k("Please configure the chart before saving")},[o,T,P]);return g.map(e=>({label:e.label,value:e.id,icon:e.icon})),m().createElement("div",{className:e.container},m().createElement("header",{className:e.header},m().createElement("div",{className:e.headerTitle},m().createElement(u.Icon,{name:"chart-line",size:"xl"}),m().createElement("div",null,m().createElement("h1",null,"LINDAS Chart Studio"),m().createElement("p",null,"Create beautiful visualizations from Swiss Open Data"))),o&&m().createElement("div",{className:e.headerActions},m().createElement(u.Button,{variant:"primary",icon:"save",onClick:()=>O(!0),disabled:!T.xAxis||!T.yAxis},"Save to Dashboard"))),I&&m().createElement(u.Alert,{title:"Error",severity:"error",onRemove:()=>k(null)},I),m().createElement("div",{className:e.mainContent},m().createElement("aside",{className:e.leftPanel},m().createElement("div",{className:e.panelHeader},m().createElement(u.Icon,{name:"database"}),m().createElement("span",null,"Datasets")),m().createElement("div",{className:e.searchBox},m().createElement(u.Input,{prefix:m().createElement(u.Icon,{name:"search"}),placeholder:"Search datasets...",value:t,onChange:e=>a(e.currentTarget.value)})),m().createElement("div",{className:e.datasetList},l?m().createElement("div",{className:e.loadingState},m().createElement(u.Spinner,null),m().createElement("span",null,"Loading datasets...")):0===n.length?m().createElement("div",{className:e.emptyState},m().createElement(u.Icon,{name:"info-circle"}),m().createElement("span",null,"No datasets found")):n.map(t=>m().createElement("div",{key:t.uri,className:`${e.datasetItem} ${o?.uri===t.uri?e.datasetItemSelected:""}`,onClick:()=>D(t),role:"button",tabIndex:0},m().createElement("div",{className:e.datasetName},t.label),t.publisher&&m().createElement("div",{className:e.datasetMeta},t.publisher))))),m().createElement("main",{className:e.centerPanel},o?c||w?m().createElement("div",{className:e.loadingState},m().createElement(u.Spinner,{size:"xl"}),m().createElement("span",null,"Loading data...")):m().createElement("div",{className:e.chartContainer},m().createElement("div",{className:e.chartHeader},m().createElement("h2",null,T.title||o.label),m().createElement("div",{className:e.chartMeta},x.length," rows | ",L.length," columns")),m().createElement("div",{className:e.chartPreview},m().createElement($,{data:x,config:T,dimensions:o.dimensions,measures:o.measures}))):m().createElement("div",{className:e.placeholder},m().createElement(u.Icon,{name:"arrow-left",size:"xxxl",className:e.placeholderIcon}),m().createElement("h2",null,"Select a Dataset"),m().createElement("p",null,"Choose a dataset from the left panel to start creating your chart"))),o&&m().createElement("aside",{className:e.rightPanel},m().createElement("div",{className:e.panelHeader},m().createElement(u.Icon,{name:"cog"}),m().createElement("span",null,"Configure")),m().createElement("div",{className:e.configSection},m().createElement("label",{className:e.configLabel},"Chart Type"),m().createElement("div",{className:e.chartTypeGrid},g.map(t=>m().createElement(u.Tooltip,{key:t.id,content:t.description},m().createElement("button",{className:`${e.chartTypeButton} ${T.chartType===t.id?e.chartTypeButtonActive:""}`,onClick:()=>j({chartType:t.id})},m().createElement(u.Icon,{name:t.icon,size:"lg"}),m().createElement("span",null,t.label)))))),m().createElement("div",{className:e.configSection},m().createElement("label",{className:e.configLabel},"pie"===T.chartType?"Categories":"X-Axis"),m().createElement(u.Select,{options:F,value:F.find(e=>e.value===T.xAxis),onChange:e=>j({xAxis:e.value}),placeholder:"Select dimension..."})),m().createElement("div",{className:e.configSection},m().createElement("label",{className:e.configLabel},"pie"===T.chartType?"Values":"Y-Axis"),m().createElement(u.Select,{options:G,value:G.find(e=>e.value===T.yAxis),onChange:e=>j({yAxis:e.value}),placeholder:"Select measure..."})),"pie"!==T.chartType&&"table"!==T.chartType&&m().createElement("div",{className:e.configSection},m().createElement("label",{className:e.configLabel},"Group By (optional)"),m().createElement(u.Select,{options:[{label:"None",value:""},...F],value:F.find(e=>e.value===T.groupBy)||{label:"None",value:""},onChange:e=>j({groupBy:e.value||void 0}),placeholder:"Select grouping...",isClearable:!0})),m().createElement("div",{className:e.configSection},m().createElement("label",{className:e.configLabel},"Title"),m().createElement(u.Input,{value:T.title||"",onChange:e=>j({title:e.currentTarget.value}),placeholder:"Chart title..."})),m().createElement("div",{className:e.configSection},m().createElement("div",{className:e.configRow},m().createElement("label",{className:e.configLabel},"Show Legend"),m().createElement(u.Switch,{value:T.showLegend,onChange:e=>j({showLegend:e.currentTarget.checked})}))))),m().createElement(u.Modal,{title:"Save to Dashboard",isOpen:R,onDismiss:()=>O(!1)},m().createElement("div",{className:e.modalContent},m().createElement("div",{className:e.configSection},m().createElement("label",{className:e.configLabel},"Dashboard Title"),m().createElement(u.Input,{value:P,onChange:e=>z(e.currentTarget.value),placeholder:`${o?.label||"Chart"} Dashboard`})),m().createElement("div",{className:e.modalActions},m().createElement(u.Button,{variant:"secondary",onClick:()=>O(!1)},"Cancel"),m().createElement(u.Button,{variant:"primary",onClick:W,disabled:M},M?m().createElement(u.Spinner,{inline:!0,size:"sm"}):m().createElement(u.Icon,{name:"save"}),M?"Saving...":"Create Dashboard")))))});return i}()});

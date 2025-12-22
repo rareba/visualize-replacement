@@ -1,4 +1,222 @@
-# LINDAS Datasource Plugin v1.0
+# LINDAS Grafana Integration v4.0
+
+This document describes the LINDAS Grafana integration comprising two plugins:
+1. **LINDAS Chart Studio** (App Plugin v4.0) - Visual chart builder with live preview
+2. **LINDAS Datasource** (Datasource Plugin v1.0) - Dataset selector for Grafana panels
+
+Both plugins ensure **users never see or write SPARQL** - they work with datasets through visual interfaces only.
+
+---
+
+# Part 1: LINDAS Chart Studio (App Plugin)
+
+A visual chart creation experience for Swiss Open Data. Users select datasets, configure chart types, see live previews, and save to Grafana dashboards.
+
+## Philosophy
+
+**Best Possible UX for Chart Creation**
+
+Users should be able to create beautiful visualizations without any technical knowledge:
+
+1. Search and browse LINDAS datasets
+2. Select a dataset to load data
+3. Choose chart type (bar, line, pie, etc.)
+4. Configure axes with dropdowns
+5. See live chart preview
+6. Save to Grafana dashboard
+
+All SPARQL and data complexity is completely hidden.
+
+## User Experience
+
+### Chart Studio Interface
+
+```
++------------------------------------------------------------------+
+|  LINDAS Chart Studio                          [Save to Dashboard] |
++------------------------------------------------------------------+
+|                                                                   |
+| +------------------+ +-------------------------+ +--------------+ |
+| | DATASETS         | | CHART PREVIEW           | | CONFIGURE    | |
+| |                  | |                         | |              | |
+| | [Search...]      | |    +-----+              | | Chart Type   | |
+| |                  | |    |     |   +-----+    | | [Bar v]      | |
+| | Milk Production  | |    |     |   |     |    | |              | |
+| | Swiss Exports    | |    |     |   |     |    | | X-Axis       | |
+| | Population       | |    +-----+   +-----+    | | [Canton v]   | |
+| | Energy Usage     | |                         | |              | |
+| | ...              | |     Canton  Year        | | Y-Axis       | |
+| |                  | |                         | | [Volume v]   | |
+| +------------------+ +-------------------------+ +--------------+ |
++------------------------------------------------------------------+
+```
+
+### Three-Panel Layout
+
+| Left Panel | Center Panel | Right Panel |
+|------------|--------------|-------------|
+| Dataset Browser | Live Chart Preview | Configuration |
+| Search & filter | SVG-based rendering | Chart type picker |
+| Click to select | Updates in real-time | Axis mapping |
+| Shows metadata | Tooltip on hover | Title & legend |
+
+## Architecture
+
+```
++------------------------------------------+
+|        LINDAS Chart Studio               |
+|        (App Plugin v4.0)                 |
++------------------------------------------+
+|                                          |
+|  ChartStudio.tsx (Main Component)        |
+|  +------------------------------------+  |
+|  |                                    |  |
+|  |  Dataset Browser   Chart Preview   |  |
+|  |  (searchCubes)     (SimpleChart)   |  |
+|  |       |                |           |  |
+|  |       v                v           |  |
+|  |  Configuration    Save to Dashboard |  |
+|  |  (Axis Mapping)   (Grafana API)    |  |
+|  |                                    |  |
+|  +------------------------------------+  |
+|                                          |
++------------------------------------------+
+          |
+          | SPARQL (hidden)
+          v
++------------------------------------------+
+|     lindasService.ts                     |
+|     (Internal SPARQL Generator)          |
++------------------------------------------+
+|                                          |
+|  searchCubes() - Find datasets           |
+|  getCubeMetadata() - Get dims/measures   |
+|  fetchCubeData() - Get observations      |
+|                                          |
++------------------------------------------+
+          |
+          v
++------------------------------------------+
+|     https://lindas.admin.ch/query        |
+|     (Swiss SPARQL Endpoint)              |
++------------------------------------------+
+```
+
+## Plugin Files
+
+```
+grafana/plugins/lindas-visualizer-app/
+  src/
+    module.ts              - Plugin entry point
+    types.ts               - TypeScript interfaces
+    pages/
+      ChartStudio.tsx      - Main Chart Studio component
+    components/
+      SimpleChart.tsx      - SVG-based chart rendering
+    services/
+      lindasService.ts     - SPARQL service (hidden)
+  plugin.json              - Plugin manifest
+  package.json             - Dependencies
+  webpack.config.js        - Build config
+  module.js                - Built output (28 KiB)
+```
+
+## Key Components
+
+### ChartStudio.tsx
+
+The main interface with three-panel layout:
+
+```tsx
+// State management
+const [selectedCube, setSelectedCube] = useState<CubeFullMetadata | null>(null);
+const [config, setConfig] = useState<ChartConfig>(DEFAULT_CHART_CONFIG);
+const [data, setData] = useState<DataRow[]>([]);
+
+// Layout
+<div className={styles.container}>
+  <aside className={styles.leftPanel}>   {/* Dataset Browser */}
+  <main className={styles.centerPanel}>  {/* Chart Preview */}
+  <aside className={styles.rightPanel}>  {/* Configuration */}
+</div>
+```
+
+### SimpleChart.tsx
+
+SVG-based chart rendering for live preview:
+
+```tsx
+// Supports multiple chart types
+switch (config.chartType) {
+  case 'bar': return renderBarChart();
+  case 'line': return renderLineChart();
+  case 'area': return renderAreaChart();
+  case 'pie': return renderPieChart();
+  case 'scatter': return renderScatterChart();
+  case 'table': return renderTable();
+}
+```
+
+### lindasService.ts
+
+All SPARQL is hidden here:
+
+```typescript
+// Search for datasets
+export async function searchCubes(searchTerm: string): Promise<CubeMetadata[]>
+
+// Get cube structure
+export async function getCubeMetadata(cubeUri: string): Promise<CubeFullMetadata | null>
+
+// Fetch actual data
+export async function fetchCubeData(
+  cubeUri: string,
+  dimensions: CubeDimension[],
+  measures: CubeMeasure[],
+  limit: number
+): Promise<{ data: DataRow[]; columns: string[] }>
+```
+
+## Chart Types
+
+| Type | Icon | Description |
+|------|------|-------------|
+| Bar | graph-bar | Compare values across categories |
+| Line | gf-interpolation-linear | Show trends over time |
+| Area | gf-interpolation-linear | Show cumulative trends |
+| Pie | pie-chart | Show proportions of a whole |
+| Scatter | gf-landscape | Show correlation between measures |
+| Table | table | Display raw data in rows and columns |
+
+## Save to Dashboard
+
+When users save, Chart Studio creates a Grafana dashboard:
+
+```typescript
+const dashboard = {
+  title: dashboardTitle,
+  tags: ['lindas', 'chart-studio'],
+  panels: [{
+    type: panelType,  // timeseries, piechart, table, etc.
+    datasource: {
+      type: 'lindas-datasource',
+      uid: 'lindas-datasource',
+    },
+    targets: [{
+      refId: 'A',
+      cubeUri: selectedCube.uri,
+      limit: config.limit,
+    }],
+  }],
+};
+
+// POST to Grafana API
+await getBackendSrv().post('/api/dashboards/db', { dashboard });
+```
+
+---
+
+# Part 2: LINDAS Datasource Plugin
 
 A Grafana Datasource Plugin that provides access to Swiss Linked Data (LINDAS) through a simple dataset selector. **Users never see or write SPARQL** - they just pick a dataset from a dropdown.
 
@@ -240,9 +458,30 @@ Users never see this. They just see:
 
 ## Changelog
 
+### v4.0.0 (2025-12-22)
+
+**LINDAS Chart Studio - Best UX for Chart Creation**
+
+- Redesigned App Plugin as Chart Studio
+- Three-panel layout: Dataset Browser, Chart Preview, Configuration
+- Visual chart type picker with 6 chart types
+- Live SVG-based chart preview
+- Axis mapping with dropdown selectors
+- Group By support for multi-series charts
+- Save to Dashboard with one click
+- No SPARQL visible - all hidden internally
+
+### v3.0.0 (2025-12-22)
+
+**Grafana-Native Approach**
+
+- Removed embedded visualization
+- Added "Open in Explore" and "Create Dashboard" buttons
+- Locked Grafana to LINDAS-only access
+
 ### v1.0.0 (2025-12-22)
 
-**Initial Release: Dataset-Only Selector**
+**LINDAS Datasource Plugin - Initial Release**
 
 - Created custom LINDAS datasource plugin
 - QueryEditor shows only dataset dropdown (no SPARQL)
@@ -257,7 +496,7 @@ Previous versions used:
 - `flandersmake-sparql-datasource` (required SPARQL knowledge)
 - Custom App Plugin with embedded visualization
 
-These are replaced by the new datasource plugin approach.
+These are replaced by the new Chart Studio + Datasource approach.
 
 ## Troubleshooting
 

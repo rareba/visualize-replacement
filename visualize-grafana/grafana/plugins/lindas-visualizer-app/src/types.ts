@@ -1,113 +1,164 @@
 /**
- * Domain models for the SPARQL Data Explorer
- * These interfaces define the structure of RDF Data Cubes and query configuration
+ * Type definitions for LINDAS Chart Studio
  */
 
 /**
- * Metadata for an RDF Data Cube discovered from a catalog
+ * Available chart types
+ */
+export type ChartType = 'bar' | 'line' | 'area' | 'pie' | 'scatter' | 'table';
+
+/**
+ * Chart type metadata for UI
+ */
+export interface ChartTypeInfo {
+  id: ChartType;
+  label: string;
+  icon: string;
+  description: string;
+  requiresTimeDimension?: boolean;
+  supportsSeries?: boolean;
+}
+
+/**
+ * All available chart types
+ */
+export const CHART_TYPES: ChartTypeInfo[] = [
+  {
+    id: 'bar',
+    label: 'Bar Chart',
+    icon: 'graph-bar',
+    description: 'Compare values across categories',
+    supportsSeries: true,
+  },
+  {
+    id: 'line',
+    label: 'Line Chart',
+    icon: 'gf-interpolation-linear',
+    description: 'Show trends over time',
+    requiresTimeDimension: true,
+    supportsSeries: true,
+  },
+  {
+    id: 'area',
+    label: 'Area Chart',
+    icon: 'gf-interpolation-linear',
+    description: 'Show cumulative trends',
+    requiresTimeDimension: true,
+    supportsSeries: true,
+  },
+  {
+    id: 'pie',
+    label: 'Pie Chart',
+    icon: 'pie-chart',
+    description: 'Show proportions of a whole',
+    supportsSeries: false,
+  },
+  {
+    id: 'scatter',
+    label: 'Scatter Plot',
+    icon: 'gf-landscape',
+    description: 'Show correlation between two measures',
+    supportsSeries: true,
+  },
+  {
+    id: 'table',
+    label: 'Table',
+    icon: 'table',
+    description: 'Display raw data in rows and columns',
+    supportsSeries: false,
+  },
+];
+
+/**
+ * Cube metadata from LINDAS
  */
 export interface CubeMetadata {
-  /** The URI identifier of the cube */
   uri: string;
-  /** Human-readable label for the cube */
   label: string;
-  /** Optional description of the cube's contents */
   description?: string;
-  /** Publisher organization */
   publisher?: string;
-  /** Date the cube was last modified */
   dateModified?: string;
 }
 
 /**
- * A dimension of an RDF Data Cube (categorical or temporal axis)
+ * Dimension of a cube
  */
 export interface CubeDimension {
-  /** The URI identifier of the dimension property */
   uri: string;
-  /** Human-readable label for the dimension */
   label: string;
-  /** Optional XSD data type range (e.g., xsd:date, xsd:string) */
-  range?: string;
-  /** Scale type for visualization purposes */
   scaleType?: 'nominal' | 'ordinal' | 'temporal' | 'numerical';
-  /** Order hint for display */
-  order?: number;
-  /** Whether this dimension represents time */
   isTemporal?: boolean;
-  /** Whether this dimension has numeric values */
   isNumerical?: boolean;
 }
 
 /**
- * A measure of an RDF Data Cube (numeric value to be aggregated/displayed)
+ * Measure of a cube
  */
 export interface CubeMeasure {
-  /** The URI identifier of the measure property */
   uri: string;
-  /** Human-readable label for the measure */
   label: string;
-  /** Optional unit of measurement */
   unit?: string;
-  /** Optional XSD data type */
-  dataType?: string;
 }
 
 /**
- * Full metadata for a cube including its dimensions and measures
+ * Full cube data including dimensions and measures
  */
 export interface CubeFullMetadata extends CubeMetadata {
-  /** Available dimensions in this cube */
   dimensions: CubeDimension[];
-  /** Available measures in this cube */
   measures: CubeMeasure[];
 }
 
 /**
- * Filter applied to a dimension
+ * Chart configuration state
  */
-export interface DimensionFilter {
-  /** URI of the dimension to filter */
-  dimensionUri: string;
-  /** Selected values (URIs or literals) */
-  values: string[];
-  /** Filter operator */
-  operator: 'in' | 'equals' | 'notEquals';
-}
-
-/**
- * Internal state of the SPARQL query builder
- */
-export interface SparqlQueryConfig {
-  /** The selected cube URI */
-  cubeUri: string;
-  /** Selected dimensions to include in the query */
-  selectedDimensions: string[];
-  /** Selected measures to include in the query */
-  selectedMeasures: string[];
-  /** Filters applied to dimensions */
-  filters: DimensionFilter[];
-  /** Maximum number of results */
+export interface ChartConfig {
+  /** Selected chart type */
+  chartType: ChartType;
+  /** Dimension for X-axis (or categories) */
+  xAxis?: string;
+  /** Measure for Y-axis (or values) */
+  yAxis?: string;
+  /** Optional: dimension for grouping/series */
+  groupBy?: string;
+  /** Optional: second measure for scatter plots */
+  yAxis2?: string;
+  /** Chart title */
+  title?: string;
+  /** Row limit */
   limit: number;
-  /** Ordering configuration */
-  orderBy?: {
-    variable: string;
-    direction: 'ASC' | 'DESC';
-  };
+  /** Show legend */
+  showLegend: boolean;
+  /** Color scheme */
+  colorScheme?: string;
 }
 
 /**
- * Result of a dimension value lookup
+ * Default chart configuration
  */
-export interface DimensionValue {
-  /** URI or literal value */
-  value: string;
-  /** Display label */
-  label: string;
+export const DEFAULT_CHART_CONFIG: ChartConfig = {
+  chartType: 'bar',
+  limit: 10000,
+  showLegend: true,
+};
+
+/**
+ * Data row from SPARQL result
+ */
+export interface DataRow {
+  [key: string]: string | number | null;
 }
 
 /**
- * SPARQL result binding from a query
+ * Dataset with data and metadata
+ */
+export interface DatasetWithData {
+  metadata: CubeFullMetadata;
+  data: DataRow[];
+  columns: string[];
+}
+
+/**
+ * SPARQL result binding
  */
 export interface SparqlBinding {
   [variable: string]: {
@@ -119,7 +170,7 @@ export interface SparqlBinding {
 }
 
 /**
- * SPARQL query result structure
+ * SPARQL query result
  */
 export interface SparqlResult {
   head: {
@@ -129,47 +180,3 @@ export interface SparqlResult {
     bindings: SparqlBinding[];
   };
 }
-
-/**
- * Configuration for the Explorer Scene
- */
-export interface ExplorerConfig {
-  /** UID of the pre-configured SPARQL datasource */
-  datasourceUid: string;
-  /** Default limit for queries */
-  defaultLimit?: number;
-  /** Whether to show advanced options */
-  showAdvancedOptions?: boolean;
-}
-
-/**
- * State for the Explorer Scene
- */
-export interface ExplorerState {
-  /** Currently selected cube */
-  selectedCube: CubeFullMetadata | null;
-  /** Current query configuration */
-  queryConfig: SparqlQueryConfig | null;
-  /** Whether the query is currently running */
-  isLoading: boolean;
-  /** Error message if any */
-  error: string | null;
-  /** Search term for cube discovery */
-  searchTerm: string;
-  /** Search results */
-  searchResults: CubeMetadata[];
-}
-
-/**
- * Event types for scene state changes
- */
-export type ExplorerEvent =
-  | { type: 'SEARCH_CUBES'; term: string }
-  | { type: 'SELECT_CUBE'; cube: CubeMetadata }
-  | { type: 'TOGGLE_DIMENSION'; dimensionUri: string }
-  | { type: 'TOGGLE_MEASURE'; measureUri: string }
-  | { type: 'SET_FILTER'; filter: DimensionFilter }
-  | { type: 'REMOVE_FILTER'; dimensionUri: string }
-  | { type: 'RUN_QUERY' }
-  | { type: 'SET_ERROR'; error: string | null }
-  | { type: 'SET_LOADING'; loading: boolean };

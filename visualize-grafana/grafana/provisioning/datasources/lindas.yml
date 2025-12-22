@@ -6,6 +6,8 @@ apiVersion: 1
 # This is the ONLY datasource available in this Grafana instance.
 # Users can ONLY visualize data from LINDAS (Swiss Linked Data Service).
 # No external datasources are permitted.
+#
+# Users simply select a dataset from a dropdown - no SPARQL knowledge required.
 # =============================================================================
 
 # Delete any other datasources that may have been added
@@ -13,6 +15,8 @@ deleteDatasources:
   - name: LINDAS
     orgId: 1
   - name: LINDAS (System)
+    orgId: 1
+  - name: LINDAS (SPARQL)
     orgId: 1
   # Remove common datasources users might try to add
   - name: Prometheus
@@ -29,20 +33,15 @@ deleteDatasources:
     orgId: 1
 
 datasources:
-  # LINDAS SPARQL Datasource
-  # The ONLY datasource permitted in this Grafana instance
-  # Provides access to Swiss Federal Linked Data
+  # LINDAS Datasource (Custom Plugin)
+  # Users select datasets from a dropdown - no SPARQL visible
+  # The plugin generates all queries internally
   - name: LINDAS
     uid: lindas-datasource
-    type: flandersmake-sparql-datasource
+    type: lindas-datasource
     access: proxy
-    url: https://lindas.admin.ch/query
     orgId: 1
     isDefault: true
-    # CRITICAL: Set to false to prevent modification
     editable: false
     jsonData:
-      source: https://lindas.admin.ch/query
-      # SPARQL endpoint configuration
-      httpMethod: POST
-      defaultLimit: 10000
+      endpoint: https://lindas.admin.ch/query

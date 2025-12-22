@@ -6,13 +6,14 @@
  *
  * Design Philosophy:
  * - Simple card grid, not a complex multi-panel layout
- * - One-click dashboard creation
+ * - One-click dashboard creation with template (instructions + histogram)
  * - Let Grafana handle visualization via native panel editing
+ * - Multi-language support (DE, FR, IT, EN)
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { css } from '@emotion/css';
-import { AppRootProps, GrafanaTheme2 } from '@grafana/data';
+import { AppRootProps, GrafanaTheme2, SelectableValue } from '@grafana/data';
 import {
   useStyles2,
   Input,
@@ -22,16 +23,38 @@ import {
   Button,
   Card,
   LinkButton,
+  Select,
+  RadioButtonGroup,
 } from '@grafana/ui';
 import { getBackendSrv, locationService } from '@grafana/runtime';
 import type { Dataset, SparqlResult } from '../types';
 
 const LINDAS_ENDPOINT = 'https://lindas.admin.ch/query';
 
+/** Available languages for dataset labels */
+type Language = 'de' | 'fr' | 'it' | 'en';
+
+const LANGUAGE_OPTIONS: Array<SelectableValue<Language>> = [
+  { label: 'DE', value: 'de', description: 'Deutsch' },
+  { label: 'FR', value: 'fr', description: 'Francais' },
+  { label: 'IT', value: 'it', description: 'Italiano' },
+  { label: 'EN', value: 'en', description: 'English' },
+];
+
 /**
- * SPARQL query to get cubes from LINDAS
+ * Generate SPARQL query for cubes with language preference
  */
-const CUBES_QUERY = `
+function getCubesQuery(lang: Language): string {
+  // Language priority: selected language first, then fallbacks
+  const langPriority = {
+    de: ['de', 'en', 'fr', 'it'],
+    fr: ['fr', 'de', 'en', 'it'],
+    it: ['it', 'de', 'fr', 'en'],
+    en: ['en', 'de', 'fr', 'it'],
+  };
+  const langs = langPriority[lang];
+
+  return `
 PREFIX cube: <https://cube.link/>
 PREFIX schema: <http://schema.org/>
 PREFIX dcterms: <http://purl.org/dc/terms/>
@@ -39,23 +62,31 @@ PREFIX dcterms: <http://purl.org/dc/terms/>
 SELECT DISTINCT ?cube ?label ?description ?publisher WHERE {
   ?cube a cube:Cube .
 
-  # Get label with language preference
-  OPTIONAL { ?cube schema:name ?labelDe . FILTER(LANG(?labelDe) = "de") }
-  OPTIONAL { ?cube schema:name ?labelEn . FILTER(LANG(?labelEn) = "en") }
+  # Get label with language preference (${lang} first)
+  OPTIONAL { ?cube schema:name ?label0 . FILTER(LANG(?label0) = "${langs[0]}") }
+  OPTIONAL { ?cube schema:name ?label1 . FILTER(LANG(?label1) = "${langs[1]}") }
+  OPTIONAL { ?cube schema:name ?label2 . FILTER(LANG(?label2) = "${langs[2]}") }
+  OPTIONAL { ?cube schema:name ?label3 . FILTER(LANG(?label3) = "${langs[3]}") }
   OPTIONAL { ?cube schema:name ?labelAny . FILTER(LANG(?labelAny) = "") }
-  BIND(COALESCE(?labelDe, ?labelEn, ?labelAny, STR(?cube)) AS ?label)
+  BIND(COALESCE(?label0, ?label1, ?label2, ?label3, ?labelAny, STR(?cube)) AS ?label)
 
-  # Get description
-  OPTIONAL { ?cube schema:description ?descDe . FILTER(LANG(?descDe) = "de") }
-  OPTIONAL { ?cube schema:description ?descEn . FILTER(LANG(?descEn) = "en") }
-  BIND(COALESCE(?descDe, ?descEn, "") AS ?description)
+  # Get description with language preference
+  OPTIONAL { ?cube schema:description ?desc0 . FILTER(LANG(?desc0) = "${langs[0]}") }
+  OPTIONAL { ?cube schema:description ?desc1 . FILTER(LANG(?desc1) = "${langs[1]}") }
+  OPTIONAL { ?cube schema:description ?desc2 . FILTER(LANG(?desc2) = "${langs[2]}") }
+  OPTIONAL { ?cube schema:description ?desc3 . FILTER(LANG(?desc3) = "${langs[3]}") }
+  BIND(COALESCE(?desc0, ?desc1, ?desc2, ?desc3, "") AS ?description)
 
-  # Get publisher
+  # Get publisher with language preference
   OPTIONAL {
     ?cube dcterms:creator ?creatorIri .
-    ?creatorIri schema:name ?publisherName .
+    OPTIONAL { ?creatorIri schema:name ?pub0 . FILTER(LANG(?pub0) = "${langs[0]}") }
+    OPTIONAL { ?creatorIri schema:name ?pub1 . FILTER(LANG(?pub1) = "${langs[1]}") }
+    OPTIONAL { ?creatorIri schema:name ?pub2 . FILTER(LANG(?pub2) = "${langs[2]}") }
+    OPTIONAL { ?creatorIri schema:name ?pub3 . FILTER(LANG(?pub3) = "${langs[3]}") }
+    OPTIONAL { ?creatorIri schema:name ?pubAny . FILTER(LANG(?pubAny) = "") }
   }
-  BIND(COALESCE(?publisherName, "") AS ?publisher)
+  BIND(COALESCE(?pub0, ?pub1, ?pub2, ?pub3, ?pubAny, "") AS ?publisher)
 
   # Only cubes with actual observations
   FILTER EXISTS { ?cube cube:observationSet/cube:observation ?obs }
@@ -63,12 +94,15 @@ SELECT DISTINCT ?cube ?label ?description ?publisher WHERE {
 ORDER BY ?label
 LIMIT 200
 `;
+}
 
 /**
  * Execute SPARQL query against LINDAS
  * Uses the datasource proxy to avoid CORS issues
  */
-async function fetchDatasets(searchTerm: string = ''): Promise<Dataset[]> {
+async function fetchDatasets(searchTerm: string = '', lang: Language = 'de'): Promise<Dataset[]> {
+  const query = getCubesQuery(lang);
+
   try {
     // Get datasource info first
     const datasources = await getBackendSrv().get('/api/datasources');
@@ -76,13 +110,13 @@ async function fetchDatasets(searchTerm: string = ''): Promise<Dataset[]> {
 
     if (!lindasDs) {
       // Fallback: direct query (may fail due to CORS in some environments)
-      return await directQuery(searchTerm);
+      return await directQuery(searchTerm, lang);
     }
 
     // Use datasource proxy
     const response = await getBackendSrv().post(
       `/api/datasources/proxy/${lindasDs.id}`,
-      `query=${encodeURIComponent(CUBES_QUERY)}`,
+      `query=${encodeURIComponent(query)}`,
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -94,21 +128,23 @@ async function fetchDatasets(searchTerm: string = ''): Promise<Dataset[]> {
     return parseResults(response, searchTerm);
   } catch (error) {
     console.error('Failed to fetch via proxy, trying direct:', error);
-    return await directQuery(searchTerm);
+    return await directQuery(searchTerm, lang);
   }
 }
 
 /**
  * Direct SPARQL query (fallback)
  */
-async function directQuery(searchTerm: string): Promise<Dataset[]> {
+async function directQuery(searchTerm: string, lang: Language): Promise<Dataset[]> {
+  const query = getCubesQuery(lang);
+
   const response = await fetch(LINDAS_ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Accept': 'application/sparql-results+json',
     },
-    body: `query=${encodeURIComponent(CUBES_QUERY)}`,
+    body: `query=${encodeURIComponent(query)}`,
   });
 
   if (!response.ok) {
@@ -145,8 +181,51 @@ function parseResults(result: SparqlResult, searchTerm: string): Dataset[] {
 }
 
 /**
- * Create a dashboard with a panel configured for the dataset
- * Uses Grafana's backend service to ensure proper session auth
+ * Instructions text for the dashboard template
+ */
+const DASHBOARD_INSTRUCTIONS = `
+# How to Customize Your Dashboard
+
+Welcome to your new Swiss Open Data dashboard! Here's how to make it your own:
+
+## Adding New Panels
+
+1. Click the **"Add"** button in the top menu bar
+2. Select **"Visualization"** to add a new panel
+3. The LINDAS datasource is already configured - just select your dataset
+
+## Editing Panels
+
+1. **Hover** over any panel and click the **title** to open the menu
+2. Select **"Edit"** to modify the visualization
+3. In the panel editor:
+   - **Query tab**: Change the dataset or limit
+   - **Panel options**: Change title, description
+   - **Visualization**: Switch between Table, Bar chart, Pie chart, etc.
+
+## Visualization Types
+
+- **Table**: Best for exploring raw data
+- **Bar chart**: Compare values across categories
+- **Time series**: Show trends over time
+- **Stat**: Display a single important number
+- **Pie chart**: Show proportions
+
+## Tips
+
+- Use **Ctrl+S** (or Cmd+S) to save your dashboard
+- Click the **floppy disk icon** in the top right to save
+- Use **Variables** (gear icon > Variables) to make interactive filters
+
+---
+*This panel can be deleted once you're familiar with the dashboard.*
+`;
+
+/**
+ * Create a dashboard with template panels:
+ * 1. Instructions panel at top
+ * 2. Bar chart (histogram) showing the data
+ * 3. Table panel for raw data exploration
  */
 async function createDashboard(dataset: Dataset): Promise<string> {
   const dashboard = {
@@ -155,11 +234,83 @@ async function createDashboard(dataset: Dataset): Promise<string> {
     timezone: 'browser',
     schemaVersion: 38,
     panels: [
+      // Instructions panel at top
       {
         id: 1,
+        type: 'text',
+        title: 'Getting Started',
+        gridPos: { x: 0, y: 0, w: 24, h: 8 },
+        options: {
+          mode: 'markdown',
+          content: DASHBOARD_INSTRUCTIONS,
+        },
+      },
+      // Bar chart (histogram) panel
+      {
+        id: 2,
+        type: 'barchart',
+        title: `${dataset.label} - Bar Chart`,
+        gridPos: { x: 0, y: 8, w: 24, h: 10 },
+        datasource: {
+          type: 'lindas-datasource',
+          uid: 'lindas-datasource',
+        },
+        targets: [
+          {
+            refId: 'A',
+            cubeUri: dataset.uri,
+            cubeLabel: dataset.label,
+            limit: 100,
+          },
+        ],
+        options: {
+          orientation: 'horizontal',
+          showValue: 'auto',
+          stacking: 'none',
+          groupWidth: 0.7,
+          barWidth: 0.97,
+          legend: {
+            displayMode: 'list',
+            placement: 'bottom',
+            showLegend: true,
+          },
+          tooltip: {
+            mode: 'single',
+            sort: 'none',
+          },
+        },
+        fieldConfig: {
+          defaults: {
+            color: {
+              mode: 'palette-classic',
+            },
+            custom: {
+              axisCenteredZero: false,
+              axisColorMode: 'text',
+              axisLabel: '',
+              axisPlacement: 'auto',
+              fillOpacity: 80,
+              gradientMode: 'none',
+              hideFrom: {
+                legend: false,
+                tooltip: false,
+                viz: false,
+              },
+              lineWidth: 1,
+              scaleDistribution: {
+                type: 'linear',
+              },
+            },
+          },
+          overrides: [],
+        },
+      },
+      // Data table panel
+      {
+        id: 3,
         type: 'table',
-        title: dataset.label,
-        gridPos: { x: 0, y: 0, w: 24, h: 12 },
+        title: `${dataset.label} - Data Table`,
+        gridPos: { x: 0, y: 18, w: 24, h: 10 },
         datasource: {
           type: 'lindas-datasource',
           uid: 'lindas-datasource',
@@ -175,6 +326,11 @@ async function createDashboard(dataset: Dataset): Promise<string> {
         options: {
           showHeader: true,
           cellHeight: 'sm',
+          footer: {
+            show: true,
+            reducer: ['count'],
+            fields: '',
+          },
         },
         fieldConfig: {
           defaults: {},
@@ -207,12 +363,13 @@ async function createDashboard(dataset: Dataset): Promise<string> {
 export const DatasetCatalog: React.FC<AppRootProps> = () => {
   const styles = useStyles2(getStyles);
   const [searchTerm, setSearchTerm] = useState('');
+  const [language, setLanguage] = useState<Language>('de');
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState<string | null>(null);
 
-  // Load datasets
+  // Load datasets when search term or language changes
   useEffect(() => {
     let cancelled = false;
 
@@ -220,7 +377,7 @@ export const DatasetCatalog: React.FC<AppRootProps> = () => {
       setLoading(true);
       setError(null);
       try {
-        const results = await fetchDatasets(searchTerm);
+        const results = await fetchDatasets(searchTerm, language);
         if (!cancelled) {
           setDatasets(results);
         }
@@ -240,7 +397,7 @@ export const DatasetCatalog: React.FC<AppRootProps> = () => {
       cancelled = true;
       clearTimeout(debounce);
     };
-  }, [searchTerm]);
+  }, [searchTerm, language]);
 
   // Handle dataset selection
   const handleSelect = useCallback(async (dataset: Dataset) => {
@@ -265,14 +422,25 @@ export const DatasetCatalog: React.FC<AppRootProps> = () => {
             Browse and visualize datasets from LINDAS
           </p>
         </div>
-        <LinkButton
-          href="https://lindas.admin.ch"
-          target="_blank"
-          variant="secondary"
-          icon="external-link-alt"
-        >
-          About LINDAS
-        </LinkButton>
+        <div className={styles.headerActions}>
+          <div className={styles.languageSelector}>
+            <span className={styles.languageLabel}>Language:</span>
+            <RadioButtonGroup
+              options={LANGUAGE_OPTIONS}
+              value={language}
+              onChange={(v) => setLanguage(v)}
+              size="sm"
+            />
+          </div>
+          <LinkButton
+            href="https://lindas.admin.ch"
+            target="_blank"
+            variant="secondary"
+            icon="external-link-alt"
+          >
+            About LINDAS
+          </LinkButton>
+        </div>
       </div>
 
       {/* Search */}
@@ -375,6 +543,23 @@ const getStyles = (theme: GrafanaTheme2) => ({
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: ${theme.spacing(3)};
+    flex-wrap: wrap;
+    gap: ${theme.spacing(2)};
+  `,
+  headerActions: css`
+    display: flex;
+    align-items: center;
+    gap: ${theme.spacing(2)};
+    flex-wrap: wrap;
+  `,
+  languageSelector: css`
+    display: flex;
+    align-items: center;
+    gap: ${theme.spacing(1)};
+  `,
+  languageLabel: css`
+    color: ${theme.colors.text.secondary};
+    font-size: ${theme.typography.size.sm};
   `,
   title: css`
     margin: 0;

@@ -1,7 +1,7 @@
-# LINDAS Grafana Integration v5.2
+# LINDAS Grafana Integration v5.3
 
 This document describes the LINDAS Grafana integration comprising two plugins:
-1. **Swiss Open Data** (App Plugin v5.2) - Simple dataset catalog with one-click dashboard creation
+1. **Swiss Open Data** (App Plugin v5.3) - Simple dataset catalog with one-click dashboard creation
 2. **LINDAS Datasource** (Datasource Plugin v1.0) - Dataset selector for Grafana panels
 
 Both plugins ensure **users never see or write SPARQL** - they work with datasets through visual interfaces only.
@@ -63,7 +63,7 @@ No complex custom chart builder needed - Grafana already has excellent visualiza
 ```
 +------------------------------------------+
 |        Swiss Open Data                   |
-|        (App Plugin v5.2)                 |
+|        (App Plugin v5.3)                 |
 +------------------------------------------+
 |                                          |
 |  DatasetCatalog.tsx (Main Component)     |
@@ -294,6 +294,18 @@ npm run dev  # Watch mode
 ```
 
 ## Changelog
+
+### v5.3.0 (2025-12-22)
+
+**Fix Duplicate Datasets and Remove Query Limit**
+
+- Applied same SPARQL filters as visualize-tool to eliminate duplicates:
+  - `schema:workExample` - Only cubes marked for visualize application
+  - `schema:creativeWorkStatus` - Only published cubes (not drafts)
+  - `cube:observationConstraint` - Must have valid cube structure
+  - `FILTER NOT EXISTS { schema:expires }` - Exclude expired cubes
+- Removed LIMIT 200 from query - now shows all ~236 valid datasets
+- Dataset filtering now done client-side via search box
 
 ### v5.2.0 (2025-12-22)
 

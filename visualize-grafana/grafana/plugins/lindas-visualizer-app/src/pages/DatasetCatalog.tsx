@@ -86,6 +86,12 @@ function saveLanguage(lang: Language): void {
 
 /**
  * Generate SPARQL query for cubes with language preference
+ *
+ * Filters applied (matching visualize-tool):
+ * - Only cubes marked for visualize app (schema:workExample)
+ * - Only published cubes (schema:creativeWorkStatus)
+ * - Only cubes with observation constraints (cube:observationConstraint)
+ * - Excludes expired cubes (schema:expires)
  */
 function getCubesQuery(lang: Language): string {
   // Language priority: selected language first, then fallbacks
@@ -104,6 +110,19 @@ PREFIX dcterms: <http://purl.org/dc/terms/>
 
 SELECT DISTINCT ?cube ?label ?description ?publisher WHERE {
   ?cube a cube:Cube .
+
+  # CRITICAL FILTERS (same as visualize-tool):
+  # 1. Only cubes marked for the visualize application
+  ?cube schema:workExample <https://ld.admin.ch/application/visualize> .
+
+  # 2. Only published cubes (not drafts)
+  ?cube schema:creativeWorkStatus <https://ld.admin.ch/vocabulary/CreativeWorkStatus/Published> .
+
+  # 3. Must have observation constraint (valid cube structure)
+  ?cube cube:observationConstraint ?shape .
+
+  # 4. Exclude expired cubes
+  FILTER NOT EXISTS { ?cube schema:expires ?expires }
 
   # Get label with language preference (${lang} first)
   OPTIONAL { ?cube schema:name ?label0 . FILTER(LANG(?label0) = "${langs[0]}") }
@@ -130,12 +149,8 @@ SELECT DISTINCT ?cube ?label ?description ?publisher WHERE {
     OPTIONAL { ?creatorIri schema:name ?pubAny . FILTER(LANG(?pubAny) = "") }
   }
   BIND(COALESCE(?pub0, ?pub1, ?pub2, ?pub3, ?pubAny, "") AS ?publisher)
-
-  # Only cubes with actual observations
-  FILTER EXISTS { ?cube cube:observationSet/cube:observation ?obs }
 }
 ORDER BY ?label
-LIMIT 200
 `;
 }
 

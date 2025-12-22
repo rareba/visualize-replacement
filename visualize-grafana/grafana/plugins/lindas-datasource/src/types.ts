@@ -43,6 +43,7 @@ export interface CubeInfo {
   label: string;
   description?: string;
   publisher?: string;
+  datePublished?: string;
 }
 
 /**
@@ -52,6 +53,7 @@ export interface DimensionInfo {
   uri: string;
   label: string;
   scaleType?: string;
+  dataKind?: string;
 }
 
 /**

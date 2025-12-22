@@ -1,0 +1,13 @@
+apiVersion: 1
+
+# =============================================================================
+# APP PLUGIN CONFIGURATION
+# =============================================================================
+# Enable the LINDAS Chart Studio app plugin
+# =============================================================================
+
+apps:
+  - type: lindas-visualizer-app
+    org_id: 1
+    org_name: Main Org.
+    disabled: false

@@ -1,7 +1,7 @@
 {
   "name": "lindas-visualizer-app",
-  "version": "4.0.0",
-  "description": "LINDAS Chart Studio - Create beautiful visualizations from Swiss Open Data with live preview",
+  "version": "5.0.1",
+  "description": "Swiss Open Data - Browse and visualize datasets from LINDAS with one-click dashboard creation",
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch"

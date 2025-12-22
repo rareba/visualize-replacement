@@ -1,7 +1,7 @@
 {
   "name": "lindas-visualizer-app",
-  "version": "1.1.0",
-  "description": "Create Grafana visualizations from LINDAS cube data",
+  "version": "2.1.0",
+  "description": "SPARQL Data Explorer - Discover and visualize RDF Data Cubes with ephemeral Grafana Scenes dashboards",
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch"
@@ -9,6 +9,7 @@
   "devDependencies": {
     "@grafana/data": "^10.0.0",
     "@grafana/runtime": "^10.0.0",
+    "@grafana/scenes": "^4.0.0",
     "@grafana/ui": "^10.0.0",
     "@emotion/css": "^11.11.0",
     "@types/react": "^18.0.0",
@@ -22,6 +23,7 @@
   "peerDependencies": {
     "@grafana/data": "^10.0.0",
     "@grafana/runtime": "^10.0.0",
+    "@grafana/scenes": "^4.0.0",
     "@grafana/ui": "^10.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"

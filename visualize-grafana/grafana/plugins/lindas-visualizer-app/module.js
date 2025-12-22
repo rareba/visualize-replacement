@@ -1,369 +1,296 @@
-define(["@grafana/data","react","@grafana/ui","@emotion/css","@grafana/runtime"],function(e,a,t,n,r){return function(){"use strict";var s={7:function(e){e.exports=t},89:function(e){e.exports=n},531:function(e){e.exports=r},781:function(a){a.exports=e},959:function(e){e.exports=a}},i={};function l(e){var a=i[e];if(void 0!==a)return a.exports;var t=i[e]={exports:{}};return s[e](t,t.exports,l),t.exports}l.n=function(e){var a=e&&e.__esModule?function(){return e.default}:function(){return e};return l.d(a,{a:a}),a},l.d=function(e,a){for(var t in a)l.o(a,t)&&!l.o(e,t)&&Object.defineProperty(e,t,{enumerable:!0,get:a[t]})},l.o=function(e,a){return Object.prototype.hasOwnProperty.call(e,a)},l.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})};var o={};l.r(o),l.d(o,{plugin:function(){return I}});var c=l(781),d=l(959),p=l.n(d),m=l(7),u=l(89),h=l(531);async function g(e){try{const a=await(0,h.getBackendSrv)().fetch({url:"/api/datasources/proxy/uid/lindas-datasource",method:"POST",headers:{"Content-Type":"application/sparql-query",Accept:"application/sparql-results+json"},data:e}).toPromise();return a?.data}catch(a){console.log("Proxy failed, trying direct fetch:",a);try{const a=await fetch("https://lindas.admin.ch/query",{method:"POST",headers:{"Content-Type":"application/sparql-query",Accept:"application/sparql-results+json"},body:e});if(!a.ok){const e=await a.text();throw new Error(`HTTP ${a.status}: ${e||a.statusText}`)}return a.json()}catch(e){throw new Error(`SPARQL request failed: ${e instanceof Error?e.message:"Unknown error"}`)}}}function b(e){const{cubeIri:a,fieldMapping:t,dimensions:n,measures:r,chartType:s}=e,i=[],l=[];return l.push(`<${a}> <https://cube.link/observationSet>/<https://cube.link/observation> ?obs .`),"table"===s?(n.forEach((e,a)=>{i.push(`?dim${a}`),l.push(`?obs <${e.iri}> ?dim${a} .`)}),r.forEach((e,a)=>{i.push(`?measure${a}`),l.push(`?obs <${e.iri}> ?measure${a} .`)})):"piechart"===s?(t.value&&(i.push("?value"),l.push(`?obs <${t.value}> ?value .`)),t.segment&&(i.push("?segment"),l.push(`?obs <${t.segment}> ?segment .`))):(t.x&&(i.push("?x"),l.push(`?obs <${t.x}> ?x .`)),t.y&&(i.push("?y"),l.push(`?obs <${t.y}> ?y .`)),t.series&&(i.push("?series"),l.push(`?obs <${t.series}> ?series .`))),t.filters&&Object.entries(t.filters).forEach(([e,a])=>{const n=a;if(n&&n.length>0){let a=`?obs_filter_${Math.random().toString(36).substring(7)}`;t.x===e?a="?x":t.series===e?a="?series":t.segment===e?a="?segment":l.push(`?obs <${e}> ${a} .`);const r=n.map(e=>`<${e}>`).join(", ");l.push(`FILTER(${a} IN (${r}))`)}}),`SELECT ${i.join(" ")} WHERE {\n  ${l.join("\n  ")}\n}\nORDER BY ?x ?segment\nLIMIT 10000`}const f=[{id:"barchart",label:"Column",icon:"graph-bar",description:"Vertical bars for comparing categories"},{id:"barchart-horizontal",label:"Bar",icon:"bars",description:"Horizontal bars for ranking"},{id:"timeseries",label:"Line",icon:"gf-interpolation-linear",description:"Lines for trends over time"},{id:"timeseries-area",label:"Area",icon:"gf-interpolation-linear",description:"Filled areas for cumulative data"},{id:"piechart",label:"Pie",icon:"circle",description:"Parts of a whole"},{id:"table",label:"Table",icon:"table",description:"Raw data display"}],y=e=>e.isTemporal?{text:"Time",color:"blue",icon:"clock-nine"}:e.isNumerical?{text:"Numeric",color:"green",icon:"calculator-alt"}:"ordinal"===e.scaleType?{text:"Ordinal",color:"orange",icon:"sort-amount-down"}:{text:"Category",color:"purple",icon:"tag-alt"},E=({dataset:e,onDatasetChange:a})=>{const t=(0,m.useStyles2)(v),n=e.dimensions.map(e=>{const a=y(e);return{label:e.label,value:e.iri,description:a.text,icon:a.icon}}),r=e.measures.map(e=>({label:e.label,value:e.iri,description:e.unit||"Measure"})),s=(t,n)=>{a({...e,fieldMapping:{...e.fieldMapping,[t]:n}})};return e.chartType.includes("timeseries")?e.dimensions.find(e=>e.isTemporal):e.dimensions.find(e=>"nominal"===e.scaleType||"ordinal"===e.scaleType),p().createElement("div",{className:t.container},p().createElement(m.FieldSet,{label:"Chart Settings"},p().createElement(m.Field,{label:"Title"},p().createElement(m.Input,{value:e.title,onChange:t=>a({...e,title:t.currentTarget.value}),placeholder:"Enter chart title..."})),p().createElement(m.Field,{label:"Chart Type"},p().createElement("div",{className:t.chartTypeGrid},f.map(n=>p().createElement(m.Tooltip,{key:n.id,content:n.description,placement:"top"},p().createElement("button",{title:n.label,className:`${t.chartTypeBtn} ${e.chartType===n.id?t.chartTypeBtnActive:""}`,onClick:()=>{return t=n.id,void a("piechart"===t?{...e,chartType:t,fieldMapping:{...e.fieldMapping,value:e.measures[0]?.iri,segment:e.dimensions.find(e=>!e.isTemporal)?.iri}}:"table"===t?{...e,chartType:t,fieldMapping:{}}:{...e,chartType:t});var t}},p().createElement(m.Icon,{name:n.icon,size:"xl"}),p().createElement("span",{className:t.chartLabels},n.label))))))),p().createElement(m.FieldSet,{label:"Data Mapping"},"table"!==e.chartType&&"piechart"!==e.chartType&&p().createElement(p().Fragment,null,p().createElement(m.Field,{label:"X Axis",description:e.chartType.includes("timeseries")?"Select a temporal dimension":"Category or time dimension"},p().createElement(m.Select,{options:n,value:n.find(a=>a.value===e.fieldMapping.x),onChange:e=>s("x",e?.value),isClearable:!0,placeholder:"Select dimension...",formatOptionLabel:e=>p().createElement("div",{className:t.optionLabel},e.icon&&p().createElement(m.Icon,{name:e.icon,size:"sm"}),p().createElement("span",null,e.label),e.description&&p().createElement(m.Badge,{text:e.description,color:"blue",className:t.optionBadge}))})),p().createElement(m.Field,{label:"Y Axis",description:"Numeric measure to display"},p().createElement(m.Select,{options:r,value:r.find(a=>a.value===e.fieldMapping.y),onChange:e=>s("y",e?.value),isClearable:!0,placeholder:"Select measure..."})),p().createElement(m.Field,{label:"Series / Color",description:"Optional: Split data by category"},p().createElement(m.Select,{options:n,value:n.find(a=>a.value===e.fieldMapping.series),onChange:e=>s("series",e?.value),isClearable:!0,placeholder:"None (optional)"}))),"piechart"===e.chartType&&p().createElement(p().Fragment,null,p().createElement(m.Field,{label:"Value (Size)",description:"Numeric measure for slice size"},p().createElement(m.Select,{options:r,value:r.find(a=>a.value===e.fieldMapping.value),onChange:e=>s("value",e?.value),isClearable:!0,placeholder:"Select measure..."})),p().createElement(m.Field,{label:"Segment (Slices)",description:"Category dimension for pie slices"},p().createElement(m.Select,{options:n,value:n.find(a=>a.value===e.fieldMapping.segment),onChange:e=>s("segment",e?.value),isClearable:!0,placeholder:"Select dimension..."}))),"table"===e.chartType&&p().createElement("div",{className:t.infoBox},p().createElement(m.Icon,{name:"info-circle"}),p().createElement("div",null,p().createElement("strong",null,"Table View"),p().createElement("p",null,"All dimensions and measures will be displayed. Use filters on the right to limit the data.")))),p().createElement(m.FieldSet,{label:"Dataset Info",className:t.infoSection},p().createElement("div",{className:t.statsGrid},p().createElement("div",{className:t.statItem},p().createElement("span",{className:t.statLabel},"Dimensions"),p().createElement("span",{className:t.statValue},e.dimensions.length)),p().createElement("div",{className:t.statItem},p().createElement("span",{className:t.statLabel},"Measures"),p().createElement("span",{className:t.statValue},e.measures.length))),p().createElement("div",{className:t.dimensionList},e.dimensions.slice(0,5).map(e=>{const a=y(e);return p().createElement("div",{key:e.iri,className:t.dimensionItem},p().createElement(m.Icon,{name:a.icon,size:"sm"}),p().createElement("span",{className:t.dimensionLabel},e.label),p().createElement(m.Badge,{text:a.text,color:a.color}))}),e.dimensions.length>5&&p().createElement("div",{className:t.moreItems},"+",e.dimensions.length-5," more dimensions"))))},v=e=>({container:u.css`
+define(["@grafana/data","react","@emotion/css","@grafana/ui","@grafana/runtime"],function(e,a,t,n,s){return function(){"use strict";var r={7:function(e){e.exports=n},89:function(e){e.exports=t},531:function(e){e.exports=s},781:function(a){a.exports=e},959:function(e){e.exports=a}},i={};function l(e){var a=i[e];if(void 0!==a)return a.exports;var t=i[e]={exports:{}};return r[e](t,t.exports,l),t.exports}l.n=function(e){var a=e&&e.__esModule?function(){return e.default}:function(){return e};return l.d(a,{a:a}),a},l.d=function(e,a){for(var t in a)l.o(a,t)&&!l.o(e,t)&&Object.defineProperty(e,t,{enumerable:!0,get:a[t]})},l.o=function(e,a){return Object.prototype.hasOwnProperty.call(e,a)},l.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})};var o={};l.r(o),l.d(o,{plugin:function(){return C}});var c=l(781),u=l(959),d=l.n(u),m=l(89),p=l(7),h=l(531);const g=({onSearch:e,onSelectCube:a,onQueryConfigChange:t,onRunQuery:n,isLoading:s=!1,error:r,initialResults:i=[]})=>{const l=(0,p.useStyles2)(f),[o,c]=(0,u.useState)(""),[m,h]=(0,u.useState)(i),[g,$]=(0,u.useState)(!1),[E,v]=(0,u.useState)(null),[x,w]=(0,u.useState)(!1),[S,N]=(0,u.useState)(new Set),[C,T]=(0,u.useState)(new Set),[k,I]=(0,u.useState)([]),[z,L]=(0,u.useState)(1e4),[O,M]=(0,u.useState)(!0),[P,A]=(0,u.useState)(!0),[D,F]=(0,u.useState)(!1);(0,u.useEffect)(()=>{if(E){const e={cubeUri:E.uri,selectedDimensions:Array.from(S),selectedMeasures:Array.from(C),filters:k,limit:z};t(e)}},[E,S,C,k,z,t]);const R=(0,u.useCallback)(async()=>{$(!0);try{const a=await e(o);h(a)}catch(e){console.error("Search failed:",e)}finally{$(!1)}},[o,e]),B=(0,u.useCallback)(async e=>{w(!0);try{const t=await a(e);t&&(v(t),N(new Set(t.dimensions.map(e=>e.uri))),T(new Set(t.measures.map(e=>e.uri))),I([]))}catch(e){console.error("Failed to load cube:",e)}finally{w(!1)}},[a]),q=(0,u.useCallback)(e=>{N(a=>{const t=new Set(a);return t.has(e)?t.delete(e):t.add(e),t})},[]),G=(0,u.useCallback)(e=>{T(a=>{const t=new Set(a);return t.has(e)?t.delete(e):t.add(e),t})},[]),Q=(0,u.useCallback)(()=>{v(null),N(new Set),T(new Set),I([])},[]),j=[{label:"100 rows",value:100},{label:"1,000 rows",value:1e3},{label:"10,000 rows",value:1e4},{label:"50,000 rows",value:5e4}];return d().createElement("div",{className:l.container},r&&d().createElement(p.Alert,{title:"Error",severity:"error",className:l.alert},r),!E&&d().createElement("div",{className:l.section},d().createElement("h4",{className:l.sectionTitle},d().createElement(p.Icon,{name:"search",className:l.sectionIcon}),"Search Data Cubes"),d().createElement("div",{className:l.searchRow},d().createElement(p.Input,{value:o,onChange:e=>c(e.currentTarget.value),onKeyDown:e=>"Enter"===e.key&&R(),placeholder:"Search by name or keyword...",className:l.searchInput}),d().createElement(p.Button,{onClick:R,disabled:g},g?d().createElement(p.Spinner,{inline:!0,size:"sm"}):"Search")),d().createElement("div",{className:l.resultsList},0===m.length&&!g&&d().createElement("p",{className:l.hint},"Enter a search term or click Search to browse available cubes"),m.map(e=>d().createElement("div",{key:e.uri,className:l.resultItem,onClick:()=>B(e),role:"button",tabIndex:0,onKeyDown:a=>"Enter"===a.key&&B(e)},d().createElement("div",{className:l.resultTitle},e.label),e.description&&d().createElement("div",{className:l.resultDesc},e.description.length>100?`${e.description.slice(0,100)}...`:e.description),e.publisher&&d().createElement("div",{className:l.resultMeta},e.publisher)))),x&&d().createElement("div",{className:l.loadingOverlay},d().createElement(p.Spinner,null)," Loading cube metadata...")),E&&d().createElement(d().Fragment,null,d().createElement("div",{className:l.section},d().createElement("div",{className:l.selectedCubeHeader},d().createElement("div",null,d().createElement("h4",{className:l.sectionTitle},d().createElement(p.Icon,{name:"database",className:l.sectionIcon}),"Selected Cube"),d().createElement("div",{className:l.selectedCubeLabel},E.label),E.publisher&&d().createElement("div",{className:l.selectedCubeMeta},E.publisher)),d().createElement(p.Button,{variant:"secondary",size:"sm",onClick:Q,icon:"times"},"Change"))),d().createElement("div",{className:l.section},d().createElement(p.Collapse,{label:d().createElement("span",{className:l.collapseLabel},d().createElement(p.Icon,{name:"list-ul",className:l.sectionIcon}),"Dimensions (",E.dimensions.length,")"),isOpen:O,onToggle:()=>M(!O)},d().createElement("div",{className:l.checkboxList},E.dimensions.map(e=>d().createElement(b,{key:e.uri,dimension:e,checked:S.has(e.uri),onChange:()=>q(e.uri)})),0===E.dimensions.length&&d().createElement("p",{className:l.hint},"No dimensions found")))),d().createElement("div",{className:l.section},d().createElement(p.Collapse,{label:d().createElement("span",{className:l.collapseLabel},d().createElement(p.Icon,{name:"calculator-alt",className:l.sectionIcon}),"Measures (",E.measures.length,")"),isOpen:P,onToggle:()=>A(!P)},d().createElement("div",{className:l.checkboxList},E.measures.map(e=>d().createElement(y,{key:e.uri,measure:e,checked:C.has(e.uri),onChange:()=>G(e.uri)})),0===E.measures.length&&d().createElement("p",{className:l.hint},"No measures found")))),d().createElement("div",{className:l.section},d().createElement(p.Collapse,{label:d().createElement("span",{className:l.collapseLabel},d().createElement(p.Icon,{name:"cog",className:l.sectionIcon}),"Query Options"),isOpen:D,onToggle:()=>F(!D)},d().createElement("div",{className:l.optionRow},d().createElement("label",null,"Row Limit:"),d().createElement(p.Select,{options:j,value:j.find(e=>e.value===z),onChange:e=>e.value&&L(e.value),width:20})))),d().createElement("div",{className:l.actionSection},d().createElement(p.Button,{variant:"primary",size:"lg",onClick:n,disabled:s||0===S.size&&0===C.size,fullWidth:!0},s?d().createElement(d().Fragment,null,d().createElement(p.Spinner,{inline:!0,size:"sm"})," Generating..."):d().createElement(d().Fragment,null,d().createElement(p.Icon,{name:"code-branch"})," Generate Query")),d().createElement("p",{className:l.selectionSummary},S.size," dimensions, ",C.size," measures selected"))))},b=({dimension:e,checked:a,onChange:t})=>{const n=(0,p.useStyles2)(f);return d().createElement("div",{className:n.checkboxItem},d().createElement(p.Checkbox,{value:a,onChange:t,label:""}),d().createElement(p.Icon,{name:e.isTemporal||"temporal"===e.scaleType?"clock-nine":e.isNumerical||"numerical"===e.scaleType?"calculator-alt":"tag-alt",className:n.typeIcon}),d().createElement("span",{className:n.checkboxLabel},e.label),e.scaleType&&d().createElement("span",{className:n.typeBadge},e.scaleType))},y=({measure:e,checked:a,onChange:t})=>{const n=(0,p.useStyles2)(f);return d().createElement("div",{className:n.checkboxItem},d().createElement(p.Checkbox,{value:a,onChange:t,label:""}),d().createElement(p.Icon,{name:"graph-bar",className:n.typeIcon}),d().createElement("span",{className:n.checkboxLabel},e.label),e.unit&&d().createElement("span",{className:n.unitBadge},e.unit))},f=e=>({container:m.css`
     display: flex;
     flex-direction: column;
     gap: ${e.spacing(2)};
-  `,chartTypeGrid:u.css`
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: ${e.spacing(1)};
-    margin-top: ${e.spacing(1)};
-  `,chartTypeBtn:u.css`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: ${e.spacing(1.5)};
-    background: ${e.colors.background.secondary};
-    border: 2px solid ${e.colors.border.weak};
-    border-radius: ${e.shape.borderRadius()};
-    cursor: pointer;
-    transition: all 0.2s;
-    color: ${e.colors.text.secondary};
-
-    &:hover {
-      background: ${e.colors.emphasize(e.colors.background.secondary,.03)};
-      border-color: ${e.colors.border.medium};
-    }
-  `,chartTypeBtnActive:u.css`
-    background: ${e.colors.action.selected};
-    border-color: ${e.colors.primary.main};
-    color: ${e.colors.primary.text};
-  `,chartLabels:u.css`
-    font-size: ${e.typography.size.xs};
-    margin-top: ${e.spacing(.5)};
-  `,optionLabel:u.css`
-    display: flex;
-    align-items: center;
-    gap: ${e.spacing(1)};
-  `,optionBadge:u.css`
-    margin-left: auto;
-  `,infoBox:u.css`
-    display: flex;
-    gap: ${e.spacing(1.5)};
     padding: ${e.spacing(2)};
+    height: 100%;
+    overflow-y: auto;
+  `,section:m.css`
     background: ${e.colors.background.secondary};
-    border-radius: ${e.shape.borderRadius()};
-    border: 1px solid ${e.colors.border.weak};
-
-    p {
-      margin: ${e.spacing(.5)} 0 0 0;
-      font-size: ${e.typography.size.sm};
-      color: ${e.colors.text.secondary};
-    }
-  `,infoSection:u.css`
-    margin-top: auto;
-  `,statsGrid:u.css`
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    border-radius: ${e.shape.radius.default};
+    padding: ${e.spacing(2)};
+  `,sectionTitle:m.css`
+    margin: 0 0 ${e.spacing(1.5)} 0;
+    font-size: ${e.typography.h5.fontSize};
+    font-weight: ${e.typography.fontWeightMedium};
+    display: flex;
+    align-items: center;
+    gap: ${e.spacing(1)};
+  `,sectionIcon:m.css`
+    color: ${e.colors.text.secondary};
+  `,searchRow:m.css`
+    display: flex;
     gap: ${e.spacing(1)};
     margin-bottom: ${e.spacing(2)};
-  `,statItem:u.css`
-    display: flex;
-    flex-direction: column;
-    padding: ${e.spacing(1)};
-    background: ${e.colors.background.secondary};
-    border-radius: ${e.shape.borderRadius()};
-    text-align: center;
-  `,statLabel:u.css`
-    font-size: ${e.typography.size.xs};
-    color: ${e.colors.text.secondary};
-  `,statValue:u.css`
-    font-size: ${e.typography.h4.fontSize};
-    font-weight: ${e.typography.fontWeightBold};
-    color: ${e.colors.primary.main};
-  `,dimensionList:u.css`
-    display: flex;
-    flex-direction: column;
-    gap: ${e.spacing(.5)};
-  `,dimensionItem:u.css`
-    display: flex;
-    align-items: center;
-    gap: ${e.spacing(1)};
-    padding: ${e.spacing(.5,1)};
-    background: ${e.colors.background.secondary};
-    border-radius: ${e.shape.borderRadius(.5)};
-    font-size: ${e.typography.size.sm};
-  `,dimensionLabel:u.css`
+  `,searchInput:m.css`
     flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  `,moreItems:u.css`
-    font-size: ${e.typography.size.sm};
-    color: ${e.colors.text.disabled};
-    font-style: italic;
-    padding: ${e.spacing(.5,1)};
-  `}),$=e=>({container:u.css`
+  `,resultsList:m.css`
     display: flex;
     flex-direction: column;
-    gap: ${e.spacing(2)};
-  `,filterItem:u.css`
-    margin-bottom: ${e.spacing(1.5)};
-  `,loadingContainer:u.css`
-    display: flex;
-    align-items: center;
     gap: ${e.spacing(1)};
-    font-size: ${e.typography.size.sm};
-    color: ${e.colors.text.disabled};
-  `}),N=({cubeIri:e,dimensions:a,selectedFilters:t,onFiltersChange:n})=>{const r=(0,m.useStyles2)($),[s,i]=(0,d.useState)({}),[l,o]=(0,d.useState)({});return(0,d.useEffect)(()=>{e&&a.length>0&&(async()=>{a.forEach(async a=>{if(!l[a.iri]&&!s[a.iri]){i(e=>({...e,[a.iri]:!0}));try{const t=await async function(e,a){const t=`\nPREFIX schema: <http://schema.org/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX cube: <https://cube.link/>\n\nSELECT DISTINCT ?value ?displayLabel WHERE {\n  <${e}> <https://cube.link/observationSet>/<https://cube.link/observation> ?obs .\n  ?obs <${a}> ?value .\n  OPTIONAL { ?value schema:name ?schemaLabel . FILTER(LANG(?schemaLabel) = "en" || LANG(?schemaLabel) = "") }\n  OPTIONAL { ?value rdfs:label ?rdfsLabel . FILTER(LANG(?rdfsLabel) = "en" || LANG(?rdfsLabel) = "") }\n  BIND(COALESCE(?schemaLabel, ?rdfsLabel, STR(?value)) AS ?displayLabel)\n}\nORDER BY ?displayLabel\nLIMIT 100\n  `.trim(),n=await g(t);return(n?.results?.bindings||[]).map(e=>({iri:e.value?.value,label:e.displayLabel?.value||e.value?.value}))}(e,a.iri);o(e=>({...e,[a.iri]:t}))}catch(e){console.error(`Failed to load values for ${a.label}`,e)}finally{i(e=>({...e,[a.iri]:!1}))}}})})()},[e,a]),p().createElement("div",{className:r.container},p().createElement(m.FieldSet,{label:"Filters"},a.map(e=>p().createElement("div",{key:e.iri,className:r.filterItem},p().createElement(m.Field,{label:e.label},s[e.iri]?p().createElement("div",{className:r.loadingContainer},p().createElement(m.Spinner,{size:"sm"}),p().createElement("span",null,"Loading values...")):p().createElement(m.MultiSelect,{options:(l[e.iri]||[]).map(e=>({label:e.label,value:e.iri})),value:(l[e.iri]||[]).filter(a=>(t[e.iri]||[]).includes(a.iri)).map(e=>({label:e.label,value:e.iri})),onChange:a=>((e,a)=>{const r=a.map(e=>e.value);n({...t,[e]:r})})(e.iri,a),placeholder:"All values",isClearable:!0}))))))},x=({dataset:e})=>{const[a,t]=(0,d.useState)(null),[n,r]=(0,d.useState)(!1),[s,i]=(0,d.useState)(null),[l,o]=(0,d.useState)(0),h=(0,m.useTheme2)();(0,d.useEffect)(()=>{let a=!0;return(async()=>{if("table"!==e.chartType){const a=e.fieldMapping.x||e.fieldMapping.segment,n=e.fieldMapping.y||e.fieldMapping.value;if(!a&&!n)return void t(null)}r(!0),i(null);try{const n=b(e),s=await async function(e){return g(e)}(n),i=function(e){const a=e?.head?.vars||[],t=e?.results?.bindings||[],n=new c.MutableDataFrame({fields:a.map(e=>{let a=c.FieldType.string;if(t.length>0){const n=t[0][e];n?.datatype?.includes("decimal")||n?.datatype?.includes("integer")||n?.datatype?.includes("float")||n?.datatype?.includes("double")?a=c.FieldType.number:(n?.datatype?.includes("date")||n?.datatype?.includes("dateTime"))&&(a=c.FieldType.time)}return("y"===e||"value"===e||e.startsWith("measure"))&&(a=c.FieldType.number),"x"===e&&(t[0]?.x?.datatype?.includes("date")||t[0]?.x?.datatype?.includes("dateTime"))&&(a=c.FieldType.time),{name:e,type:a,config:{displayName:e.charAt(0).toUpperCase()+e.slice(1)}}})});return t.forEach(e=>{const t={};a.forEach(a=>{const r=e[a]?.value,s=n.fields.find(e=>e.name===a)?.type;s===c.FieldType.number?t[a]=parseFloat(r):s===c.FieldType.time?t[a]=new Date(r).getTime():t[a]=r}),n.add(t)}),n}(s);a&&(t(i),o(i.length),r(!1))}catch(e){a&&(i(e.message||"Failed to fetch chart data"),r(!1))}})(),()=>{a=!1}},[e]);const f=(0,d.useMemo)(()=>({container:u.css`
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: ${h.colors.background.secondary};
-      border-radius: ${h.shape.borderRadius()};
-      overflow: hidden;
-      min-height: 400px;
-      padding: ${h.spacing(2)};
-    `,chartWrapper:u.css`
-      width: 100%;
-      flex-grow: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    `,chartTitle:u.css`
-      font-size: ${h.typography.h4.fontSize};
-      font-weight: ${h.typography.fontWeightMedium};
-      margin-bottom: ${h.spacing(2)};
-      color: ${h.colors.text.primary};
-    `,rowCount:u.css`
-      margin-top: ${h.spacing(1)};
-      font-size: ${h.typography.size.sm};
-      color: ${h.colors.text.secondary};
-    `,emptyState:u.css`
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: ${h.colors.text.secondary};
-      padding: ${h.spacing(4)};
-
-      h4 {
-        margin: ${h.spacing(2)} 0 ${h.spacing(1)} 0;
-        color: ${h.colors.text.primary};
-      }
-
-      p {
-        margin: 0;
-        max-width: 300px;
-      }
-    `,previewBadge:u.css`
-      position: absolute;
-      top: ${h.spacing(1)};
-      right: ${h.spacing(1)};
-      background: ${h.colors.warning.main};
-      color: ${h.colors.warning.contrastText};
-      padding: ${h.spacing(.5,1)};
-      border-radius: ${h.shape.borderRadius(.5)};
-      font-size: ${h.typography.size.xs};
-    `,chartContainer:u.css`
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    `,previewNote:u.css`
-      font-size: ${h.typography.size.sm};
-      color: ${h.colors.text.secondary};
-      background: ${h.colors.background.secondary};
-      padding: ${h.spacing(.5,1)};
-      border-radius: ${h.shape.borderRadius(.5)};
-      margin-bottom: ${h.spacing(1)};
-      text-align: center;
-    `}),[h]);return n?p().createElement("div",{className:f.container},p().createElement(m.Spinner,{size:32}),p().createElement("div",{style:{marginTop:h.spacing(1)}},"Loading visualization...")):s?p().createElement("div",{className:f.container},p().createElement(m.Alert,{title:"Error loading data",severity:"error"},s)):a||"table"===e.chartType?a&&0!==a.length?p().createElement("div",{className:f.container},p().createElement("div",{className:f.chartTitle},e.title),p().createElement("div",{className:f.chartWrapper},(()=>{const{chartType:t}=e;return a?"table"===t?p().createElement(m.Table,{data:a,width:800,height:400}):p().createElement("div",{className:f.chartContainer},p().createElement("div",{className:f.previewNote},(e=>({timeseries:"Line Chart","timeseries-area":"Area Chart",barchart:"Column Chart","barchart-horizontal":"Bar Chart",piechart:"Pie Chart",table:"Table"}[e]||e))(t)," - Data Preview (Full chart in exported dashboard)"),p().createElement(m.Table,{data:a,width:800,height:350})):null})()),p().createElement("div",{className:f.rowCount},l," data point",1!==l?"s":""," loaded")):p().createElement("div",{className:f.container},p().createElement(m.Alert,{title:"No data",severity:"info"},"No data found for this configuration. Try adjusting your filters.")):p().createElement("div",{className:f.container},p().createElement("div",{className:f.emptyState},p().createElement("svg",{width:"64",height:"64",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"1.5"},p().createElement("path",{d:"M3 3v18h18"}),p().createElement("path",{d:"M18 9l-5 5-4-4-3 3"})),p().createElement("h4",null,"Configure Your Chart"),p().createElement("p",null,"Select dimensions and measures on the left panel to preview your visualization.")))},L=({onSelectDataset:e,onClose:a})=>{const t=(0,m.useStyles2)(T),[n,r]=(0,d.useState)(""),[s,i]=(0,d.useState)([]),[l,o]=(0,d.useState)(!1),[c,u]=(0,d.useState)(!1);(0,d.useEffect)(()=>{h("")},[]);const h=(0,d.useCallback)(async e=>{o(!0),u(!0);try{const a=await async function(e="",a=50){const t=`\nPREFIX schema: <http://schema.org/>\nPREFIX cube: <https://cube.link/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX dcat: <http://www.w3.org/ns/dcat#>\n\nSELECT DISTINCT ?cube ?label ?description ?publisher ?dateModified WHERE {\n  ?cube a cube:Cube .\n  OPTIONAL {\n    ?cube schema:name ?labelRaw .\n    FILTER(LANG(?labelRaw) = "en" || LANG(?labelRaw) = "de" || LANG(?labelRaw) = "")\n  }\n  OPTIONAL {\n    ?cube schema:description ?descRaw .\n    FILTER(LANG(?descRaw) = "en" || LANG(?descRaw) = "de" || LANG(?descRaw) = "")\n  }\n  OPTIONAL {\n    ?cube schema:creator/schema:name ?publisherName .\n    FILTER(LANG(?publisherName) = "en" || LANG(?publisherName) = "de" || LANG(?publisherName) = "")\n  }\n  OPTIONAL { ?cube schema:dateModified ?dateModified }\n\n  BIND(COALESCE(?labelRaw, STR(?cube)) AS ?label)\n  BIND(COALESCE(?descRaw, "") AS ?description)\n  BIND(COALESCE(?publisherName, "") AS ?publisher)\n\n  ${e?`FILTER(CONTAINS(LCASE(?label), LCASE("${e}")) || CONTAINS(LCASE(?description), LCASE("${e}")))`:""}\n}\nORDER BY DESC(?dateModified)\nLIMIT ${a}\n  `.trim();try{const e=await g(t);return(e?.results?.bindings||[]).map(e=>({iri:e.cube?.value,label:e.label?.value||e.cube?.value?.split("/").pop()||"Unnamed",description:e.description?.value,publisher:e.publisher?.value,dateModified:e.dateModified?.value}))}catch(e){return console.error("Failed to search cubes:",e),[]}}(e,50);i(a)}catch(e){console.error("Search failed:",e),i([])}finally{o(!1)}},[]),b=()=>{h(n)};return p().createElement("div",{className:t.container},p().createElement("div",{className:t.header},p().createElement("h2",{className:t.title},p().createElement(m.Icon,{name:"database"})," Browse LINDAS Datasets"),p().createElement(m.Button,{variant:"secondary",size:"sm",onClick:a,icon:"times"},"Close")),p().createElement("div",{className:t.searchBar},p().createElement(m.Input,{value:n,onChange:e=>r(e.currentTarget.value),onKeyPress:e=>{"Enter"===e.key&&b()},placeholder:"Search datasets by name or description...",prefix:p().createElement(m.Icon,{name:"search"}),className:t.searchInput}),p().createElement(m.Button,{onClick:b,disabled:l},l?p().createElement(m.Spinner,{size:"sm"}):"Search")),p().createElement("div",{className:t.resultsInfo},c&&!l&&p().createElement("span",null,s.length," dataset",1!==s.length?"s":""," found",n&&` for "${n}"`)),p().createElement("div",{className:t.resultsList},l&&!c?p().createElement("div",{className:t.loadingState},p().createElement(m.Spinner,{size:32}),p().createElement("p",null,"Loading datasets...")):0===s.length&&c?p().createElement("div",{className:t.emptyState},p().createElement(m.Icon,{name:"info-circle",size:"xl"}),p().createElement("p",null,"No datasets found. Try a different search term.")):s.map(a=>p().createElement(m.Card,{key:a.iri,className:t.resultCard,onClick:()=>e(a.iri)},p().createElement(m.Card.Heading,{className:t.cardHeading},a.label),p().createElement(m.Card.Meta,{className:t.cardMeta},a.publisher&&p().createElement(m.Badge,{text:a.publisher,color:"blue",icon:"building"}),a.dateModified&&p().createElement("span",{className:t.dateModified},p().createElement(m.Icon,{name:"clock-nine",size:"sm"}),(e=>{if(!e)return"";try{return new Date(e).toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"})}catch{return e}})(a.dateModified))),p().createElement(m.Card.Description,{className:t.cardDescription},((e,a=150)=>e?e.length<=a?e:e.substring(0,a)+"...":"")(a.description)||"No description available"),p().createElement(m.Card.Actions,null,p().createElement(m.Button,{size:"sm",variant:"primary",onClick:t=>{t.stopPropagation(),e(a.iri)}},"Select Dataset"))))))},T=e=>({container:u.css`
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background: ${e.colors.background.primary};
-  `,header:u.css`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: ${e.spacing(2)};
-    border-bottom: 1px solid ${e.colors.border.weak};
-  `,title:u.css`
-    margin: 0;
-    font-size: ${e.typography.h4.fontSize};
-    display: flex;
-    align-items: center;
-    gap: ${e.spacing(1)};
-  `,searchBar:u.css`
-    display: flex;
-    gap: ${e.spacing(1)};
-    padding: ${e.spacing(2)};
-    border-bottom: 1px solid ${e.colors.border.weak};
-    background: ${e.colors.background.secondary};
-  `,searchInput:u.css`
-    flex: 1;
-  `,resultsInfo:u.css`
-    padding: ${e.spacing(1,2)};
-    font-size: ${e.typography.size.sm};
-    color: ${e.colors.text.secondary};
-    background: ${e.colors.background.secondary};
-    border-bottom: 1px solid ${e.colors.border.weak};
-  `,resultsList:u.css`
-    flex: 1;
+    max-height: 300px;
     overflow-y: auto;
-    padding: ${e.spacing(2)};
-    display: flex;
-    flex-direction: column;
-    gap: ${e.spacing(1.5)};
-  `,loadingState:u.css`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 200px;
-    color: ${e.colors.text.secondary};
-    gap: ${e.spacing(2)};
-  `,emptyState:u.css`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 200px;
-    color: ${e.colors.text.disabled};
-    gap: ${e.spacing(1)};
-  `,resultCard:u.css`
-    cursor: pointer;
-    transition: all 0.2s ease;
+  `,resultItem:m.css`
+    padding: ${e.spacing(1.5)};
+    background: ${e.colors.background.primary};
     border: 1px solid ${e.colors.border.weak};
+    border-radius: ${e.shape.radius.default};
+    cursor: pointer;
+    transition: border-color 0.2s;
 
     &:hover {
       border-color: ${e.colors.primary.main};
-      box-shadow: ${e.shadows.z2};
     }
-  `,cardHeading:u.css`
-    color: ${e.colors.text.primary};
+
+    &:focus {
+      outline: none;
+      border-color: ${e.colors.primary.main};
+      box-shadow: 0 0 0 2px ${e.colors.primary.transparent};
+    }
+  `,resultTitle:m.css`
     font-weight: ${e.typography.fontWeightMedium};
-  `,cardMeta:u.css`
-    display: flex;
-    align-items: center;
-    gap: ${e.spacing(1.5)};
-    margin-top: ${e.spacing(.5)};
-  `,cardDescription:u.css`
-    color: ${e.colors.text.secondary};
-    font-size: ${e.typography.size.sm};
-    margin-top: ${e.spacing(1)};
-  `,dateModified:u.css`
-    display: flex;
-    align-items: center;
-    gap: ${e.spacing(.5)};
+    margin-bottom: ${e.spacing(.5)};
+  `,resultDesc:m.css`
     font-size: ${e.typography.size.sm};
     color: ${e.colors.text.secondary};
-  `}),w=e=>({container:u.css`
-    height: 100%;
+    margin-bottom: ${e.spacing(.5)};
+  `,resultMeta:m.css`
+    font-size: ${e.typography.size.xs};
+    color: ${e.colors.text.disabled};
+  `,hint:m.css`
+    color: ${e.colors.text.secondary};
+    font-size: ${e.typography.size.sm};
+    text-align: center;
+    padding: ${e.spacing(2)};
+  `,loadingOverlay:m.css`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: ${e.spacing(1)};
+    padding: ${e.spacing(2)};
+    color: ${e.colors.text.secondary};
+  `,selectedCubeHeader:m.css`
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  `,selectedCubeLabel:m.css`
+    font-weight: ${e.typography.fontWeightMedium};
+    margin-bottom: ${e.spacing(.5)};
+  `,selectedCubeMeta:m.css`
+    font-size: ${e.typography.size.sm};
+    color: ${e.colors.text.secondary};
+  `,collapseLabel:m.css`
+    display: flex;
+    align-items: center;
+    gap: ${e.spacing(1)};
+    font-weight: ${e.typography.fontWeightMedium};
+  `,checkboxList:m.css`
     display: flex;
     flex-direction: column;
+    gap: ${e.spacing(.5)};
+    padding: ${e.spacing(1)} 0;
+  `,checkboxItem:m.css`
+    display: flex;
+    align-items: center;
+    gap: ${e.spacing(1)};
+    padding: ${e.spacing(.5)} ${e.spacing(1)};
+    border-radius: ${e.shape.radius.default};
+
+    &:hover {
+      background: ${e.colors.action.hover};
+    }
+  `,checkboxLabel:m.css`
+    flex: 1;
+    font-size: ${e.typography.size.sm};
+  `,typeIcon:m.css`
+    color: ${e.colors.text.secondary};
+    font-size: ${e.typography.size.sm};
+  `,typeBadge:m.css`
+    font-size: ${e.typography.size.xs};
+    color: ${e.colors.text.disabled};
     background: ${e.colors.background.canvas};
-  `,header:u.css`
+    padding: 2px 6px;
+    border-radius: ${e.shape.radius.pill};
+  `,unitBadge:m.css`
+    font-size: ${e.typography.size.xs};
+    color: ${e.colors.info.text};
+    background: ${e.colors.info.transparent};
+    padding: 2px 6px;
+    border-radius: ${e.shape.radius.pill};
+  `,optionRow:m.css`
+    display: flex;
+    align-items: center;
+    gap: ${e.spacing(2)};
+    padding: ${e.spacing(1)} 0;
+
+    label {
+      font-size: ${e.typography.size.sm};
+      color: ${e.colors.text.secondary};
+    }
+  `,actionSection:m.css`
+    margin-top: auto;
+    padding-top: ${e.spacing(2)};
+  `,selectionSummary:m.css`
+    text-align: center;
+    font-size: ${e.typography.size.sm};
+    color: ${e.colors.text.secondary};
+    margin-top: ${e.spacing(1)};
+  `,alert:m.css`
+    margin-bottom: ${e.spacing(2)};
+  `}),$="PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX qb: <http://purl.org/linked-data/cube#>\nPREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX qudt: <http://qudt.org/schema/qudt/>\n";class E{constructor(e,a=[],t=[]){this.config=e,this.dimensions=a,this.measures=t}uriToVariable(e){const a=e.split(/[/#]/);return(a[a.length-1]||"var").replace(/[^a-zA-Z0-9]/g,"_").toLowerCase()}escapeString(e){return e.replace(/\\/g,"\\\\").replace(/"/g,'\\"')}buildFilterClause(e,a){if(0===e.values.length)return"";const t=e.values.map(e=>e.startsWith("http://")||e.startsWith("https://")?`<${e}>`:`"${this.escapeString(e)}"`);switch(e.operator){case"in":return`FILTER(?${a} IN (${t.join(", ")}))`;case"equals":return`FILTER(?${a} = ${t[0]})`;case"notEquals":return`FILTER(?${a} != ${t[0]})`;default:return""}}buildObservationQuery(){const{cubeUri:e,selectedDimensions:a,selectedMeasures:t,filters:n,limit:s,orderBy:r}=this.config,i=[],l=[],o=[];l.push(`<${e}> cube:observationSet/cube:observation ?obs .`),a.forEach((e,a)=>{const t=this.dimensions.find(a=>a.uri===e),s=t?this.uriToVariable(t.uri):`dim${a}`,r=`${s}_raw`,c=`${s}_label`;i.push(`?${s}`),l.push(`OPTIONAL { ?obs <${e}> ?${r} . }`),l.push(`OPTIONAL { ?${r} schema:name ?${c} . FILTER(LANG(?${c}) = "en" || LANG(?${c}) = "de" || LANG(?${c}) = "") }`),l.push(`BIND(COALESCE(?${c}, STR(?${r})) AS ?${s})`);const u=n.find(a=>a.dimensionUri===e);u&&o.push(this.buildFilterClause(u,r))}),t.forEach((e,a)=>{const t=this.measures.find(a=>a.uri===e),n=t?this.uriToVariable(t.uri):`measure${a}`;i.push(`?${n}`),l.push(`OPTIONAL { ?obs <${e}> ?${n} . }`)}),0===i.length&&(i.push("?property","?value"),l.push("?obs ?property ?value ."),l.push("FILTER(?property != rdf:type)"),l.push("FILTER(?property != cube:observedBy)"),l.push("FILTER(?property != <https://cube.link/observedBy>)"));let c="";if(r){const e=this.uriToVariable(r.variable);i.some(a=>a.includes(e))&&(c=`ORDER BY ${r.direction}(?${e})`)}return`${$}\nSELECT ${i.join(" ")} WHERE {\n  ${l.join("\n  ")}\n  ${o.join("\n  ")}\n}\n${c}\nLIMIT ${s}`.trim()}buildTimeSeriesQuery(e){const{cubeUri:a,selectedDimensions:t,selectedMeasures:n,filters:s,limit:r}=this.config,i=["?time"],l=[],o=[];l.push(`<${a}> cube:observationSet/cube:observation ?obs .`),l.push(`?obs <${e}> ?time .`);const c=s.find(a=>a.dimensionUri===e);return c&&o.push(this.buildFilterClause(c,"time")),t.filter(a=>a!==e).forEach((e,a)=>{const t=this.dimensions.find(a=>a.uri===e),n=t?this.uriToVariable(t.uri):`dim${a}`,r=`${n}_raw`,c=`${n}_label`;i.push(`?${n}`),l.push(`OPTIONAL { ?obs <${e}> ?${r} . }`),l.push(`OPTIONAL { ?${r} schema:name ?${c} . FILTER(LANG(?${c}) = "en" || LANG(?${c}) = "") }`),l.push(`BIND(COALESCE(?${c}, STR(?${r})) AS ?${n})`);const u=s.find(a=>a.dimensionUri===e);u&&o.push(this.buildFilterClause(u,r))}),n.forEach((e,a)=>{const t=this.measures.find(a=>a.uri===e),n=t?this.uriToVariable(t.uri):`value${a}`;i.push(`?${n}`),l.push(`OPTIONAL { ?obs <${e}> ?${n} . }`)}),`${$}\nSELECT ${i.join(" ")} WHERE {\n  ${l.join("\n  ")}\n  ${o.join("\n  ")}\n}\nORDER BY ASC(?time)\nLIMIT ${r}`.trim()}buildTableQuery(){return this.buildObservationQuery()}build(e="observation"){switch(e){case"timeseries":{const e=this.dimensions.find(e=>e.isTemporal||"temporal"===e.scaleType);return e&&this.config.selectedDimensions.includes(e.uri)?this.buildTimeSeriesQuery(e.uri):this.buildObservationQuery()}case"table":return this.buildTableQuery();default:return this.buildObservationQuery()}}}const v=[{uri:"https://environment.ld.admin.ch/foen/cube/air-quality-2023",label:"Air Quality Measurements Switzerland 2023",description:"Hourly air quality measurements from monitoring stations across Switzerland, including PM2.5, PM10, NO2, and O3 concentrations.",publisher:"Federal Office for the Environment FOEN",dateModified:"2024-01-15",dimensions:[{uri:"https://environment.ld.admin.ch/foen/dimension/measurementDate",label:"Measurement Date",range:"xsd:dateTime",scaleType:"temporal",isTemporal:!0,isNumerical:!1,order:1},{uri:"https://environment.ld.admin.ch/foen/dimension/station",label:"Monitoring Station",range:"xsd:string",scaleType:"nominal",isTemporal:!1,isNumerical:!1,order:2},{uri:"https://environment.ld.admin.ch/foen/dimension/canton",label:"Canton",range:"xsd:string",scaleType:"nominal",isTemporal:!1,isNumerical:!1,order:3},{uri:"https://environment.ld.admin.ch/foen/dimension/pollutant",label:"Pollutant Type",range:"xsd:string",scaleType:"nominal",isTemporal:!1,isNumerical:!1,order:4}],measures:[{uri:"https://environment.ld.admin.ch/foen/measure/concentration",label:"Concentration",unit:"ug/m3",dataType:"xsd:decimal"},{uri:"https://environment.ld.admin.ch/foen/measure/aqi",label:"Air Quality Index",unit:"index",dataType:"xsd:integer"}]},{uri:"https://agriculture.ld.admin.ch/foag/cube/MilkProduction_Canton_Year",label:"Milk Production by Canton",description:"Annual milk production statistics by canton in Switzerland, including organic and conventional production volumes.",publisher:"Federal Office for Agriculture FOAG",dateModified:"2024-02-20",dimensions:[{uri:"https://agriculture.ld.admin.ch/foag/dimension/year",label:"Year",range:"xsd:gYear",scaleType:"temporal",isTemporal:!0,isNumerical:!1,order:1},{uri:"https://agriculture.ld.admin.ch/foag/dimension/canton",label:"Canton",range:"xsd:string",scaleType:"nominal",isTemporal:!1,isNumerical:!1,order:2},{uri:"https://agriculture.ld.admin.ch/foag/dimension/productionType",label:"Production Type",range:"xsd:string",scaleType:"nominal",isTemporal:!1,isNumerical:!1,order:3}],measures:[{uri:"https://agriculture.ld.admin.ch/foag/measure/volume",label:"Production Volume",unit:"kg",dataType:"xsd:decimal"},{uri:"https://agriculture.ld.admin.ch/foag/measure/numberOfFarms",label:"Number of Farms",unit:"count",dataType:"xsd:integer"},{uri:"https://agriculture.ld.admin.ch/foag/measure/averagePrice",label:"Average Price",unit:"CHF/kg",dataType:"xsd:decimal"}]}],x={"https://environment.ld.admin.ch/foen/dimension/canton":[{value:"https://ld.admin.ch/canton/ZH",label:"Zurich"},{value:"https://ld.admin.ch/canton/BE",label:"Bern"},{value:"https://ld.admin.ch/canton/GE",label:"Geneva"},{value:"https://ld.admin.ch/canton/VD",label:"Vaud"},{value:"https://ld.admin.ch/canton/BS",label:"Basel-Stadt"},{value:"https://ld.admin.ch/canton/AG",label:"Aargau"}],"https://environment.ld.admin.ch/foen/dimension/station":[{value:"https://environment.ld.admin.ch/station/ZH-Kaserne",label:"Zurich Kaserne"},{value:"https://environment.ld.admin.ch/station/BE-Bollwerk",label:"Bern Bollwerk"},{value:"https://environment.ld.admin.ch/station/GE-Wilson",label:"Geneva Wilson"},{value:"https://environment.ld.admin.ch/station/BS-Feldberg",label:"Basel Feldberg"}],"https://environment.ld.admin.ch/foen/dimension/pollutant":[{value:"https://environment.ld.admin.ch/pollutant/PM25",label:"PM2.5"},{value:"https://environment.ld.admin.ch/pollutant/PM10",label:"PM10"},{value:"https://environment.ld.admin.ch/pollutant/NO2",label:"NO2"},{value:"https://environment.ld.admin.ch/pollutant/O3",label:"O3"}],"https://agriculture.ld.admin.ch/foag/dimension/canton":[{value:"https://ld.admin.ch/canton/ZH",label:"Zurich"},{value:"https://ld.admin.ch/canton/BE",label:"Bern"},{value:"https://ld.admin.ch/canton/LU",label:"Lucerne"},{value:"https://ld.admin.ch/canton/SG",label:"St. Gallen"},{value:"https://ld.admin.ch/canton/FR",label:"Fribourg"},{value:"https://ld.admin.ch/canton/TG",label:"Thurgau"}],"https://agriculture.ld.admin.ch/foag/dimension/productionType":[{value:"https://agriculture.ld.admin.ch/type/conventional",label:"Conventional"},{value:"https://agriculture.ld.admin.ch/type/organic",label:"Organic"},{value:"https://agriculture.ld.admin.ch/type/alpine",label:"Alpine"}],"https://agriculture.ld.admin.ch/foag/dimension/year":[{value:"2023",label:"2023"},{value:"2022",label:"2022"},{value:"2021",label:"2021"},{value:"2020",label:"2020"},{value:"2019",label:"2019"}]};const w=new class{constructor(e){this.simulateDelay=e?.simulateDelay??!0,this.delayMs=e?.delayMs??500}async delay(){if(this.simulateDelay)return new Promise(e=>setTimeout(e,this.delayMs))}async searchCubes(e=""){await this.delay();const a=e.toLowerCase();return v.filter(t=>!e||t.label.toLowerCase().includes(a)||(t.description?.toLowerCase().includes(a)??!1)||(t.publisher?.toLowerCase().includes(a)??!1)).map(e=>({uri:e.uri,label:e.label,description:e.description,publisher:e.publisher,dateModified:e.dateModified}))}async getCubeMetadata(e){return await this.delay(),v.find(a=>a.uri===e)||null}async getDimensionValues(e,a){await this.delay();return x[a]||[]}getAllCubes(){return v.map(e=>({uri:e.uri,label:e.label,description:e.description,publisher:e.publisher,dateModified:e.dateModified}))}},S="lindas-datasource",N=e=>({container:m.css`
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: ${e.spacing(2)};
+    gap: ${e.spacing(2)};
+  `,header:m.css`
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: ${e.spacing(3)};
+    flex-wrap: wrap;
+  `,headerContent:m.css`
+    h1 {
+      margin: 0 0 ${e.spacing(.5)} 0;
+      font-size: ${e.typography.h3.fontSize};
+    }
+    p {
+      margin: 0;
+      color: ${e.colors.text.secondary};
+    }
+  `,headerInfo:m.css`
+    display: flex;
+    align-items: center;
+    gap: ${e.spacing(1)};
+    padding: ${e.spacing(1)} ${e.spacing(2)};
+    background: ${e.colors.info.transparent};
+    border-radius: ${e.shape.radius.default};
+    color: ${e.colors.info.text};
+    font-size: ${e.typography.size.sm};
+    max-width: 500px;
+  `,mainContent:m.css`
+    display: flex;
+    flex: 1;
+    gap: ${e.spacing(2)};
+    min-height: 0;
+  `,leftPane:m.css`
+    width: 400px;
+    min-width: 350px;
+    max-width: 450px;
+    background: ${e.colors.background.secondary};
+    border-radius: ${e.shape.radius.default};
+    overflow: hidden;
+  `,rightPane:m.css`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: ${e.spacing(2)};
+    min-width: 0;
+    overflow-y: auto;
+  `,emptyState:m.css`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: ${e.spacing(6)};
+    background: ${e.colors.background.secondary};
+    border-radius: ${e.shape.radius.default};
+    flex: 1;
+
+    h2 {
+      margin: ${e.spacing(2)} 0 ${e.spacing(1)} 0;
+    }
+    p {
+      color: ${e.colors.text.secondary};
+      max-width: 400px;
+      margin-bottom: ${e.spacing(3)};
+    }
+  `,emptyIcon:m.css`
+    color: ${e.colors.text.disabled};
+  `,features:m.css`
+    display: flex;
+    flex-direction: column;
+    gap: ${e.spacing(1)};
+    text-align: left;
+  `,feature:m.css`
+    display: flex;
+    align-items: center;
+    gap: ${e.spacing(1)};
+    color: ${e.colors.text.secondary};
+    font-size: ${e.typography.size.sm};
+  `,cubeInfo:m.css`
+    padding: ${e.spacing(2)};
+    background: ${e.colors.background.secondary};
+    border-radius: ${e.shape.radius.default};
+
+    h3 {
+      margin: 0 0 ${e.spacing(1)} 0;
+    }
+  `,cubeDescription:m.css`
+    color: ${e.colors.text.secondary};
+    font-size: ${e.typography.size.sm};
+    margin: 0 0 ${e.spacing(1)} 0;
+  `,cubeMeta:m.css`
+    display: flex;
+    gap: ${e.spacing(2)};
+    flex-wrap: wrap;
+    font-size: ${e.typography.size.sm};
+    color: ${e.colors.text.secondary};
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: ${e.spacing(.5)};
+    }
+  `,querySection:m.css`
+    background: ${e.colors.background.secondary};
+    border-radius: ${e.shape.radius.default};
+    overflow: hidden;
+  `,querySectionHeader:m.css`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: ${e.spacing(1.5,3)};
-    background: ${e.colors.background.primary};
+    padding: ${e.spacing(1.5)} ${e.spacing(2)};
     border-bottom: 1px solid ${e.colors.border.weak};
-  `,headerTitle:u.css`
-    display: flex;
-    align-items: center;
-    gap: ${e.spacing(1)};
-  `,headerIcon:u.css`
-    color: ${e.colors.primary.main};
-  `,titleInput:u.css`
-    width: 300px;
-    input {
-      font-size: ${e.typography.size.lg};
-      font-weight: ${e.typography.fontWeightBold};
-      border-color: transparent;
-      &:hover, &:focus {
-        border-color: ${e.colors.border.medium};
-      }
+
+    h4 {
+      margin: 0;
+      font-size: ${e.typography.size.sm};
+      display: flex;
+      align-items: center;
+      gap: ${e.spacing(1)};
     }
-  `,headerActions:u.css`
-    display: flex;
-    gap: ${e.spacing(1)};
-  `,mainLayout:u.css`
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  `,tabsBar:u.css`
-    padding: ${e.spacing(0,2)};
-    background: ${e.colors.background.primary};
-  `,tabContent:u.css`
-    flex: 1;
-    overflow: hidden;
-  `,threeColumn:u.css`
-    display: grid;
-    grid-template-columns: 320px 1fr 300px;
-    height: 100%;
-    overflow: hidden;
-  `,columnLeft:u.css`
-    border-right: 1px solid ${e.colors.border.weak};
-    background: ${e.colors.background.primary};
+  `,queryPreview:m.css`
+    margin: 0;
     padding: ${e.spacing(2)};
-    overflow-y: auto;
-  `,columnCenter:u.css`
     background: ${e.colors.background.canvas};
-    padding: ${e.spacing(4)};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  `,columnRight:u.css`
-    border-left: 1px solid ${e.colors.border.weak};
-    background: ${e.colors.background.primary};
+    font-size: ${e.typography.size.sm};
+    font-family: ${e.typography.fontFamilyMonospace};
+    overflow-x: auto;
+    max-height: 300px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  `,actions:m.css`
     padding: ${e.spacing(2)};
-    overflow-y: auto;
-  `,sectionHeader:u.css`
-    display: flex;
-    align-items: center;
-    gap: ${e.spacing(1)};
-    padding-bottom: ${e.spacing(1.5)};
-    margin-bottom: ${e.spacing(2)};
-    border-bottom: 1px solid ${e.colors.border.weak};
-    font-weight: ${e.typography.fontWeightMedium};
-    color: ${e.colors.text.secondary};
-  `,emptyState:u.css`
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: ${e.colors.background.canvas};
-  `,emptyCard:u.css`
-    background: ${e.colors.background.primary};
-    padding: ${e.spacing(6)};
-    border-radius: ${e.shape.borderRadius()};
-    border: 1px solid ${e.colors.border.weak};
-    text-align: center;
-    max-width: 500px;
-    box-shadow: ${e.shadows.z2};
-    h2 { margin-bottom: 12px; }
-    p { color: ${e.colors.text.secondary}; margin-bottom: 24px; }
-  `,emptyActions:u.css`
+    background: ${e.colors.background.secondary};
+    border-radius: ${e.shape.radius.default};
+
+    h4 {
+      margin: 0 0 ${e.spacing(2)} 0;
+    }
+  `,actionButtons:m.css`
     display: flex;
     gap: ${e.spacing(2)};
-    justify-content: center;
-  `,tabWrapper:u.css`
-    display: inline-flex;
-    align-items: center;
-    position: relative;
-  `,removeTabBtn:u.css`
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: ${e.spacing(.5)};
-    margin-left: ${e.spacing(.5)};
-    opacity: 0.6;
+    margin-bottom: ${e.spacing(2)};
+  `,actionHint:m.css`
+    display: flex;
+    align-items: flex-start;
+    gap: ${e.spacing(1)};
+    font-size: ${e.typography.size.sm};
     color: ${e.colors.text.secondary};
-    border-radius: ${e.shape.borderRadius(.5)};
-
-    &:hover {
-      opacity: 1;
-      color: ${e.colors.error.main};
-      background: ${e.colors.action.hover};
-    }
-  `}),I=(new c.AppPlugin).setRootPage(e=>{const a=(0,m.useStyles2)(w),[t,n]=(0,d.useState)({title:"New Lindas Dashboard",datasets:[]}),[r,s]=(0,d.useState)(-1),[i,l]=(0,d.useState)(!1),[o,u]=(0,d.useState)(""),[f,y]=(0,d.useState)(!1),[v,$]=(0,d.useState)("browse"),[T,I]=(0,d.useState)(!1),[C,S]=(0,d.useState)(!1),[A,k]=(0,d.useState)(null);(0,d.useEffect)(()=>{const e=new URLSearchParams(window.location.search).get("cube");e&&0===t.datasets.length&&R(e)},[]);const R=async e=>{y(!0);try{const a=await async function(e){const a=`\nPREFIX schema: <http://schema.org/>\nPREFIX cube: <https://cube.link/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\n\nSELECT ?label ?description ?publisher ?dateModified WHERE {\n  <${e}> a cube:Cube .\n  OPTIONAL { <${e}> schema:name ?label . FILTER(LANG(?label) = "en" || LANG(?label) = "de" || LANG(?label) = "") }\n  OPTIONAL { <${e}> schema:description ?description . FILTER(LANG(?description) = "en" || LANG(?description) = "de" || LANG(?description) = "") }\n  OPTIONAL { <${e}> schema:creator/schema:name ?publisher . FILTER(LANG(?publisher) = "en" || LANG(?publisher) = "de" || LANG(?publisher) = "") }\n  OPTIONAL { <${e}> schema:dateModified ?dateModified }\n} LIMIT 1\n  `.trim(),t=`\nPREFIX schema: <http://schema.org/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX qudt: <http://qudt.org/schema/qudt/>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nPREFIX meta: <https://cube.link/meta/>\n\nSELECT DISTINCT ?dimension ?label ?order ?datatype ?scaleType WHERE {\n  <${e}> cube:observationConstraint ?shape .\n  ?shape sh:property ?prop .\n  ?prop sh:path ?dimension .\n\n  FILTER NOT EXISTS { ?prop qudt:unit ?unit }\n  FILTER NOT EXISTS { ?prop schema:unitCode ?unitCode }\n  FILTER NOT EXISTS { ?prop qudt:hasUnit ?hasUnit }\n\n  OPTIONAL { ?prop schema:name ?propLabel . FILTER(LANG(?propLabel) = "en" || LANG(?propLabel) = "de" || LANG(?propLabel) = "") }\n  OPTIONAL { ?prop rdfs:label ?rdfsLabel . FILTER(LANG(?rdfsLabel) = "en" || LANG(?rdfsLabel) = "de" || LANG(?rdfsLabel) = "") }\n  OPTIONAL { ?prop sh:order ?order }\n  OPTIONAL { ?prop sh:datatype ?datatype }\n  OPTIONAL { ?prop meta:scaleType ?scaleType }\n\n  BIND(COALESCE(?propLabel, ?rdfsLabel) AS ?label)\n}\nORDER BY ?order ?label\n  `.trim(),n=`\nPREFIX schema: <http://schema.org/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX qudt: <http://qudt.org/schema/qudt/>\n\nSELECT DISTINCT ?measure ?label ?unit ?datatype WHERE {\n  <${e}> cube:observationConstraint ?shape .\n  ?shape sh:property ?prop .\n  ?prop sh:path ?measure .\n\n  { ?prop qudt:unit ?unitUri }\n  UNION { ?prop schema:unitCode ?unitCode }\n  UNION { ?prop qudt:hasUnit ?hasUnit }\n\n  OPTIONAL { ?prop schema:name ?propLabel . FILTER(LANG(?propLabel) = "en" || LANG(?propLabel) = "de" || LANG(?propLabel) = "") }\n  OPTIONAL { ?prop rdfs:label ?rdfsLabel . FILTER(LANG(?rdfsLabel) = "en" || LANG(?rdfsLabel) = "de" || LANG(?rdfsLabel) = "") }\n  OPTIONAL { ?unitUri rdfs:label ?unitLabel }\n  OPTIONAL { ?prop sh:datatype ?datatype }\n\n  BIND(COALESCE(?propLabel, ?rdfsLabel) AS ?label)\n  BIND(COALESCE(?unitLabel, ?unitCode, STR(?unitUri)) AS ?unit)\n}\nORDER BY ?label\n  `.trim(),[r,s,i]=await Promise.all([g(a),g(t),g(n)]),l=r?.results?.bindings||[],o=l[0]?.label?.value||e.split("/").pop()||"Unnamed Cube",c=l[0]?.description?.value,d=l[0]?.publisher?.value,p=l[0]?.dateModified?.value,m=new Map;(s?.results?.bindings||[]).forEach(e=>{const a=e.dimension?.value;if(a&&!m.has(a)){const n=e.datatype?.value,r=e.scaleType?.value,s=!!(t=n)&&["date","dateTime","gYear","gYearMonth","time"].some(e=>t.toLowerCase().includes(e.toLowerCase())),i=(e=>!!e&&["decimal","integer","float","double","int","long","short"].some(a=>e.toLowerCase().includes(a.toLowerCase())))(n);let l="nominal";s?l="temporal":i?l="numerical":r?.includes("Ordinal")&&(l="ordinal"),m.set(a,{iri:a,label:e.label?.value||a.split("/").pop()||a,order:e.order?.value?parseInt(e.order.value,10):void 0,dataType:n,scaleType:l,isTemporal:s,isNumerical:i})}var t});const u=new Map;return(i?.results?.bindings||[]).forEach(e=>{const a=e.measure?.value;a&&!u.has(a)&&u.set(a,{iri:a,label:e.label?.value||a.split("/").pop()||a,unit:e.unit?.value,dataType:e.datatype?.value})}),{iri:e,label:o,description:c,dimensions:Array.from(m.values()),measures:Array.from(u.values()),publisher:d,dateModified:p}}(e),r=a.dimensions.find(e=>e.isTemporal),i=a.measures[0],o=a.dimensions.find(e=>!e.isTemporal&&"nominal"===e.scaleType),d={cubeIri:e,chartType:r?"timeseries":"barchart",title:a.label||"New Dataset",fieldMapping:{x:r?.iri||a.dimensions[0]?.iri,y:i?.iri,series:o?.iri},dimensions:a.dimensions,measures:a.measures};n(e=>({...e,datasets:[...e.datasets,d]})),s(t.datasets.length),l(!1),I(!1),u(""),$("configure"),(0,h.getAppEvents)().publish({type:c.AppEvents.alertSuccess.name,payload:["Dataset added successfully",`Loaded "${a.label}"`]})}catch(e){(0,h.getAppEvents)().publish({type:c.AppEvents.alertError.name,payload:["Failed to fetch cube metadata",String(e)]})}finally{y(!1)}},F=(e,a)=>{n(t=>{const n=[...t.datasets];return n[e]=a,{...t,datasets:n}})},O=t.datasets[r];return T?p().createElement("div",{className:a.container},p().createElement(L,{onSelectDataset:R,onClose:()=>I(!1)})):p().createElement("div",{className:a.container},p().createElement("div",{className:a.header},p().createElement("div",{className:a.headerTitle},p().createElement(m.Icon,{name:"chart-line",size:"xl",className:a.headerIcon}),p().createElement(m.Input,{value:t.title,onChange:e=>n({...t,title:e.currentTarget.value}),className:a.titleInput,placeholder:"Dashboard Title"})),p().createElement("div",{className:a.headerActions},p().createElement(m.Button,{variant:"secondary",onClick:()=>I(!0),icon:"search"},"Browse Datasets"),p().createElement(m.Button,{variant:"secondary",onClick:()=>l(!0),icon:"link"},"Add by IRI"),t.datasets.length>0&&p().createElement(m.Button,{variant:"primary",onClick:async()=>{if(0!==t.datasets.length){S(!0);try{const e=await async function(e){const a=(new Date).toISOString().slice(0,19).replace("T"," "),t={title:`${e.title} (${a})`,tags:["lindas","auto-generated"],timezone:"browser",schemaVersion:38,panels:e.datasets.map((e,a)=>{const t=function(e){switch(e){case"barchart":case"barchart-horizontal":return"barchart";case"timeseries":case"timeseries-area":default:return"timeseries";case"piechart":return"piechart";case"table":return"table"}}(e.chartType),n=b(e),r=function(e){switch(e){case"barchart":return{orientation:"vertical",xTickLabelRotation:-45,legend:{displayMode:"list",placement:"bottom"}};case"barchart-horizontal":return{orientation:"horizontal",legend:{displayMode:"list",placement:"right"}};case"timeseries":case"timeseries-area":return{legend:{displayMode:"list",placement:"bottom"}};case"piechart":return{legend:{displayMode:"table",placement:"right",values:["value","percent"]},pieType:"pie",displayLabels:["name","percent"]};case"table":return{showHeader:!0,sortBy:[]};default:return{}}}(e.chartType),s=function(e){const a={custom:{}};return"timeseries-area"===e&&(a.custom.fillOpacity=50,a.custom.lineWidth=1),{defaults:a,overrides:[]}}(e.chartType),i=a%2*12,l=10*Math.floor(a/2);return{id:a+1,type:t,title:e.title,gridPos:{x:i,y:l,w:12,h:10},datasource:{type:"flandersmake-sparql-datasource",uid:"lindas-datasource"},targets:[{refId:"A",rawQuery:n,format:"table"}],options:r,fieldConfig:s}}),annotations:{list:[{builtIn:1,datasource:{type:"grafana",uid:"-- Grafana --"},enable:!0,hide:!0,iconColor:"rgba(0, 211, 255, 1)",name:"Annotations & Alerts",type:"dashboard"}]},templating:{list:[]},time:{from:"now-6h",to:"now"},refresh:"",links:e.datasets.map(e=>({title:`Source: ${e.title}`,url:e.cubeIri,icon:"external link",type:"link",targetBlank:!0}))};return(await(0,h.getBackendSrv)().post("/api/dashboards/db",{dashboard:t,folderUid:"",message:"Created from LINDAS cubes",overwrite:!1})).uid}(t);(0,h.getAppEvents)().publish({type:c.AppEvents.alertSuccess.name,payload:["Dashboard created!","Opening in new tab..."]}),window.open(`/d/${e}`,"_blank")}catch(e){(0,h.getAppEvents)().publish({type:c.AppEvents.alertError.name,payload:["Failed to create dashboard",String(e)]})}finally{S(!1)}}else(0,h.getAppEvents)().publish({type:c.AppEvents.alertWarning.name,payload:["No datasets to export","Add at least one dataset first"]})},icon:"external-link-alt",disabled:C},C?"Creating...":"Create Dashboard"))),t.datasets.length>0?p().createElement("div",{className:a.mainLayout},p().createElement(m.TabsBar,{className:a.tabsBar},t.datasets.map((e,t)=>p().createElement("div",{key:t,className:a.tabWrapper},p().createElement(m.Tab,{label:e.title,active:t===r,onChangeTab:()=>s(t)}),p().createElement("button",{className:a.removeTabBtn,onClick:e=>{e.stopPropagation(),k(t)},title:"Remove dataset"},p().createElement(m.Icon,{name:"times",size:"sm"}))))),p().createElement(m.TabContent,{className:a.tabContent},O&&p().createElement("div",{className:a.threeColumn},p().createElement("div",{className:a.columnLeft},p().createElement("div",{className:a.sectionHeader},p().createElement(m.Icon,{name:"sliders-v-alt"}),p().createElement("span",null,"Chart Configuration")),p().createElement(E,{dataset:O,onDatasetChange:e=>F(r,e)})),p().createElement("div",{className:a.columnCenter},p().createElement(x,{dataset:O})),p().createElement("div",{className:a.columnRight},p().createElement("div",{className:a.sectionHeader},p().createElement(m.Icon,{name:"filter"}),p().createElement("span",null,"Data Filters")),p().createElement(N,{cubeIri:O.cubeIri,dimensions:O.dimensions,selectedFilters:O.fieldMapping.filters||{},onFiltersChange:e=>F(r,{...O,fieldMapping:{...O.fieldMapping,filters:e}})}))))):p().createElement("div",{className:a.emptyState},p().createElement("div",{className:a.emptyCard},p().createElement(m.Icon,{name:"database",size:"xxxl",style:{marginBottom:20,color:"gray"}}),p().createElement("h2",null,"Create Visualizations from LINDAS Data"),p().createElement("p",null,"Browse available datasets from the Swiss Linked Data Service or enter a cube IRI directly."),p().createElement("div",{className:a.emptyActions},p().createElement(m.Button,{size:"lg",onClick:()=>I(!0),icon:"search"},"Browse Datasets"),p().createElement(m.Button,{size:"lg",variant:"secondary",onClick:()=>l(!0),icon:"link"},"Enter Cube IRI")))),p().createElement(m.Modal,{title:"Add Dataset by IRI",isOpen:i,onDismiss:()=>l(!1)},p().createElement(m.Field,{label:"Cube IRI",description:"Enter the IRI of the LINDAS cube (found on visualize.admin.ch)"},p().createElement(m.Input,{value:o,onChange:e=>u(e.currentTarget.value),placeholder:"https://ld.admin.ch/cube/...",autoFocus:!0})),f&&p().createElement(m.LoadingPlaceholder,{text:"Fetching metadata..."}),p().createElement("div",{style:{display:"flex",justifyContent:"flex-end",gap:8,marginTop:16}},p().createElement(m.Button,{variant:"secondary",onClick:()=>l(!1)},"Cancel"),p().createElement(m.Button,{onClick:()=>R(o),disabled:!o||f},"Add Dataset"))),p().createElement(m.ConfirmModal,{isOpen:null!==A,title:"Remove Dataset",body:`Are you sure you want to remove "${t.datasets[A??0]?.title}"?`,confirmText:"Remove",dismissText:"Cancel",onConfirm:()=>{return e=A,n(a=>{const t=a.datasets.filter((a,t)=>t!==e);return{...a,datasets:t}}),r>=e&&s(Math.max(0,r-1)),void k(null);var e},onDismiss:()=>k(null)}))});return o}()});
+    margin: 0;
+  `,previewSection:m.css`
+    display: flex;
+    justify-content: center;
+  `}),C=(new c.AppPlugin).setRootPage(()=>{const e=(0,p.useStyles2)(N),[a,t]=(0,u.useState)(null),[n,s]=(0,u.useState)(null),[r,i]=(0,u.useState)(null),[l,o]=(0,u.useState)(!1),[c,m]=(0,u.useState)(null),[b,y]=(0,u.useState)(null),f=(0,u.useCallback)(async e=>{try{return await w.searchCubes(e)}catch(e){return m(`Search failed: ${e instanceof Error?e.message:"Unknown error"}`),[]}},[]),$=(0,u.useCallback)(async e=>{try{m(null);const a=await w.getCubeMetadata(e.uri);return a&&(t(a),s({cubeUri:a.uri,selectedDimensions:a.dimensions.map(e=>e.uri),selectedMeasures:a.measures.map(e=>e.uri),filters:[],limit:1e4})),a}catch(e){return m(`Failed to load cube: ${e instanceof Error?e.message:"Unknown error"}`),null}},[]),v=(0,u.useCallback)(e=>{s(e)},[]),x=(0,u.useCallback)(()=>{if(!n||!a)return;const e=new E(n,a.dimensions,a.measures).build("observation");i(e)},[n,a]),C=(0,u.useCallback)(()=>{r||x();const e={datasource:S,queries:[{refId:"A",queryText:r||"",format:"table"}]},a=encodeURIComponent(JSON.stringify(e));h.locationService.push(`/explore?left=${a}`)},[r,x]),T=(0,u.useCallback)(async()=>{if(a&&n){o(!0),m(null);try{let e=r;e||(e=new E(n,a.dimensions,a.measures).build("observation"));const t=(new Date).toISOString().slice(0,16).replace("T"," "),s={title:`${a.label} - ${t}`,tags:["lindas","auto-generated"],timezone:"browser",schemaVersion:38,panels:[{id:1,type:"table",title:a.label,gridPos:{x:0,y:0,w:24,h:12},datasource:{type:"flandersmake-sparql-datasource",uid:S},targets:[{refId:"A",queryText:e,format:"table"}],options:{showHeader:!0,cellHeight:"sm"},fieldConfig:{defaults:{},overrides:[]}}],annotations:{list:[]},templating:{list:[]},time:{from:"now-6h",to:"now"},refresh:""},i=await(0,h.getBackendSrv)().post("/api/dashboards/db",{dashboard:s,folderUid:"",message:`Created from LINDAS cube: ${a.label}`,overwrite:!1});y("Dashboard created! Opening..."),setTimeout(()=>{h.locationService.push(`/d/${i.uid}`)},500)}catch(e){m(`Failed to create dashboard: ${e.message||"Unknown error"}`)}finally{o(!1)}}else m("Please select a cube and configure your query first")},[a,n,r]);return d().useEffect(()=>{if(b){const e=setTimeout(()=>y(null),3e3);return()=>clearTimeout(e)}},[b]),d().createElement("div",{className:e.container},d().createElement("div",{className:e.header},d().createElement("div",{className:e.headerContent},d().createElement("h1",null,"LINDAS Data Browser"),d().createElement("p",null,"Discover Swiss Linked Data cubes and create visualizations using Grafana's native tools.")),d().createElement("div",{className:e.headerInfo},d().createElement(p.Icon,{name:"info-circle"}),d().createElement("span",null,"This tool helps you find data and build queries. Use Grafana's ",d().createElement("strong",null,"Explore")," or ",d().createElement("strong",null,"Dashboards")," to visualize."))),c&&d().createElement(p.Alert,{title:"Error",severity:"error",onRemove:()=>m(null)},c),b&&d().createElement(p.Alert,{title:"Success",severity:"success"},b),d().createElement("div",{className:e.mainContent},d().createElement("div",{className:e.leftPane},d().createElement(g,{onSearch:f,onSelectCube:$,onQueryConfigChange:v,onRunQuery:x,isLoading:l,error:null})),d().createElement("div",{className:e.rightPane},a?d().createElement(d().Fragment,null,d().createElement("div",{className:e.cubeInfo},d().createElement("h3",null,a.label),a.description&&d().createElement("p",{className:e.cubeDescription},a.description),d().createElement("div",{className:e.cubeMeta},a.publisher&&d().createElement("span",null,d().createElement(p.Icon,{name:"building",size:"sm"})," ",a.publisher),d().createElement("span",null,d().createElement(p.Icon,{name:"list-ul",size:"sm"})," ",a.dimensions.length," dimensions"),d().createElement("span",null,d().createElement(p.Icon,{name:"calculator-alt",size:"sm"})," ",a.measures.length," measures"))),r&&d().createElement("div",{className:e.querySection},d().createElement("div",{className:e.querySectionHeader},d().createElement("h4",null,d().createElement(p.Icon,{name:"code-branch"})," Generated SPARQL Query"),d().createElement(p.ClipboardButton,{variant:"secondary",size:"sm",getText:()=>r,icon:"copy"},"Copy")),d().createElement("pre",{className:e.queryPreview},r)),d().createElement("div",{className:e.actions},d().createElement("h4",null,"What would you like to do?"),d().createElement("div",{className:e.actionButtons},d().createElement(p.Tooltip,{content:"Test your query interactively in Grafana Explore"},d().createElement(p.Button,{variant:"primary",size:"lg",icon:"compass",onClick:C,disabled:!n||0===n.selectedDimensions.length&&0===n.selectedMeasures.length},"Open in Explore")),d().createElement(p.Tooltip,{content:"Create a new dashboard with a panel using this query"},d().createElement(p.Button,{variant:"secondary",size:"lg",icon:"apps",onClick:T,disabled:l||!n||0===n.selectedDimensions.length&&0===n.selectedMeasures.length},l?d().createElement(d().Fragment,null,d().createElement(p.Spinner,{inline:!0,size:"sm"})," Creating..."):"Create Dashboard"))),d().createElement("p",{className:e.actionHint},d().createElement(p.Icon,{name:"info-circle",size:"sm"}),"After opening in Explore or Dashboard, use Grafana's panel editor to change visualization type (table, time series, bar chart, pie chart, etc.)")),!r&&n&&(n.selectedDimensions.length>0||n.selectedMeasures.length>0)&&d().createElement("div",{className:e.previewSection},d().createElement(p.Button,{variant:"secondary",icon:"eye",onClick:x},"Preview SPARQL Query"))):d().createElement("div",{className:e.emptyState},d().createElement(p.Icon,{name:"database",size:"xxxl",className:e.emptyIcon}),d().createElement("h2",null,"Select a Data Cube"),d().createElement("p",null,"Search for a LINDAS data cube in the left panel. Once selected, you can configure your query and open it in Grafana."),d().createElement("div",{className:e.features},d().createElement("div",{className:e.feature},d().createElement(p.Icon,{name:"compass"}),d().createElement("span",null,d().createElement("strong",null,"Explore")," - Interactive query testing")),d().createElement("div",{className:e.feature},d().createElement(p.Icon,{name:"apps"}),d().createElement("span",null,d().createElement("strong",null,"Dashboard")," - Create shareable visualizations")),d().createElement("div",{className:e.feature},d().createElement(p.Icon,{name:"lock"}),d().createElement("span",null,d().createElement("strong",null,"Secure")," - Only LINDAS data accessible")))))))});return o}()});

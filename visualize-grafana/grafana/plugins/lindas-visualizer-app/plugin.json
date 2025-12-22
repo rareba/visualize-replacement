@@ -1,15 +1,15 @@
 {
   "type": "app",
-  "name": "LINDAS Chart Creator",
+  "name": "LINDAS Data Browser",
   "id": "lindas-visualizer-app",
   "info": {
-    "description": "Create Grafana visualizations from LINDAS cube data - like visualize.admin.ch",
+    "description": "Browse Swiss Linked Data (LINDAS) cubes and create visualizations using Grafana's native tools. Locked to LINDAS datasource only.",
     "author": {
       "name": "Swiss Federal Administration"
     },
-    "keywords": ["lindas", "sparql", "swiss", "opendata", "visualization", "chart"],
-    "version": "1.1.0",
-    "updated": "2025-12-19",
+    "keywords": ["lindas", "sparql", "swiss", "opendata", "linked-data", "rdf", "data-cube", "browser"],
+    "version": "3.0.0",
+    "updated": "2025-12-22",
     "logos": {
       "small": "img/logo.svg",
       "large": "img/logo.svg"
@@ -18,7 +18,7 @@
   "includes": [
     {
       "type": "page",
-      "name": "Create Chart",
+      "name": "Data Browser",
       "path": "/a/lindas-visualizer-app",
       "role": "Viewer",
       "addToNav": true,

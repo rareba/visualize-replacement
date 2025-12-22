@@ -1,28 +1,46 @@
-# Development environment with Grafana integration
-# No database needed - Grafana handles visualization
+# =============================================================================
+# LINDAS Visualizer - Grafana-based data visualization for Swiss Linked Data
+# =============================================================================
+# This setup provides a locked-down Grafana instance where users can ONLY
+# access data from LINDAS (Swiss Linked Data Service). No external datasources
+# are permitted.
+# =============================================================================
 version: "3"
 services:
-  # Grafana with SPARQL plugin for LINDAS visualization
   grafana:
     image: grafana/grafana:10.2.0
     ports:
       - "3003:3000"
     environment:
-      # Plugin configuration
+      # =========================================================================
+      # PLUGIN CONFIGURATION
+      # =========================================================================
       - GF_INSTALL_PLUGINS=marcusolsson-dynamictext-panel
       - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=flandersmake-sparql-datasource,lindas-visualizer-app
 
-      # ADFS/eIAM OAuth Authentication (synced with visualize app)
-      # Set GF_AUTH_ANONYMOUS_ENABLED=true for local development without ADFS
+      # =========================================================================
+      # DATASOURCE LOCKDOWN
+      # =========================================================================
+      # CRITICAL: These settings ensure users can ONLY use LINDAS data
+      # The LINDAS datasource is provisioned and cannot be modified
+
+      # =========================================================================
+      # AUTHENTICATION - Development Mode
+      # =========================================================================
+      # For development: anonymous access with Editor role
+      # Editor role allows creating dashboards but NOT adding datasources
       - GF_AUTH_ANONYMOUS_ENABLED=${GRAFANA_ANONYMOUS_ENABLED:-true}
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Editor
       - GF_AUTH_ANONYMOUS_ORG_ID=1
 
-      # Disable login requirement for anonymous access
-      - GF_AUTH_DISABLE_LOGIN_FORM=false
-      - GF_AUTH_DISABLE_SIGNOUT_MENU=false
+      # Login form (disabled in dev, enabled in prod with OAuth)
+      - GF_AUTH_DISABLE_LOGIN_FORM=${GRAFANA_DISABLE_LOGIN:-true}
+      - GF_AUTH_DISABLE_SIGNOUT_MENU=true
 
-      # Generic OAuth (ADFS) - uncomment for production
+      # =========================================================================
+      # AUTHENTICATION - Production Mode (eIAM/ADFS OAuth)
+      # =========================================================================
+      # Enable OAuth for production by setting GRAFANA_OAUTH_ENABLED=true
       - GF_AUTH_GENERIC_OAUTH_ENABLED=${GRAFANA_OAUTH_ENABLED:-false}
       - GF_AUTH_GENERIC_OAUTH_NAME=eIAM
       - GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=true
@@ -33,26 +51,49 @@ services:
       - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=${ADFS_ISSUER:-}/protocol/openid-connect/token
       - GF_AUTH_GENERIC_OAUTH_API_URL=${ADFS_ISSUER:-}/protocol/openid-connect/userinfo
       - GF_AUTH_GENERIC_OAUTH_USE_PKCE=true
+      # Users get Editor role - can create dashboards, but not manage datasources
       - GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=Editor
 
-      # Security settings
+      # =========================================================================
+      # USER PERMISSIONS - LOCKED DOWN
+      # =========================================================================
+      # Editors can view and edit dashboards but NOT add datasources
+      # Only Admin can manage datasources (and we don't give admin to users)
+      - GF_USERS_EDITORS_CAN_ADMIN=false
+      - GF_USERS_VIEWERS_CAN_EDIT=false
+      - GF_USERS_DEFAULT_THEME=light
+
+      # =========================================================================
+      # SECURITY SETTINGS
+      # =========================================================================
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_SECURITY_ALLOW_EMBEDDING=true
       - GF_SECURITY_COOKIE_SAMESITE=lax
+      # Disable sensitive admin features for non-admins
+      - GF_SECURITY_DISABLE_GRAVATAR=true
 
-      # Server configuration
+      # =========================================================================
+      # SERVER CONFIGURATION
+      # =========================================================================
       - GF_SERVER_ROOT_URL=${NEXT_PUBLIC_GRAFANA_URL:-http://localhost:3003}
 
-      # Data proxy timeout (for large SPARQL queries)
-      # Default is 30s, increased to 300s (5 minutes) for full cube data
+      # =========================================================================
+      # SPARQL QUERY SETTINGS
+      # =========================================================================
+      # Extended timeout for large LINDAS queries (5 minutes)
       - GF_DATAPROXY_TIMEOUT=300
       - GF_DATAPROXY_KEEP_ALIVE_SECONDS=300
 
-      # Default home dashboard - static catalog
+      # =========================================================================
+      # UI CONFIGURATION
+      # =========================================================================
+      # Default home: LINDAS Data Browser plugin
       - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/lindas-catalog.json
 
-      # UI customization
-      - GF_USERS_DEFAULT_THEME=light
+      # Hide unnecessary UI elements
+      - GF_EXPLORE_ENABLED=true
+      - GF_ALERTING_ENABLED=false
+      - GF_UNIFIED_ALERTING_ENABLED=false
       - GF_LOG_LEVEL=info
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning

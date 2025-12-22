@@ -188,7 +188,7 @@ export async function createGrafanaDashboard(config: ChartConfig): Promise<strin
       targets: [
         {
           refId: 'A',
-          rawQuery: query,
+          queryText: query,
           format: 'table',
         },
       ],

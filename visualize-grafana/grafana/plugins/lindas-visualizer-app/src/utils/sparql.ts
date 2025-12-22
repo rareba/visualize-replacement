@@ -152,7 +152,7 @@ SELECT ?label ?description ?publisher ?dateModified WHERE {
 } LIMIT 1
   `.trim();
 
-  // Query for dimensions with data types
+  // Query for dimensions with data types (SHACL-based)
   const dimensionsQuery = `
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -182,7 +182,7 @@ SELECT DISTINCT ?dimension ?label ?order ?datatype ?scaleType WHERE {
 ORDER BY ?order ?label
   `.trim();
 
-  // Query for measures with units
+  // Query for measures with units (SHACL-based)
   const measuresQuery = `
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -208,6 +208,35 @@ SELECT DISTINCT ?measure ?label ?unit ?datatype WHERE {
   BIND(COALESCE(?unitLabel, ?unitCode, STR(?unitUri)) AS ?unit)
 }
 ORDER BY ?label
+  `.trim();
+
+  // Fallback query: discover properties directly from observation data
+  // This is used when no SHACL shapes are defined for the cube
+  const fallbackPropertiesQuery = `
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cube: <https://cube.link/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT DISTINCT ?property ?propLabel ?isNumeric WHERE {
+  <${cubeIri}> cube:observationSet/cube:observation ?obs .
+  ?obs ?property ?value .
+
+  # Exclude internal properties
+  FILTER(?property != rdf:type)
+  FILTER(?property != cube:observedBy)
+  FILTER(?property != <https://cube.link/observedBy>)
+
+  # Try to get property label
+  OPTIONAL { ?property schema:name ?schemaName . FILTER(LANG(?schemaName) = "en" || LANG(?schemaName) = "de" || LANG(?schemaName) = "") }
+  OPTIONAL { ?property rdfs:label ?rdfsName . FILTER(LANG(?rdfsName) = "en" || LANG(?rdfsName) = "de" || LANG(?rdfsName) = "") }
+
+  BIND(COALESCE(?schemaName, ?rdfsName) AS ?propLabel)
+
+  # Check if value is numeric
+  BIND(isNumeric(?value) AS ?isNumeric)
+}
+LIMIT 100
   `.trim();
 
   // Execute queries
@@ -282,6 +311,49 @@ ORDER BY ?label
       });
     }
   });
+
+  // If no dimensions or measures found via SHACL, use fallback
+  if (dimensionMap.size === 0 && measureMap.size === 0) {
+    console.log('No SHACL shapes found, using fallback property discovery');
+    const fallbackResult = await executeSparql(fallbackPropertiesQuery);
+    const fallbackBindings = fallbackResult?.results?.bindings || [];
+
+    // Group by property and check if numeric
+    const propertyInfo = new Map<string, { label: string; numericCount: number; totalCount: number }>();
+
+    fallbackBindings.forEach((b: any) => {
+      const iri = b.property?.value;
+      if (iri) {
+        if (!propertyInfo.has(iri)) {
+          const propLabel = b.propLabel?.value || iri.split('/').pop() || iri;
+          propertyInfo.set(iri, { label: propLabel, numericCount: 0, totalCount: 0 });
+        }
+        const info = propertyInfo.get(iri)!;
+        info.totalCount++;
+        if (b.isNumeric?.value === 'true') {
+          info.numericCount++;
+        }
+      }
+    });
+
+    // Classify properties: mostly numeric = measure, otherwise = dimension
+    propertyInfo.forEach((info, iri) => {
+      const isNumeric = info.numericCount > info.totalCount * 0.5;
+
+      if (isNumeric) {
+        measureMap.set(iri, {
+          iri,
+          label: info.label,
+        });
+      } else {
+        dimensionMap.set(iri, {
+          iri,
+          label: info.label,
+          scaleType: 'nominal',
+        });
+      }
+    });
+  }
 
   return {
     iri: cubeIri,

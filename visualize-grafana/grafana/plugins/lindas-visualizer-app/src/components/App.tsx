@@ -1,461 +1,455 @@
-import React, { useState, useEffect } from 'react';
-import { AppRootProps, AppEvents } from '@grafana/data';
-import {
-  Button,
-  useStyles2,
-  Icon,
-  Modal,
-  Input,
-  Field,
-  LoadingPlaceholder,
-  Tab,
-  TabsBar,
-  TabContent,
-  ConfirmModal,
-  Alert,
-} from '@grafana/ui';
+import React, { useState } from 'react';
+import { AppRootProps } from '@grafana/data';
+import { Button, useStyles2, Icon, Spinner, Alert } from '@grafana/ui';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { getAppEvents, locationService } from '@grafana/runtime';
-import { fetchCubeMetadata, CubeMetadata } from '../utils/sparql';
-import { ChartConfig, DatasetConfig, createGrafanaDashboard } from '../utils/dashboard';
-import { Configurator } from './Configurator';
-import { Filters } from './Filters';
-import { ChartPreview } from './ChartPreview';
-import { DatasetBrowser } from './DatasetBrowser';
+import { getBackendSrv } from '@grafana/runtime';
+import { searchCubes, fetchCubeMetadata, CubeSearchResult } from '../utils/sparql';
 
-type ViewMode = 'browse' | 'configure';
+interface SelectedCube {
+  iri: string;
+  label: string;
+  dimensions: Array<{ iri: string; label: string }>;
+  measures: Array<{ iri: string; label: string }>;
+}
 
 export const App = (props: AppRootProps) => {
   const styles = useStyles2(getStyles);
-  const [config, setConfig] = useState<ChartConfig>({
-    title: 'New Lindas Dashboard',
-    datasets: [],
-  });
-  const [activeDatasetIndex, setActiveDatasetIndex] = useState<number>(-1);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newCubeIri, setNewCubeIri] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<CubeSearchResult[]>([]);
+  const [selectedCubes, setSelectedCubes] = useState<SelectedCube[]>([]);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('browse');
-  const [showBrowser, setShowBrowser] = useState(false);
-  const [exportLoading, setExportLoading] = useState(false);
-  const [showRemoveConfirm, setShowRemoveConfirm] = useState<number | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
-  // Sync with URL cube parameter on mount
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const cube = params.get('cube');
-    if (cube && config.datasets.length === 0) {
-      addDataset(cube);
-    }
-  }, []);
-
-  const addDataset = async (iri: string) => {
-    setLoading(true);
+  const handleSearch = async () => {
+    setSearching(true);
+    setError(null);
     try {
-      const metadata = await fetchCubeMetadata(iri);
+      const results = await searchCubes(searchTerm, 100);
+      setSearchResults(results);
+    } catch (err: any) {
+      setError('Failed to search cubes: ' + err.message);
+    } finally {
+      setSearching(false);
+    }
+  };
 
-      // Auto-detect best defaults for chart configuration
-      const temporalDim = metadata.dimensions.find(d => d.isTemporal);
-      const firstMeasure = metadata.measures[0];
-      const categoricalDim = metadata.dimensions.find(d => !d.isTemporal && d.scaleType === 'nominal');
+  const handleSelectCube = async (cube: CubeSearchResult) => {
+    if (selectedCubes.find(c => c.iri === cube.iri)) {
+      return; // Already selected
+    }
 
-      const newDataset: DatasetConfig = {
-        cubeIri: iri,
-        chartType: temporalDim ? 'timeseries' : 'barchart',
-        title: metadata.label || 'New Dataset',
-        fieldMapping: {
-          x: temporalDim?.iri || metadata.dimensions[0]?.iri,
-          y: firstMeasure?.iri,
-          series: categoricalDim?.iri,
-        },
-        dimensions: metadata.dimensions,
-        measures: metadata.measures,
-      };
-
-      setConfig(prev => {
-        const updated = {
-          ...prev,
-          datasets: [...prev.datasets, newDataset],
-        };
-        return updated;
-      });
-      setActiveDatasetIndex(config.datasets.length);
-      setShowAddModal(false);
-      setShowBrowser(false);
-      setNewCubeIri('');
-      setViewMode('configure');
-
-      getAppEvents().publish({
-        type: AppEvents.alertSuccess.name,
-        payload: ['Dataset added successfully', `Loaded "${metadata.label}"`],
-      });
-    } catch (error) {
-      getAppEvents().publish({
-        type: AppEvents.alertError.name,
-        payload: ['Failed to fetch cube metadata', String(error)],
-      });
+    setLoading(true);
+    setError(null);
+    try {
+      const metadata = await fetchCubeMetadata(cube.iri);
+      setSelectedCubes(prev => [...prev, {
+        iri: cube.iri,
+        label: metadata.label,
+        dimensions: metadata.dimensions.map(d => ({ iri: d.iri, label: d.label })),
+        measures: metadata.measures.map(m => ({ iri: m.iri, label: m.label })),
+      }]);
+    } catch (err: any) {
+      setError('Failed to load cube metadata: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateDataset = (index: number, updated: DatasetConfig) => {
-    setConfig(prev => {
-      const newDatasets = [...prev.datasets];
-      newDatasets[index] = updated;
-      return { ...prev, datasets: newDatasets };
-    });
+  const handleRemoveCube = (iri: string) => {
+    setSelectedCubes(prev => prev.filter(c => c.iri !== iri));
   };
 
-  const removeDataset = (index: number) => {
-    setConfig(prev => {
-      const newDatasets = prev.datasets.filter((_, i) => i !== index);
-      return { ...prev, datasets: newDatasets };
-    });
-    if (activeDatasetIndex >= index) {
-      setActiveDatasetIndex(Math.max(0, activeDatasetIndex - 1));
-    }
-    setShowRemoveConfirm(null);
-  };
+  const generateTabularQuery = (cube: SelectedCube): string => {
+    const selectVars: string[] = [];
+    const patterns: string[] = [];
 
-  const handleExportDashboard = async () => {
-    if (config.datasets.length === 0) {
-      getAppEvents().publish({
-        type: AppEvents.alertWarning.name,
-        payload: ['No datasets to export', 'Add at least one dataset first'],
+    patterns.push(`<${cube.iri}> <https://cube.link/observationSet>/<https://cube.link/observation> ?obs .`);
+
+    // If we have dimensions and measures, use them
+    if (cube.dimensions.length > 0 || cube.measures.length > 0) {
+      cube.dimensions.forEach((dim, i) => {
+        const varName = `dim${i}`;
+        selectVars.push(`?${varName}`);
+        patterns.push(`OPTIONAL { ?obs <${dim.iri}> ?${varName}_raw . }`);
+        // Try to get label for dimension values
+        patterns.push(`OPTIONAL { ?${varName}_raw <http://schema.org/name> ?${varName}_label . FILTER(LANG(?${varName}_label) = "en" || LANG(?${varName}_label) = "") }`);
+        patterns.push(`BIND(COALESCE(?${varName}_label, STR(?${varName}_raw)) AS ?${varName})`);
       });
+
+      cube.measures.forEach((measure, i) => {
+        const varName = `measure${i}`;
+        selectVars.push(`?${varName}`);
+        patterns.push(`OPTIONAL { ?obs <${measure.iri}> ?${varName} . }`);
+      });
+    } else {
+      // Fallback: get all properties dynamically
+      // This generates a query that fetches raw observation data
+      selectVars.push('?property');
+      selectVars.push('?value');
+      patterns.push(`?obs ?property ?value .`);
+      patterns.push(`FILTER(?property != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)`);
+      patterns.push(`FILTER(?property != <https://cube.link/observedBy>)`);
+    }
+
+    const selectClause = selectVars.length > 0 ? selectVars.join(' ') : '*';
+
+    return `SELECT ${selectClause} WHERE {
+  ${patterns.join('\n  ')}
+}
+LIMIT 10000`;
+  };
+
+  const handleCreateDashboard = async () => {
+    if (selectedCubes.length === 0) {
+      setError('Please select at least one cube');
       return;
     }
 
-    setExportLoading(true);
+    setCreating(true);
+    setError(null);
+
     try {
-      const dashboardUid = await createGrafanaDashboard(config);
-      getAppEvents().publish({
-        type: AppEvents.alertSuccess.name,
-        payload: ['Dashboard created!', 'Opening in new tab...'],
+      const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      const dashboardTitle = `LINDAS Data (${timestamp})`;
+
+      const panels = selectedCubes.map((cube, index) => {
+        const query = generateTabularQuery(cube);
+
+        // Create column labels from dimension/measure names
+        const fieldConfig: any = {
+          defaults: {},
+          overrides: [],
+        };
+
+        // Add display name overrides for each field
+        cube.dimensions.forEach((dim, i) => {
+          fieldConfig.overrides.push({
+            matcher: { id: 'byName', options: `dim${i}` },
+            properties: [{ id: 'displayName', value: dim.label }],
+          });
+        });
+        cube.measures.forEach((measure, i) => {
+          fieldConfig.overrides.push({
+            matcher: { id: 'byName', options: `measure${i}` },
+            properties: [{ id: 'displayName', value: measure.label }],
+          });
+        });
+
+        return {
+          id: index + 1,
+          type: 'table',
+          title: cube.label,
+          gridPos: { x: 0, y: index * 12, w: 24, h: 12 },
+          datasource: {
+            type: 'flandersmake-sparql-datasource',
+            uid: 'lindas-datasource',
+          },
+          targets: [{
+            refId: 'A',
+            queryText: query,
+            format: 'table',
+          }],
+          options: {
+            showHeader: true,
+            cellHeight: 'sm',
+          },
+          fieldConfig,
+        };
       });
 
-      // Open the created dashboard
-      window.open(`/d/${dashboardUid}`, '_blank');
-    } catch (error) {
-      getAppEvents().publish({
-        type: AppEvents.alertError.name,
-        payload: ['Failed to create dashboard', String(error)],
+      const dashboard = {
+        title: dashboardTitle,
+        tags: ['lindas', 'auto-generated'],
+        timezone: 'browser',
+        schemaVersion: 38,
+        panels,
+        annotations: { list: [] },
+        templating: { list: [] },
+        time: { from: 'now-6h', to: 'now' },
+        refresh: '',
+      };
+
+      const response = await getBackendSrv().post('/api/dashboards/db', {
+        dashboard,
+        folderUid: '',
+        message: 'Created from LINDAS cubes',
+        overwrite: false,
       });
+
+      // Open the new dashboard
+      window.open(`/d/${response.uid}`, '_blank');
+
+    } catch (err: any) {
+      setError('Failed to create dashboard: ' + err.message);
     } finally {
-      setExportLoading(false);
+      setCreating(false);
     }
   };
 
-  const activeDataset = config.datasets[activeDatasetIndex];
-
-  // Show browser when in browse mode or when explicitly shown
-  if (showBrowser) {
-    return (
-      <div className={styles.container}>
-        <DatasetBrowser
-          onSelectDataset={addDataset}
-          onClose={() => setShowBrowser(false)}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className={styles.container}>
-      {/* Header */}
       <div className={styles.header}>
-        <div className={styles.headerTitle}>
-          <Icon name="chart-line" size="xl" className={styles.headerIcon} />
-          <Input
-            value={config.title}
-            onChange={e => setConfig({ ...config, title: e.currentTarget.value })}
-            className={styles.titleInput}
-            placeholder="Dashboard Title"
-          />
+        <h1>LINDAS Dataset Import</h1>
+        <p>Select datasets from LINDAS, then create a dashboard. Use Grafana's panel editor to customize visualizations.</p>
+      </div>
+
+      {error && (
+        <Alert title="Error" severity="error" onRemove={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
+      <div className={styles.mainContent}>
+        {/* Left: Search and Results */}
+        <div className={styles.searchPanel}>
+          <h3>Search LINDAS Datasets</h3>
+          <div className={styles.searchBox}>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Search by name..."
+              className={styles.searchInput}
+            />
+            <Button onClick={handleSearch} disabled={searching}>
+              {searching ? <Spinner size="sm" /> : 'Search'}
+            </Button>
+          </div>
+
+          <div className={styles.resultsList}>
+            {searchResults.length === 0 && !searching && (
+              <p className={styles.hint}>Enter a search term or click Search to browse all datasets</p>
+            )}
+            {searchResults.map((cube) => (
+              <div
+                key={cube.iri}
+                className={`${styles.resultItem} ${selectedCubes.find(c => c.iri === cube.iri) ? styles.resultItemSelected : ''}`}
+                onClick={() => handleSelectCube(cube)}
+              >
+                <div className={styles.resultTitle}>{cube.label}</div>
+                {cube.description && (
+                  <div className={styles.resultDesc}>{cube.description.slice(0, 100)}...</div>
+                )}
+                {cube.publisher && (
+                  <div className={styles.resultMeta}>{cube.publisher}</div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className={styles.headerActions}>
-          <Button
-            variant="secondary"
-            onClick={() => setShowBrowser(true)}
-            icon="search"
-          >
-            Browse Datasets
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => setShowAddModal(true)}
-            icon="link"
-          >
-            Add by IRI
-          </Button>
-          {config.datasets.length > 0 && (
+
+        {/* Right: Selected Cubes */}
+        <div className={styles.selectedPanel}>
+          <h3>Selected Datasets ({selectedCubes.length})</h3>
+
+          {loading && (
+            <div className={styles.loadingBox}>
+              <Spinner /> Loading cube metadata...
+            </div>
+          )}
+
+          <div className={styles.selectedList}>
+            {selectedCubes.map((cube) => (
+              <div key={cube.iri} className={styles.selectedItem}>
+                <div className={styles.selectedHeader}>
+                  <span className={styles.selectedTitle}>{cube.label}</span>
+                  <button
+                    className={styles.removeBtn}
+                    onClick={() => handleRemoveCube(cube.iri)}
+                  >
+                    <Icon name="times" />
+                  </button>
+                </div>
+                <div className={styles.selectedMeta}>
+                  {cube.dimensions.length} dimensions, {cube.measures.length} measures
+                </div>
+                <div className={styles.fieldList}>
+                  <strong>Columns:</strong> {[...cube.dimensions, ...cube.measures].map(f => f.label).join(', ')}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {selectedCubes.length > 0 && (
             <Button
               variant="primary"
-              onClick={handleExportDashboard}
-              icon="external-link-alt"
-              disabled={exportLoading}
+              size="lg"
+              onClick={handleCreateDashboard}
+              disabled={creating}
+              className={styles.createBtn}
             >
-              {exportLoading ? 'Creating...' : 'Create Dashboard'}
+              {creating ? <><Spinner size="sm" /> Creating...</> : 'Create Dashboard'}
             </Button>
+          )}
+
+          {selectedCubes.length === 0 && (
+            <p className={styles.hint}>
+              Select datasets from the left panel. Each will become a table panel in the dashboard.
+              You can then change the visualization type in Grafana's panel editor.
+            </p>
           )}
         </div>
       </div>
-
-      {config.datasets.length > 0 ? (
-        <div className={styles.mainLayout}>
-          <TabsBar className={styles.tabsBar}>
-            {config.datasets.map((d, i) => (
-              <div key={i} className={styles.tabWrapper}>
-                <Tab
-                  label={d.title}
-                  active={i === activeDatasetIndex}
-                  onChangeTab={() => setActiveDatasetIndex(i)}
-                />
-                <button
-                  className={styles.removeTabBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowRemoveConfirm(i);
-                  }}
-                  title="Remove dataset"
-                >
-                  <Icon name="times" size="sm" />
-                </button>
-              </div>
-            ))}
-          </TabsBar>
-
-          <TabContent className={styles.tabContent}>
-            {activeDataset && (
-              <div className={styles.threeColumn}>
-                <div className={styles.columnLeft}>
-                  <div className={styles.sectionHeader}>
-                    <Icon name="sliders-v-alt" />
-                    <span>Chart Configuration</span>
-                  </div>
-                  <Configurator
-                    dataset={activeDataset}
-                    onDatasetChange={(updated) => updateDataset(activeDatasetIndex, updated)}
-                  />
-                </div>
-
-                <div className={styles.columnCenter}>
-                  <ChartPreview dataset={activeDataset} />
-                </div>
-
-                <div className={styles.columnRight}>
-                  <div className={styles.sectionHeader}>
-                    <Icon name="filter" />
-                    <span>Data Filters</span>
-                  </div>
-                  <Filters
-                    cubeIri={activeDataset.cubeIri}
-                    dimensions={activeDataset.dimensions}
-                    selectedFilters={activeDataset.fieldMapping.filters || {}}
-                    onFiltersChange={(f) => updateDataset(activeDatasetIndex, {
-                      ...activeDataset,
-                      fieldMapping: { ...activeDataset.fieldMapping, filters: f },
-                    })}
-                  />
-                </div>
-              </div>
-            )}
-          </TabContent>
-        </div>
-      ) : (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyCard}>
-            <Icon name="database" size="xxxl" style={{ marginBottom: 20, color: 'gray' }} />
-            <h2>Create Visualizations from LINDAS Data</h2>
-            <p>
-              Browse available datasets from the Swiss Linked Data Service or enter a cube IRI directly.
-            </p>
-            <div className={styles.emptyActions}>
-              <Button size="lg" onClick={() => setShowBrowser(true)} icon="search">
-                Browse Datasets
-              </Button>
-              <Button size="lg" variant="secondary" onClick={() => setShowAddModal(true)} icon="link">
-                Enter Cube IRI
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Dataset Modal */}
-      <Modal
-        title="Add Dataset by IRI"
-        isOpen={showAddModal}
-        onDismiss={() => setShowAddModal(false)}
-      >
-        <Field
-          label="Cube IRI"
-          description="Enter the IRI of the LINDAS cube (found on visualize.admin.ch)"
-        >
-          <Input
-            value={newCubeIri}
-            onChange={e => setNewCubeIri(e.currentTarget.value)}
-            placeholder="https://ld.admin.ch/cube/..."
-            autoFocus
-          />
-        </Field>
-        {loading && <LoadingPlaceholder text="Fetching metadata..." />}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-          <Button variant="secondary" onClick={() => setShowAddModal(false)}>
-            Cancel
-          </Button>
-          <Button onClick={() => addDataset(newCubeIri)} disabled={!newCubeIri || loading}>
-            Add Dataset
-          </Button>
-        </div>
-      </Modal>
-
-      {/* Remove Dataset Confirmation */}
-      <ConfirmModal
-        isOpen={showRemoveConfirm !== null}
-        title="Remove Dataset"
-        body={`Are you sure you want to remove "${config.datasets[showRemoveConfirm ?? 0]?.title}"?`}
-        confirmText="Remove"
-        dismissText="Cancel"
-        onConfirm={() => removeDataset(showRemoveConfirm!)}
-        onDismiss={() => setShowRemoveConfirm(null)}
-      />
     </div>
   );
 };
 
 const getStyles = (theme: GrafanaTheme2) => ({
   container: css`
+    padding: ${theme.spacing(3)};
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: ${theme.colors.background.canvas};
   `,
   header: css`
+    margin-bottom: ${theme.spacing(3)};
+    h1 {
+      margin: 0 0 ${theme.spacing(1)} 0;
+    }
+    p {
+      color: ${theme.colors.text.secondary};
+      margin: 0;
+    }
+  `,
+  mainContent: css`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: ${theme.spacing(3)};
+    flex: 1;
+    min-height: 0;
+  `,
+  searchPanel: css`
+    display: flex;
+    flex-direction: column;
+    background: ${theme.colors.background.secondary};
+    border-radius: ${theme.shape.radius.default};
+    padding: ${theme.spacing(2)};
+    h3 {
+      margin: 0 0 ${theme.spacing(2)} 0;
+    }
+  `,
+  searchBox: css`
+    display: flex;
+    gap: ${theme.spacing(1)};
+    margin-bottom: ${theme.spacing(2)};
+  `,
+  searchInput: css`
+    flex: 1;
+    padding: ${theme.spacing(1)};
+    border: 1px solid ${theme.colors.border.weak};
+    border-radius: ${theme.shape.radius.default};
+    background: ${theme.colors.background.primary};
+    color: ${theme.colors.text.primary};
+    &:focus {
+      outline: none;
+      border-color: ${theme.colors.primary.main};
+    }
+  `,
+  resultsList: css`
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: ${theme.spacing(1)};
+  `,
+  resultItem: css`
+    padding: ${theme.spacing(1.5)};
+    background: ${theme.colors.background.primary};
+    border: 1px solid ${theme.colors.border.weak};
+    border-radius: ${theme.shape.radius.default};
+    cursor: pointer;
+    &:hover {
+      border-color: ${theme.colors.primary.main};
+    }
+  `,
+  resultItemSelected: css`
+    border-color: ${theme.colors.primary.main};
+    background: ${theme.colors.action.selected};
+  `,
+  resultTitle: css`
+    font-weight: ${theme.typography.fontWeightMedium};
+    margin-bottom: ${theme.spacing(0.5)};
+  `,
+  resultDesc: css`
+    font-size: ${theme.typography.size.sm};
+    color: ${theme.colors.text.secondary};
+    margin-bottom: ${theme.spacing(0.5)};
+  `,
+  resultMeta: css`
+    font-size: ${theme.typography.size.xs};
+    color: ${theme.colors.text.disabled};
+  `,
+  selectedPanel: css`
+    display: flex;
+    flex-direction: column;
+    background: ${theme.colors.background.secondary};
+    border-radius: ${theme.shape.radius.default};
+    padding: ${theme.spacing(2)};
+    h3 {
+      margin: 0 0 ${theme.spacing(2)} 0;
+    }
+  `,
+  selectedList: css`
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: ${theme.spacing(1)};
+    margin-bottom: ${theme.spacing(2)};
+  `,
+  selectedItem: css`
+    padding: ${theme.spacing(1.5)};
+    background: ${theme.colors.background.primary};
+    border: 1px solid ${theme.colors.border.weak};
+    border-radius: ${theme.shape.radius.default};
+  `,
+  selectedHeader: css`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: ${theme.spacing(1.5, 3)};
-    background: ${theme.colors.background.primary};
-    border-bottom: 1px solid ${theme.colors.border.weak};
+    margin-bottom: ${theme.spacing(0.5)};
   `,
-  headerTitle: css`
-    display: flex;
-    align-items: center;
-    gap: ${theme.spacing(1)};
-  `,
-  headerIcon: css`
-    color: ${theme.colors.primary.main};
-  `,
-  titleInput: css`
-    width: 300px;
-    input {
-      font-size: ${theme.typography.size.lg};
-      font-weight: ${theme.typography.fontWeightBold};
-      border-color: transparent;
-      &:hover, &:focus {
-        border-color: ${theme.colors.border.medium};
-      }
-    }
-  `,
-  headerActions: css`
-    display: flex;
-    gap: ${theme.spacing(1)};
-  `,
-  mainLayout: css`
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  `,
-  tabsBar: css`
-    padding: ${theme.spacing(0, 2)};
-    background: ${theme.colors.background.primary};
-  `,
-  tabContent: css`
-    flex: 1;
-    overflow: hidden;
-  `,
-  threeColumn: css`
-    display: grid;
-    grid-template-columns: 320px 1fr 300px;
-    height: 100%;
-    overflow: hidden;
-  `,
-  columnLeft: css`
-    border-right: 1px solid ${theme.colors.border.weak};
-    background: ${theme.colors.background.primary};
-    padding: ${theme.spacing(2)};
-    overflow-y: auto;
-  `,
-  columnCenter: css`
-    background: ${theme.colors.background.canvas};
-    padding: ${theme.spacing(4)};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  `,
-  columnRight: css`
-    border-left: 1px solid ${theme.colors.border.weak};
-    background: ${theme.colors.background.primary};
-    padding: ${theme.spacing(2)};
-    overflow-y: auto;
-  `,
-  sectionHeader: css`
-    display: flex;
-    align-items: center;
-    gap: ${theme.spacing(1)};
-    padding-bottom: ${theme.spacing(1.5)};
-    margin-bottom: ${theme.spacing(2)};
-    border-bottom: 1px solid ${theme.colors.border.weak};
+  selectedTitle: css`
     font-weight: ${theme.typography.fontWeightMedium};
-    color: ${theme.colors.text.secondary};
   `,
-  emptyState: css`
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: ${theme.colors.background.canvas};
-  `,
-  emptyCard: css`
-    background: ${theme.colors.background.primary};
-    padding: ${theme.spacing(6)};
-    border-radius: ${theme.shape.borderRadius()};
-    border: 1px solid ${theme.colors.border.weak};
-    text-align: center;
-    max-width: 500px;
-    box-shadow: ${theme.shadows.z2};
-    h2 { margin-bottom: 12px; }
-    p { color: ${theme.colors.text.secondary}; margin-bottom: 24px; }
-  `,
-  emptyActions: css`
-    display: flex;
-    gap: ${theme.spacing(2)};
-    justify-content: center;
-  `,
-  tabWrapper: css`
-    display: inline-flex;
-    align-items: center;
-    position: relative;
-  `,
-  removeTabBtn: css`
+  removeBtn: css`
     background: none;
     border: none;
     cursor: pointer;
-    padding: ${theme.spacing(0.5)};
-    margin-left: ${theme.spacing(0.5)};
-    opacity: 0.6;
     color: ${theme.colors.text.secondary};
-    border-radius: ${theme.shape.borderRadius(0.5)};
-
+    padding: ${theme.spacing(0.5)};
     &:hover {
-      opacity: 1;
       color: ${theme.colors.error.main};
-      background: ${theme.colors.action.hover};
     }
+  `,
+  selectedMeta: css`
+    font-size: ${theme.typography.size.sm};
+    color: ${theme.colors.text.secondary};
+    margin-bottom: ${theme.spacing(0.5)};
+  `,
+  fieldList: css`
+    font-size: ${theme.typography.size.xs};
+    color: ${theme.colors.text.disabled};
+    word-break: break-word;
+  `,
+  createBtn: css`
+    width: 100%;
+  `,
+  hint: css`
+    color: ${theme.colors.text.secondary};
+    font-size: ${theme.typography.size.sm};
+    text-align: center;
+    padding: ${theme.spacing(2)};
+  `,
+  loadingBox: css`
+    display: flex;
+    align-items: center;
+    gap: ${theme.spacing(1)};
+    padding: ${theme.spacing(2)};
+    color: ${theme.colors.text.secondary};
   `,
 });

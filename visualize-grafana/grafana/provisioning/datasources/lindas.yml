@@ -1,20 +1,48 @@
 apiVersion: 1
 
-# Delete old datasource if it exists (name change)
+# =============================================================================
+# LINDAS-ONLY DATASOURCE CONFIGURATION
+# =============================================================================
+# This is the ONLY datasource available in this Grafana instance.
+# Users can ONLY visualize data from LINDAS (Swiss Linked Data Service).
+# No external datasources are permitted.
+# =============================================================================
+
+# Delete any other datasources that may have been added
 deleteDatasources:
   - name: LINDAS
     orgId: 1
+  - name: LINDAS (System)
+    orgId: 1
+  # Remove common datasources users might try to add
+  - name: Prometheus
+    orgId: 1
+  - name: InfluxDB
+    orgId: 1
+  - name: MySQL
+    orgId: 1
+  - name: PostgreSQL
+    orgId: 1
+  - name: Elasticsearch
+    orgId: 1
+  - name: Graphite
+    orgId: 1
 
 datasources:
-  # LINDAS SPARQL datasource - INTERNAL USE ONLY
-  # This datasource is used by Panel 100 to load data
-  # Users should NOT use this directly - use Dashboard datasource instead
-  - name: LINDAS (System)
+  # LINDAS SPARQL Datasource
+  # The ONLY datasource permitted in this Grafana instance
+  # Provides access to Swiss Federal Linked Data
+  - name: LINDAS
     uid: lindas-datasource
     type: flandersmake-sparql-datasource
     access: proxy
     url: https://lindas.admin.ch/query
-    isDefault: false
+    orgId: 1
+    isDefault: true
+    # CRITICAL: Set to false to prevent modification
     editable: false
     jsonData:
       source: https://lindas.admin.ch/query
+      # SPARQL endpoint configuration
+      httpMethod: POST
+      defaultLimit: 10000

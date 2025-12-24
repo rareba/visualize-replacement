@@ -16,7 +16,8 @@ import {
   MutableDataFrame,
   Field
 } from '@grafana/data';
-import { getBackendSrv } from '@grafana/runtime';
+// Note: We use native fetch for SPARQL queries through the nginx proxy
+// getBackendSrv is used in other modules for Grafana API calls
 
 // ============================================================================
 // Types
@@ -82,7 +83,13 @@ export interface ChartConfig {
 // Constants
 // ============================================================================
 
-const LINDAS_ENDPOINT = 'https://lindas.admin.ch/query';
+// SPARQL proxy endpoint - nginx container handles CORS
+// In development: http://localhost:3004/query
+// In Docker network: http://sparql-proxy/query
+// We detect the environment and use appropriate URL
+const SPARQL_PROXY_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+  ? 'http://localhost:3004/query'
+  : '/sparql-proxy/query';  // Relative URL for production behind reverse proxy
 
 const PREFIXES = `
 PREFIX cube: <https://cube.link/>
@@ -135,24 +142,26 @@ const XSD_TO_FIELD_TYPE: Record<string, FieldType> = {
 // ============================================================================
 
 /**
- * Execute a SPARQL query against LINDAS using Grafana's backend proxy.
- * This avoids CORS issues by routing through Grafana's server.
+ * Execute a SPARQL query against LINDAS through the CORS proxy.
+ * The nginx proxy adds CORS headers to allow browser requests.
  */
 export async function executeSparql(query: string): Promise<SparqlResult> {
   try {
-    // Use Grafana's backend service to proxy the request
-    // This avoids CORS issues when running in the browser
-    const result = await getBackendSrv().post(
-      LINDAS_ENDPOINT,
-      `query=${encodeURIComponent(query)}`,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/sparql-results+json',
-        },
-      }
-    );
-    return result;
+    const response = await fetch(SPARQL_PROXY_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/sparql-results+json',
+      },
+      body: `query=${encodeURIComponent(query)}`,
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`SPARQL query failed: ${response.status} ${response.statusText} - ${text.slice(0, 200)}`);
+    }
+
+    return await response.json();
   } catch (error: any) {
     console.error('SPARQL query failed:', error);
     throw new Error(`SPARQL query failed: ${error.message || 'Unknown error'}`);

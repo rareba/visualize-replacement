@@ -300,11 +300,19 @@ ADFS_ISSUER=https://your-adfs-server
 
 ### Docker Compose
 
-Grafana service configured:
-- Port: 3003
-- SPARQL plugin: flandersmake-sparql-datasource
-- Dynamic Text plugin: marcusolsson-dynamictext-panel
-- Datasource: LINDAS (https://lindas.admin.ch/query)
+Services configured:
+
+1. **grafana** (port 3003)
+   - Grafana 10.2.0 with LINDAS plugins
+   - SPARQL plugin: flandersmake-sparql-datasource
+   - Dynamic Text plugin: marcusolsson-dynamictext-panel
+   - Datasource: LINDAS (https://lindas.admin.ch/query)
+
+2. **sparql-proxy** (port 3004)
+   - Nginx-based CORS proxy for LINDAS SPARQL endpoint
+   - Adds CORS headers to enable browser-based SPARQL queries
+   - Used by the lindas-visualizer-app plugin
+   - Config: `nginx/nginx.conf`
 
 ### Plugins
 
@@ -333,10 +341,11 @@ Three plugins are required:
      - **Multi-Dataset Support**: Add multiple datasets via tabs
      - **Cube URL Parameter**: Pass cube IRI via `?cube=<cubeIri>` URL parameter
    - Access at: `http://localhost:3003/a/lindas-visualizer-app`
-   - Uses Grafana's datasource proxy to avoid CORS issues
+   - Uses nginx SPARQL proxy (port 3004) to avoid CORS issues
+   - The sparql-proxy container adds CORS headers to LINDAS responses
    - Built with React, TypeScript, and Grafana UI components
    - Source: `grafana/plugins/lindas-visualizer-app/src/`
-   - Build: `cd grafana/plugins/lindas-visualizer-app && npm install && npm run build`
+   - Build: `cd grafana/plugins/lindas-visualizer-app && yarn install && yarn build`
    - Requires: `GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=...,lindas-visualizer-app`
    - See: `docs/lindas-visualizer-plugin-v2.md` for detailed documentation
 
@@ -416,16 +425,21 @@ GRAFANA_ADMIN_PASSWORD=admin
 ## Running the Application
 
 ```bash
-# Start Grafana
-docker-compose up -d grafana
+# Start all services (Grafana + SPARQL proxy)
+docker-compose up -d
 
-# Start Next.js dev server
+# Or start individual services:
+docker-compose up -d grafana sparql-proxy
+
+# Start Next.js dev server (optional, for hybrid mode)
 yarn dev
 
 # Open browser
 # - Browse: http://localhost:3000/browse
 # - Grafana: http://localhost:3003
+# - Visual Builder: http://localhost:3003/a/lindas-visualizer-app
 # - Dashboards: http://localhost:3000/dashboards
+# - SPARQL Proxy: http://localhost:3004/health
 ```
 
 ## Testing the Integration

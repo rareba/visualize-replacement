@@ -7,6 +7,17 @@
 # =============================================================================
 version: "3"
 services:
+  # ===========================================================================
+  # SPARQL Proxy - Handles CORS for LINDAS queries
+  # ===========================================================================
+  sparql-proxy:
+    image: nginx:alpine
+    ports:
+      - "3004:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+
   grafana:
     image: grafana/grafana:10.2.0
     ports:

@@ -8,8 +8,8 @@
       "name": "Swiss Federal Administration"
     },
     "keywords": ["lindas", "swiss", "opendata", "catalog", "data-cube"],
-    "version": "5.3.0",
-    "updated": "2025-12-22",
+    "version": "5.4.0",
+    "updated": "2025-12-24",
     "logos": {
       "small": "img/logo.svg",
       "large": "img/logo.svg"
@@ -23,6 +23,19 @@
       "role": "Viewer",
       "addToNav": true,
       "defaultNav": true
+    }
+  ],
+  "routes": [
+    {
+      "path": "lindas",
+      "url": "https://lindas.admin.ch",
+      "method": "*",
+      "headers": [
+        {
+          "name": "Accept",
+          "content": "application/sparql-results+json"
+        }
+      ]
     }
   ],
   "dependencies": {

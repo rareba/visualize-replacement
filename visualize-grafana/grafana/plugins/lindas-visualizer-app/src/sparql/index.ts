@@ -83,13 +83,10 @@ export interface ChartConfig {
 // Constants
 // ============================================================================
 
-// SPARQL proxy endpoint - nginx container handles CORS
-// In development: http://localhost:3004/query
-// In Docker network: http://sparql-proxy/query
-// We detect the environment and use appropriate URL
-const SPARQL_PROXY_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-  ? 'http://localhost:3004/query'
-  : '/sparql-proxy/query';  // Relative URL for production behind reverse proxy
+// Use Grafana's datasource proxy for SPARQL queries
+// The flandersmake-sparql-datasource has a route that proxies to the configured source
+// Datasource UID: lindas-sparql (configured in provisioning/datasources/lindas.yml)
+const DATASOURCE_PROXY_URL = '/api/datasources/proxy/uid/lindas-sparql/source';
 
 const PREFIXES = `
 PREFIX cube: <https://cube.link/>
@@ -142,12 +139,12 @@ const XSD_TO_FIELD_TYPE: Record<string, FieldType> = {
 // ============================================================================
 
 /**
- * Execute a SPARQL query against LINDAS through the CORS proxy.
- * The nginx proxy adds CORS headers to allow browser requests.
+ * Execute a SPARQL query against LINDAS through Grafana's datasource proxy.
+ * Uses the flandersmake-sparql-datasource route for CORS-safe requests.
  */
 export async function executeSparql(query: string): Promise<SparqlResult> {
   try {
-    const response = await fetch(SPARQL_PROXY_URL, {
+    const response = await fetch(DATASOURCE_PROXY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

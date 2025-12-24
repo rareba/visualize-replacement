@@ -45,3 +45,15 @@ datasources:
     editable: false
     jsonData:
       endpoint: https://lindas.admin.ch/query
+
+  # LINDAS SPARQL Datasource (Flanders Make plugin)
+  # Used by lindas-visualizer-app for proxied SPARQL queries
+  # The plugin's route proxies to the configured source URL
+  - name: LINDAS SPARQL
+    uid: lindas-sparql
+    type: flandersmake-sparql-datasource
+    access: proxy
+    orgId: 1
+    editable: false
+    jsonData:
+      source: https://lindas.admin.ch/query

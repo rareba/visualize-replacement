@@ -1,20 +1,22 @@
 import { AppPlugin } from '@grafana/data';
-import { DatasetCatalog } from './pages/DatasetCatalog';
+import { VisualBuilderAppRoot } from './scenes';
 
 /**
- * LINDAS Dataset Catalog Plugin
+ * LINDAS Visual Builder Plugin
  *
  * A Grafana App Plugin for browsing and visualizing Swiss Open Data (LINDAS).
+ * Built using @grafana/scenes for state management and native Grafana panels.
  *
- * Design Philosophy:
- * - Simple, clean interface - just a dataset catalog
- * - One-click dashboard creation
- * - Let Grafana handle visualization through native panel editing
- * - No complex chart builder - users get full Grafana power
+ * Architecture:
+ * - SceneApp manages overall plugin state and URL-based routing
+ * - Split layout: sidebar configuration + visualization canvas
+ * - Zero D3.js dependencies - all native Grafana panels
  *
  * User Flow:
- * 1. Browse or search datasets
- * 2. Click a dataset to create a dashboard
- * 3. Use Grafana's panel editor to configure visualization
+ * 1. Browse/search datasets in the catalog
+ * 2. Click dataset to open Visual Builder
+ * 3. Configure: chart type, axes, grouping, filters
+ * 4. See live preview with native Grafana panels
+ * 5. Save as dashboard or share via URL
  */
-export const plugin = new AppPlugin<{}>().setRootPage(DatasetCatalog);
+export const plugin = new AppPlugin<{}>().setRootPage(VisualBuilderAppRoot);

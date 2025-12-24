@@ -1,32 +1,30 @@
 /**
  * Type definitions for LINDAS Dataset Catalog
- * Simplified types for the new Grafana-native interface
+ *
+ * Re-exports types from the sparql module for backward compatibility.
  */
 
-/**
- * Basic dataset info from LINDAS
- */
-export interface Dataset {
-  uri: string;
-  label: string;
-  description?: string;
-  publisher?: string;
-}
+// Re-export all types from sparql module
+export type {
+  Language,
+  SparqlBinding,
+  SparqlResult,
+  Dataset,
+  CubeDimension,
+  CubeMeasure,
+  CubeMetadata,
+  ChartConfig,
+  VisualizerState,
+} from './sparql';
 
-/**
- * SPARQL result structure
- */
-export interface SparqlResult {
-  head: {
-    vars: string[];
-  };
-  results: {
-    bindings: Array<{
-      [key: string]: {
-        type: string;
-        value: string;
-        datatype?: string;
-      };
-    }>;
-  };
-}
+// Re-export functions
+export {
+  executeSparql,
+  sparqlToDataFrame,
+  fetchDatasets,
+  fetchCubeMetadata,
+  fetchCubeData,
+  fetchDimensionValues,
+  parseStateFromUrl,
+  serializeStateToUrl,
+} from './sparql';

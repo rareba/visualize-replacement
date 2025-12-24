@@ -320,21 +320,25 @@ Three plugins are required:
    - Installed via: `GF_INSTALL_PLUGINS=marcusolsson-dynamictext-panel`
    - Documentation: https://grafana.com/docs/plugins/marcusolsson-dynamictext-panel/
 
-3. **lindas-visualizer-app** (unsigned, local)
+3. **lindas-visualizer-app** (unsigned, local) - Version 2.0
    - Custom Grafana App Plugin for creating visualizations from LINDAS cube data
-   - Provides a chart creation interface similar to visualize.admin.ch
-   - **One focused job**: Help users create charts (dataset browsing handled by main app)
+   - Replicates the graph creation functionality of visualize.admin.ch
    - Features:
-     - **Chart Type Selector**: Column, Bar, Line, Area, Pie, Table (visual icons)
-     - **Field Mapping**: Assign dimensions to X axis, measures to Y axis, optional series
+     - **Dataset Browser**: Search and browse all LINDAS cubes directly
+     - **Smart Dimension Detection**: Auto-detects temporal, numerical, ordinal dimensions
+     - **Chart Type Selector**: Column, Bar, Line, Area, Pie, Table (with descriptions)
+     - **Visual Field Mapping**: See dimension types and units when selecting fields
+     - **Live Preview**: Real-time chart preview as you configure
      - **Auto Dashboard Creation**: Generates Grafana dashboards with SPARQL queries
+     - **Multi-Dataset Support**: Add multiple datasets via tabs
      - **Cube URL Parameter**: Pass cube IRI via `?cube=<cubeIri>` URL parameter
-   - Access at: `http://localhost:3003/a/lindas-visualizer-app?cube=<cubeIri>`
+   - Access at: `http://localhost:3003/a/lindas-visualizer-app`
    - Uses Grafana's datasource proxy to avoid CORS issues
    - Built with React, TypeScript, and Grafana UI components
    - Source: `grafana/plugins/lindas-visualizer-app/src/`
    - Build: `cd grafana/plugins/lindas-visualizer-app && npm install && npm run build`
    - Requires: `GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=...,lindas-visualizer-app`
+   - See: `docs/lindas-visualizer-plugin-v2.md` for detailed documentation
 
 ### Handlebars Template Examples
 
@@ -491,3 +495,135 @@ For now, the safest approach is to:
 4. **Revisit removal later** - Once the system is stable and well-tested
 
 The current implementation successfully achieves the goal of delegating visualization to Grafana while keeping the browse functionality intact.
+
+## Visual Builder App Plugin - Scenes SDK Architecture (v5.x)
+
+### Overview
+
+The `lindas-visualizer-app` plugin has been refactored to use Grafana's **Scenes SDK** (`@grafana/scenes`). This provides:
+- SceneApp-based state management with URL synchronization
+- Split layout architecture (sidebar + visualization canvas)
+- Zero D3.js dependencies - all native Grafana panels
+- Deep linking support for shareable configurations
+
+### Architecture
+
+```
+SceneApp
+    |
+    +-- SceneAppPage: "Swiss Open Data" (Catalog)
+    |       |
+    |       +-- EmbeddedScene
+    |               |
+    |               +-- SceneFlexLayout
+    |                       |
+    |                       +-- DatasetCatalogScene (custom SceneObject)
+    |
+    +-- SceneAppPage: "Visual Builder" (/builder/:cubeUri)
+            |
+            +-- EmbeddedScene
+                    |
+                    +-- SceneFlexLayout
+                            |
+                            +-- VisualBuilderScene (custom SceneObject)
+                                    |
+                                    +-- Split Layout:
+                                        - Left: Configuration sidebar
+                                        - Right: Visualization preview
+```
+
+### Key Components
+
+1. **VisualBuilderApp.tsx** - Main SceneApp container
+   - Manages routing between catalog and builder pages
+   - Handles URL parameter parsing for deep linking
+   - Creates EmbeddedScene wrappers for custom scenes
+
+2. **DatasetCatalogScene.tsx** - Dataset browser scene
+   - Fetches datasets from LINDAS via SPARQL
+   - Multi-language support (DE, FR, IT, EN)
+   - Search and filter functionality
+   - Click-to-navigate to Visual Builder
+
+3. **VisualBuilderScene.tsx** - Main visualization builder
+   - Split layout with sidebar configuration
+   - Chart type selection (Columns, Bars, Lines, Table, Stats, Pie)
+   - Axis mapping (X, Y, Group By) dropdowns
+   - Dynamic dimension filters
+   - Data limit selector
+   - Save to Dashboard functionality
+
+4. **constants.ts** - Configuration constants
+   - Chart type to Grafana panel type mapping
+   - Language options
+   - Row limits
+   - Plugin URLs
+
+5. **sparql/index.ts** - SPARQL utilities
+   - RDF to DataFrame transformation
+   - Cube metadata fetching
+   - Dimension value fetching for filters
+   - XSD datatype to FieldType mapping
+
+### State Management
+
+The VisualBuilderScene manages state via SceneObjectState:
+```typescript
+interface VisualBuilderSceneState extends SceneObjectState {
+  cubeUri: string;
+  language: LanguageValue;
+  chartType: ChartTypeValue;
+  xAxis: string | null;
+  yAxis: string | null;
+  groupBy: string | null;
+  filters: Record<string, string[]>;
+  limit: number;
+  metadata: CubeMetadata | null;
+  loading: boolean;
+  error: string | null;
+}
+```
+
+State changes trigger automatic re-renders via the `useState()` hook pattern provided by Scenes SDK.
+
+### URL Deep Linking
+
+The Visual Builder supports deep linking via URL parameters:
+```
+/a/lindas-visualizer-app/builder/<encoded-cube-uri>?chart=columns&x=<dim>&y=<measure>&lang=de
+```
+
+Parameters:
+- `cubeUri` - URL-encoded cube IRI (path parameter)
+- `chart` - Chart type (columns, bars, lines, table, stat, pie)
+- `x` - X-axis dimension URI
+- `y` - Y-axis measure URI
+- `group` - Group-by dimension URI
+- `lang` - Language (de, fr, it, en)
+- `limit` - Row limit
+
+### Building the Plugin
+
+```bash
+cd grafana/plugins/lindas-visualizer-app
+npm install
+npm run build
+```
+
+The build produces a ~400KB module.js (larger due to Scenes SDK inclusion).
+
+### Testing
+
+1. Access the catalog: `http://localhost:3003/a/lindas-visualizer-app`
+2. Click on any dataset to open the Visual Builder
+3. Configure chart type, axes, and filters
+4. Preview updates live
+5. Click "Save as Dashboard" to create a Grafana dashboard
+6. Use "Copy Link" to share the configuration
+
+### Migration from React Pages
+
+The original React-based pages (AppRoot.tsx, Visualizer.tsx, DatasetCatalog.tsx) have been moved to `Removed/pages/`. The new Scenes-based architecture provides:
+- Better integration with Grafana's URL state management
+- Consistent navigation patterns
+- Potential for future VizPanel integration with SceneQueryRunner

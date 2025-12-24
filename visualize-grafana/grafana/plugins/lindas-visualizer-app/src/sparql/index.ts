@@ -16,6 +16,7 @@ import {
   MutableDataFrame,
   Field
 } from '@grafana/data';
+import { getBackendSrv } from '@grafana/runtime';
 
 // ============================================================================
 // Types
@@ -134,24 +135,28 @@ const XSD_TO_FIELD_TYPE: Record<string, FieldType> = {
 // ============================================================================
 
 /**
- * Execute a SPARQL query against LINDAS
+ * Execute a SPARQL query against LINDAS using Grafana's backend proxy.
+ * This avoids CORS issues by routing through Grafana's server.
  */
 export async function executeSparql(query: string): Promise<SparqlResult> {
-  const response = await fetch(LINDAS_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'application/sparql-results+json',
-    },
-    body: `query=${encodeURIComponent(query)}`,
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`SPARQL query failed (${response.status}): ${text.slice(0, 200)}`);
+  try {
+    // Use Grafana's backend service to proxy the request
+    // This avoids CORS issues when running in the browser
+    const result = await getBackendSrv().post(
+      LINDAS_ENDPOINT,
+      `query=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/sparql-results+json',
+        },
+      }
+    );
+    return result;
+  } catch (error: any) {
+    console.error('SPARQL query failed:', error);
+    throw new Error(`SPARQL query failed: ${error.message || 'Unknown error'}`);
   }
-
-  return response.json();
 }
 
 // ============================================================================

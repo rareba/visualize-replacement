@@ -1,27 +1,13 @@
 /**
- * Visual Builder Scene
+ * Visual Builder Content
  *
- * The main visualization builder with split layout:
- * - Left sidebar: Configuration controls (chart type, axis mapping, filters)
- * - Right canvas: Live visualization using native Grafana panels
- *
- * Uses SceneQueryRunner for real-time data updates when config changes.
+ * React component for the visualization builder with split layout.
+ * Used within SceneReactObject for Scenes SDK integration.
  */
 
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { css } from '@emotion/css';
-import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import {
-  SceneObjectBase,
-  SceneObjectState,
-  SceneComponentProps,
-  SceneFlexLayout,
-  SceneFlexItem,
-  VizPanel,
-  SceneQueryRunner,
-  SceneDataTransformer,
-  PanelBuilders,
-} from '@grafana/scenes';
+import { GrafanaTheme2, SelectableValue, DataFrame } from '@grafana/data';
 import {
   useStyles2,
   Button,
@@ -33,17 +19,17 @@ import {
   RadioButtonGroup,
   Card,
   Collapse,
-  InlineSwitch,
 } from '@grafana/ui';
 import { locationService, getBackendSrv } from '@grafana/runtime';
 
 import {
   fetchCubeMetadata,
   fetchDimensionValues,
+  fetchCubeData,
   CubeMetadata,
   CubeDimension,
-  CubeMeasure,
   Language,
+  ChartConfig,
 } from '../sparql';
 import {
   PLUGIN_BASE_URL,
@@ -55,220 +41,117 @@ import {
   ChartTypeValue,
   LanguageValue,
 } from '../constants';
+import { ChartPreview, ChartType } from '../components/ChartPreview';
 
 // ============================================================================
-// Scene State
+// Types
 // ============================================================================
 
-export interface VisualBuilderSceneState extends SceneObjectState {
+interface VisualBuilderContentProps {
   cubeUri: string;
-  language: LanguageValue;
-  chartType: ChartTypeValue;
-  xAxis: string | null;
-  yAxis: string | null;
-  groupBy: string | null;
-  filters: Record<string, string[]>;
-  limit: number;
-  // Runtime state
-  metadata: CubeMetadata | null;
-  loading: boolean;
-  error: string | null;
-  dataLoading: boolean;
 }
 
 // ============================================================================
-// Scene Object
+// Main Component
 // ============================================================================
 
-export class VisualBuilderScene extends SceneObjectBase<VisualBuilderSceneState> {
-  static Component = VisualBuilderRenderer;
+export const VisualBuilderContent: React.FC<VisualBuilderContentProps> = ({ cubeUri }) => {
+  const styles = useStyles2(getStyles);
 
-  constructor(state: Partial<VisualBuilderSceneState> & { cubeUri: string }) {
-    super({
-      language: 'de',
-      chartType: 'columns',
-      xAxis: null,
-      yAxis: null,
-      groupBy: null,
-      filters: {},
-      limit: 100,
-      metadata: null,
-      loading: true,
-      error: null,
-      dataLoading: false,
-      ...state,
-    });
-  }
+  // Configuration state
+  const [language, setLanguage] = useState<LanguageValue>('de');
+  const [chartType, setChartType] = useState<ChartTypeValue>('columns');
+  const [xAxis, setXAxis] = useState<string | null>(null);
+  const [yAxis, setYAxis] = useState<string | null>(null);
+  const [groupBy, setGroupBy] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string, string[]>>({});
+  const [limit, setLimit] = useState(100);
 
-  // Actions
-  setLanguage(lang: LanguageValue) {
-    this.setState({ language: lang, metadata: null, loading: true });
-    this.loadMetadata();
-  }
+  // Runtime state
+  const [metadata, setMetadata] = useState<CubeMetadata | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<DataFrame | null>(null);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [dataError, setDataError] = useState<string | null>(null);
 
-  setChartType(type: ChartTypeValue) {
-    this.setState({ chartType: type });
-  }
-
-  setXAxis(axis: string | null) {
-    this.setState({ xAxis: axis });
-  }
-
-  setYAxis(axis: string | null) {
-    this.setState({ yAxis: axis });
-  }
-
-  setGroupBy(group: string | null) {
-    this.setState({ groupBy: group });
-  }
-
-  setLimit(limit: number) {
-    this.setState({ limit });
-  }
-
-  setFilter(dimensionUri: string, values: string[]) {
-    this.setState({
-      filters: {
-        ...this.state.filters,
-        [dimensionUri]: values,
-      },
-    });
-  }
-
-  clearFilter(dimensionUri: string) {
-    const { [dimensionUri]: _, ...remaining } = this.state.filters;
-    this.setState({ filters: remaining });
-  }
-
-  // Load cube metadata
-  async loadMetadata() {
-    const { cubeUri, language } = this.state;
-
+  // Load metadata on mount or language change
+  useEffect(() => {
     if (!cubeUri) {
-      this.setState({ error: 'No dataset selected', loading: false });
+      setError('No dataset selected');
+      setLoading(false);
       return;
     }
 
-    this.setState({ loading: true, error: null });
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
 
-    try {
-      const metadata = await fetchCubeMetadata(cubeUri, language as Language);
-
-      // Auto-select first dimension and measure
-      const xAxis = metadata.dimensions[0]?.uri || null;
-      const yAxis = metadata.measures[0]?.uri || null;
-
-      this.setState({
-        metadata,
-        xAxis,
-        yAxis,
-        loading: false,
+    fetchCubeMetadata(cubeUri, language as Language)
+      .then((meta) => {
+        if (cancelled) return;
+        setMetadata(meta);
+        // Auto-select first dimension and measure
+        if (!xAxis && meta.dimensions.length > 0) {
+          setXAxis(meta.dimensions[0].uri);
+        }
+        if (!yAxis && meta.measures.length > 0) {
+          setYAxis(meta.measures[0].uri);
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('Failed to load metadata:', err);
+        setError(err.message || 'Failed to load dataset');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
-    } catch (err: any) {
-      console.error('Failed to load metadata:', err);
-      this.setState({
-        error: err.message || 'Failed to load dataset',
-        loading: false,
-      });
+
+    return () => { cancelled = true; };
+  }, [cubeUri, language]);
+
+  // Fetch data when config changes
+  useEffect(() => {
+    if (!metadata || (!xAxis && !yAxis)) {
+      setData(null);
+      return;
     }
-  }
 
-  // Lifecycle - properly typed to return CancelActivationHandler
-  protected _activationHandler() {
-    this.loadMetadata();
+    const config: ChartConfig = {
+      cubeUri,
+      xAxis,
+      yAxis,
+      groupBy,
+      filters,
+      limit,
+    };
+
+    let cancelled = false;
+    setDataLoading(true);
+    setDataError(null);
+
+    const timeout = setTimeout(() => {
+      fetchCubeData(config, metadata, language as Language)
+        .then((result) => {
+          if (!cancelled) setData(result);
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            console.error('Failed to fetch data:', err);
+            setDataError(err.message || 'Failed to load data');
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setDataLoading(false);
+        });
+    }, 300);
+
     return () => {
-      // Cleanup on deactivation if needed
+      cancelled = true;
+      clearTimeout(timeout);
     };
-  }
-
-  // Navigate back to catalog
-  navigateBack() {
-    locationService.push(PLUGIN_BASE_URL);
-  }
-
-  // Save as dashboard
-  async saveDashboard(): Promise<string | null> {
-    const { metadata, chartType, xAxis, yAxis, groupBy, limit, cubeUri } = this.state;
-    if (!metadata) return null;
-
-    const panelType = CHART_TO_PANEL[chartType] || 'table';
-
-    const dashboard = {
-      uid: `lindas-${Date.now().toString(36)}`,
-      title: metadata.label,
-      tags: ['lindas', 'swiss-open-data'],
-      editable: true,
-      panels: [
-        {
-          id: 1,
-          type: panelType,
-          title: metadata.label,
-          gridPos: { x: 0, y: 0, w: 24, h: 14 },
-          datasource: { type: 'lindas-datasource', uid: LINDAS_DATASOURCE_UID },
-          targets: [{
-            refId: 'A',
-            cubeUri: cubeUri,
-            xAxis: xAxis,
-            yAxis: yAxis,
-            groupBy: groupBy,
-            limit: limit,
-          }],
-          options: chartType === 'bars' ? { orientation: 'horizontal' } : {},
-        },
-      ],
-    };
-
-    try {
-      const result = await getBackendSrv().post('/api/dashboards/db', {
-        dashboard,
-        folderUid: '',
-        overwrite: false,
-      });
-      return result.uid;
-    } catch (err: any) {
-      console.error('Failed to save dashboard:', err);
-      this.setState({ error: `Failed to save: ${err.message}` });
-      return null;
-    }
-  }
-
-  // Get shareable URL
-  getShareUrl(): string {
-    const { cubeUri, chartType, xAxis, yAxis, groupBy, language, limit } = this.state;
-    const params = new URLSearchParams();
-    params.set('chart', chartType);
-    if (xAxis) params.set('x', xAxis);
-    if (yAxis) params.set('y', yAxis);
-    if (groupBy) params.set('group', groupBy);
-    params.set('lang', language);
-    params.set('limit', String(limit));
-
-    const encodedUri = encodeURIComponent(cubeUri);
-    return `${window.location.origin}${PLUGIN_BASE_URL}/builder/${encodedUri}?${params.toString()}`;
-  }
-}
-
-// ============================================================================
-// React Component
-// ============================================================================
-
-function VisualBuilderRenderer({ model }: SceneComponentProps<VisualBuilderScene>) {
-  const styles = useStyles2(getStyles);
-  const state = model.useState();
-  const {
-    cubeUri,
-    language,
-    chartType,
-    xAxis,
-    yAxis,
-    groupBy,
-    filters,
-    limit,
-    metadata,
-    loading,
-    error,
-    dataLoading,
-  } = state;
+  }, [cubeUri, xAxis, yAxis, groupBy, filters, limit, metadata, language]);
 
   // Build dropdown options
   const dimensionOptions: Array<SelectableValue<string>> = useMemo(() => {
@@ -312,16 +195,70 @@ function VisualBuilderRenderer({ model }: SceneComponentProps<VisualBuilderScene
   }));
 
   // Handlers
-  const handleSave = useCallback(async () => {
-    const uid = await model.saveDashboard();
-    if (uid) {
-      locationService.push(`/d/${uid}`);
+  const handleBack = useCallback(() => {
+    locationService.push(PLUGIN_BASE_URL);
+  }, []);
+
+  const handleSaveDashboard = useCallback(async () => {
+    if (!metadata) return;
+
+    const panelType = CHART_TO_PANEL[chartType] || 'table';
+
+    const dashboard = {
+      uid: `lindas-${Date.now().toString(36)}`,
+      title: metadata.label,
+      tags: ['lindas', 'swiss-open-data'],
+      editable: true,
+      panels: [
+        {
+          id: 1,
+          type: panelType,
+          title: metadata.label,
+          gridPos: { x: 0, y: 0, w: 24, h: 14 },
+          datasource: { type: 'lindas-datasource', uid: LINDAS_DATASOURCE_UID },
+          targets: [{
+            refId: 'A',
+            cubeUri,
+            xAxis,
+            yAxis,
+            groupBy,
+            limit,
+          }],
+          options: chartType === 'bars' ? { orientation: 'horizontal' } : {},
+        },
+      ],
+    };
+
+    try {
+      const result = await getBackendSrv().post('/api/dashboards/db', {
+        dashboard,
+        folderUid: '',
+        overwrite: false,
+      });
+      locationService.push(`/d/${result.uid}`);
+    } catch (err: any) {
+      console.error('Failed to save dashboard:', err);
+      setError(`Failed to save: ${err.message}`);
     }
-  }, [model]);
+  }, [metadata, chartType, cubeUri, xAxis, yAxis, groupBy, limit]);
 
   const handleCopyLink = useCallback(() => {
-    navigator.clipboard.writeText(model.getShareUrl());
-  }, [model]);
+    const params = new URLSearchParams();
+    params.set('chart', chartType);
+    if (xAxis) params.set('x', xAxis);
+    if (yAxis) params.set('y', yAxis);
+    if (groupBy) params.set('group', groupBy);
+    params.set('lang', language);
+    params.set('limit', String(limit));
+
+    const encodedUri = encodeURIComponent(cubeUri);
+    const url = `${window.location.origin}${PLUGIN_BASE_URL}/builder/${encodedUri}?${params.toString()}`;
+    navigator.clipboard.writeText(url);
+  }, [cubeUri, chartType, xAxis, yAxis, groupBy, language, limit]);
+
+  const handleSetFilter = useCallback((dimUri: string, values: string[]) => {
+    setFilters(prev => ({ ...prev, [dimUri]: values }));
+  }, []);
 
   // Loading state
   if (loading) {
@@ -336,11 +273,11 @@ function VisualBuilderRenderer({ model }: SceneComponentProps<VisualBuilderScene
   // Error state
   if (error && !metadata) {
     return (
-      <div className={styles.error}>
+      <div className={styles.errorContainer}>
         <Alert title="Error" severity="error">
           {error}
           <div style={{ marginTop: 16 }}>
-            <Button onClick={() => model.navigateBack()}>Back to Catalog</Button>
+            <Button onClick={handleBack}>Back to Catalog</Button>
           </div>
         </Alert>
       </div>
@@ -351,16 +288,17 @@ function VisualBuilderRenderer({ model }: SceneComponentProps<VisualBuilderScene
     return null;
   }
 
+  // Map chart type for preview
+  const previewChartType: ChartType =
+    chartType === 'columns' || chartType === 'bars' ? 'bar' :
+    chartType === 'lines' ? 'bar' :
+    chartType as ChartType;
+
   return (
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <Button
-          variant="secondary"
-          icon="arrow-left"
-          onClick={() => model.navigateBack()}
-          size="sm"
-        >
+        <Button variant="secondary" icon="arrow-left" onClick={handleBack} size="sm">
           Back
         </Button>
         <div className={styles.titleSection}>
@@ -371,7 +309,7 @@ function VisualBuilderRenderer({ model }: SceneComponentProps<VisualBuilderScene
           <RadioButtonGroup
             options={languageOptions}
             value={language}
-            onChange={(v) => model.setLanguage(v)}
+            onChange={setLanguage}
             size="sm"
           />
           <Button variant="secondary" icon="link" onClick={handleCopyLink} size="sm">
@@ -380,7 +318,7 @@ function VisualBuilderRenderer({ model }: SceneComponentProps<VisualBuilderScene
           <Button
             variant="primary"
             icon="save"
-            onClick={handleSave}
+            onClick={handleSaveDashboard}
             disabled={!xAxis && !yAxis}
           >
             Save as Dashboard
@@ -389,7 +327,7 @@ function VisualBuilderRenderer({ model }: SceneComponentProps<VisualBuilderScene
       </div>
 
       {error && (
-        <Alert title="Error" severity="error" onRemove={() => model.setState({ error: null })}>
+        <Alert title="Error" severity="error" onRemove={() => setError(null)}>
           {error}
         </Alert>
       )}
@@ -400,70 +338,55 @@ function VisualBuilderRenderer({ model }: SceneComponentProps<VisualBuilderScene
         <div className={styles.sidebar}>
           <Card className={styles.configCard}>
             <Card.Heading>Chart Settings</Card.Heading>
-
             <div className={styles.configForm}>
-              {/* Chart Type */}
               <Field label="Chart Type">
                 <RadioButtonGroup
                   options={chartTypeOptions}
                   value={chartType}
-                  onChange={(v) => model.setChartType(v)}
+                  onChange={setChartType}
                   size="md"
                 />
               </Field>
 
-              {/* X Axis */}
-              <Field
-                label="X Axis (Categories)"
-                description="What to show along the horizontal axis"
-              >
+              <Field label="X Axis (Categories)" description="What to show along the horizontal axis">
                 <Select
                   options={dimensionOptions}
                   value={xAxis || ''}
-                  onChange={(v) => model.setXAxis(v?.value || null)}
+                  onChange={(v) => setXAxis(v?.value || null)}
                   placeholder="Select a dimension..."
                 />
               </Field>
 
-              {/* Y Axis */}
-              <Field
-                label="Y Axis (Values)"
-                description="The numeric values to display"
-              >
+              <Field label="Y Axis (Values)" description="The numeric values to display">
                 <Select
                   options={measureOptions}
                   value={yAxis || ''}
-                  onChange={(v) => model.setYAxis(v?.value || null)}
+                  onChange={(v) => setYAxis(v?.value || null)}
                   placeholder="Select a measure..."
                 />
               </Field>
 
-              {/* Group By */}
-              <Field
-                label="Group By (Color)"
-                description="Split data into colored groups"
-              >
+              <Field label="Group By (Color)" description="Split data into colored groups">
                 <Select
                   options={dimensionOptions}
                   value={groupBy || ''}
-                  onChange={(v) => model.setGroupBy(v?.value || null)}
+                  onChange={(v) => setGroupBy(v?.value || null)}
                   placeholder="Optional grouping..."
                   isClearable
                 />
               </Field>
 
-              {/* Data Limit */}
               <Field label="Data Limit">
                 <Select
                   options={limitOptions}
                   value={limit}
-                  onChange={(v) => model.setLimit(v?.value || 100)}
+                  onChange={(v) => setLimit(v?.value || 100)}
                 />
               </Field>
             </div>
           </Card>
 
-          {/* Filters Section */}
+          {/* Filters */}
           <Card className={styles.configCard}>
             <Card.Heading>
               <Icon name="filter" /> Filters
@@ -477,11 +400,11 @@ function VisualBuilderRenderer({ model }: SceneComponentProps<VisualBuilderScene
                     cubeUri={cubeUri}
                     language={language as Language}
                     selectedValues={filters[dim.uri] || []}
-                    onChangeValues={(values) => model.setFilter(dim.uri, values)}
+                    onChangeValues={(values) => handleSetFilter(dim.uri, values)}
                   />
                 ))
               ) : (
-                <p className={styles.noFilters}>No dimensions available for filtering</p>
+                <p className={styles.noFilters}>No dimensions available</p>
               )}
             </div>
           </Card>
@@ -505,24 +428,27 @@ function VisualBuilderRenderer({ model }: SceneComponentProps<VisualBuilderScene
                   <p>Choose an X axis and Y axis from the settings panel</p>
                 </div>
               ) : (
-                <VisualizationPanel
-                  cubeUri={cubeUri}
-                  chartType={chartType}
-                  xAxis={xAxis}
-                  yAxis={yAxis}
-                  groupBy={groupBy}
-                  filters={filters}
-                  limit={limit}
-                  onLoadingChange={(loading) => model.setState({ dataLoading: loading })}
+                <ChartPreview
+                  data={data}
+                  chartType={previewChartType}
+                  loading={dataLoading}
+                  error={dataError}
                 />
               )}
             </div>
+
+            {data && data.length > 0 && (
+              <div className={styles.dataInfo}>
+                <Icon name="info-circle" size="sm" />
+                <span>{data.length} rows loaded</span>
+              </div>
+            )}
           </Card>
         </div>
       </div>
     </div>
   );
-}
+};
 
 // ============================================================================
 // Filter Control Component
@@ -543,16 +469,16 @@ function FilterControl({
   selectedValues,
   onChangeValues,
 }: FilterControlProps) {
-  const styles = useStyles2(getStyles);
-  const [options, setOptions] = React.useState<Array<{ value: string; label: string }>>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [expanded, setExpanded] = React.useState(false);
+  const [options, setOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if (expanded && options.length === 0) {
       setLoading(true);
       fetchDimensionValues(cubeUri, dimension.uri, language)
         .then(setOptions)
+        .catch((err) => console.error('Failed to load dimension values:', err))
         .finally(() => setLoading(false));
     }
   }, [expanded, cubeUri, dimension.uri, language, options.length]);
@@ -594,166 +520,6 @@ function FilterControl({
 }
 
 // ============================================================================
-// Visualization Panel Component
-// ============================================================================
-
-interface VisualizationPanelProps {
-  cubeUri: string;
-  chartType: ChartTypeValue;
-  xAxis: string | null;
-  yAxis: string | null;
-  groupBy: string | null;
-  filters: Record<string, string[]>;
-  limit: number;
-  onLoadingChange?: (loading: boolean) => void;
-}
-
-function VisualizationPanel({
-  cubeUri,
-  chartType,
-  xAxis,
-  yAxis,
-  groupBy,
-  filters,
-  limit,
-  onLoadingChange,
-}: VisualizationPanelProps) {
-  const styles = useStyles2(getStyles);
-
-  // Build query target for the datasource
-  const queryTarget = useMemo(() => ({
-    refId: 'A',
-    cubeUri,
-    xAxis,
-    yAxis,
-    groupBy,
-    filters,
-    limit,
-  }), [cubeUri, xAxis, yAxis, groupBy, filters, limit]);
-
-  const panelType = CHART_TO_PANEL[chartType] || 'table';
-
-  // Create the panel configuration
-  const panelOptions = useMemo(() => {
-    const opts: Record<string, any> = {};
-
-    if (chartType === 'bars') {
-      opts.orientation = 'horizontal';
-    }
-
-    return opts;
-  }, [chartType]);
-
-  // For now, use the ChartPreview component until SceneQueryRunner integration is complete
-  // This is a bridge solution that works with the existing SPARQL utilities
-
-  return (
-    <div className={styles.vizPanelContainer}>
-      <ChartPreviewWrapper
-        cubeUri={cubeUri}
-        chartType={chartType}
-        xAxis={xAxis}
-        yAxis={yAxis}
-        groupBy={groupBy}
-        filters={filters}
-        limit={limit}
-        onLoadingChange={onLoadingChange}
-      />
-    </div>
-  );
-}
-
-// ============================================================================
-// Chart Preview Wrapper (Bridge to existing implementation)
-// ============================================================================
-
-import { ChartPreview, ChartType } from '../components/ChartPreview';
-import { fetchCubeData, ChartConfig } from '../sparql';
-import { DataFrame } from '@grafana/data';
-
-interface ChartPreviewWrapperProps {
-  cubeUri: string;
-  chartType: ChartTypeValue;
-  xAxis: string | null;
-  yAxis: string | null;
-  groupBy: string | null;
-  filters: Record<string, string[]>;
-  limit: number;
-  onLoadingChange?: (loading: boolean) => void;
-}
-
-function ChartPreviewWrapper({
-  cubeUri,
-  chartType,
-  xAxis,
-  yAxis,
-  groupBy,
-  filters,
-  limit,
-  onLoadingChange,
-}: ChartPreviewWrapperProps) {
-  const [data, setData] = React.useState<DataFrame | null>(null);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [metadata, setMetadata] = React.useState<CubeMetadata | null>(null);
-
-  // Load metadata
-  React.useEffect(() => {
-    fetchCubeMetadata(cubeUri, 'de')
-      .then(setMetadata)
-      .catch((err) => setError(err.message));
-  }, [cubeUri]);
-
-  // Fetch data when config changes
-  React.useEffect(() => {
-    if (!metadata || (!xAxis && !yAxis)) {
-      setData(null);
-      return;
-    }
-
-    const config: ChartConfig = {
-      cubeUri,
-      xAxis,
-      yAxis,
-      groupBy,
-      filters,
-      limit,
-    };
-
-    setLoading(true);
-    onLoadingChange?.(true);
-    setError(null);
-
-    const timeout = setTimeout(() => {
-      fetchCubeData(config, metadata, 'de')
-        .then(setData)
-        .catch((err) => setError(err.message))
-        .finally(() => {
-          setLoading(false);
-          onLoadingChange?.(false);
-        });
-    }, 300); // Debounce
-
-    return () => clearTimeout(timeout);
-  }, [cubeUri, xAxis, yAxis, groupBy, filters, limit, metadata, onLoadingChange]);
-
-  // Map chart types
-  const previewChartType: ChartType =
-    chartType === 'columns' || chartType === 'bars' ? 'bar' :
-    chartType === 'lines' ? 'bar' : // Fallback since ChartPreview doesn't have line
-    chartType as ChartType;
-
-  return (
-    <ChartPreview
-      data={data}
-      chartType={previewChartType}
-      loading={loading}
-      error={error}
-    />
-  );
-}
-
-// ============================================================================
 // Styles
 // ============================================================================
 
@@ -762,7 +528,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     padding: ${theme.spacing(3)};
     max-width: 1800px;
     margin: 0 auto;
-    min-height: 100vh;
   `,
   header: css`
     display: flex;
@@ -831,11 +596,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     min-height: 500px;
     padding: ${theme.spacing(2)};
   `,
-  vizPanelContainer: css`
-    width: 100%;
-    height: 100%;
-    min-height: 450px;
-  `,
   placeholder: css`
     height: 100%;
     min-height: 400px;
@@ -860,6 +620,15 @@ const getStyles = (theme: GrafanaTheme2) => ({
       margin: 0;
     }
   `,
+  dataInfo: css`
+    display: flex;
+    align-items: center;
+    gap: ${theme.spacing(1)};
+    color: ${theme.colors.text.secondary};
+    font-size: ${theme.typography.size.sm};
+    padding: ${theme.spacing(2)};
+    border-top: 1px solid ${theme.colors.border.weak};
+  `,
   noFilters: css`
     color: ${theme.colors.text.secondary};
     font-size: ${theme.typography.size.sm};
@@ -874,9 +643,11 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: ${theme.colors.text.secondary};
     gap: ${theme.spacing(2)};
   `,
-  error: css`
+  errorContainer: css`
     padding: ${theme.spacing(4)};
     max-width: 600px;
     margin: 0 auto;
   `,
 });
+
+export default VisualBuilderContent;

@@ -1,18 +1,13 @@
 /**
- * Dataset Catalog Scene
+ * Dataset Catalog Content
  *
- * A SceneObject that displays the LINDAS dataset catalog.
- * Users can browse/search datasets and click to open the Visual Builder.
+ * React component for browsing LINDAS datasets.
+ * Used within SceneReactObject for Scenes SDK integration.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import {
-  SceneObjectBase,
-  SceneObjectState,
-  SceneComponentProps,
-} from '@grafana/scenes';
 import {
   useStyles2,
   Input,
@@ -30,45 +25,13 @@ import { fetchDatasets, Dataset, Language } from '../sparql';
 import { PLUGIN_BASE_URL, LANGUAGES, LanguageValue } from '../constants';
 
 // ============================================================================
-// Scene State
+// Main Component
 // ============================================================================
 
-export interface DatasetCatalogSceneState extends SceneObjectState {
-  language?: LanguageValue;
-}
-
-// ============================================================================
-// Scene Object
-// ============================================================================
-
-export class DatasetCatalogScene extends SceneObjectBase<DatasetCatalogSceneState> {
-  static Component = DatasetCatalogRenderer;
-
-  constructor(state: Partial<DatasetCatalogSceneState>) {
-    super({
-      language: 'de',
-      ...state,
-    });
-  }
-
-  setLanguage(lang: LanguageValue) {
-    this.setState({ language: lang });
-  }
-
-  navigateToBuilder(cubeUri: string) {
-    const encodedUri = encodeURIComponent(cubeUri);
-    locationService.push(`${PLUGIN_BASE_URL}/builder/${encodedUri}`);
-  }
-}
-
-// ============================================================================
-// React Component
-// ============================================================================
-
-function DatasetCatalogRenderer({ model }: SceneComponentProps<DatasetCatalogScene>) {
+export const DatasetCatalogContent: React.FC = () => {
   const styles = useStyles2(getStyles);
-  const { language = 'de' } = model.useState();
 
+  const [language, setLanguage] = useState<LanguageValue>('de');
   const [searchTerm, setSearchTerm] = useState('');
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,6 +51,7 @@ function DatasetCatalogRenderer({ model }: SceneComponentProps<DatasetCatalogSce
         }
       } catch (err: any) {
         if (!cancelled) {
+          console.error('Failed to load datasets:', err);
           setError(err.message || 'Failed to load datasets');
         }
       } finally {
@@ -105,12 +69,9 @@ function DatasetCatalogRenderer({ model }: SceneComponentProps<DatasetCatalogSce
   }, [searchTerm, language]);
 
   const handleSelect = useCallback((dataset: Dataset) => {
-    model.navigateToBuilder(dataset.uri);
-  }, [model]);
-
-  const handleLanguageChange = useCallback((value: LanguageValue) => {
-    model.setLanguage(value);
-  }, [model]);
+    const encodedUri = encodeURIComponent(dataset.uri);
+    locationService.push(`${PLUGIN_BASE_URL}/builder/${encodedUri}`);
+  }, []);
 
   const languageOptions: Array<SelectableValue<LanguageValue>> = LANGUAGES.map(l => ({
     label: l.label,
@@ -134,7 +95,7 @@ function DatasetCatalogRenderer({ model }: SceneComponentProps<DatasetCatalogSce
             <RadioButtonGroup
               options={languageOptions}
               value={language}
-              onChange={handleLanguageChange}
+              onChange={setLanguage}
               size="sm"
             />
           </div>
@@ -162,7 +123,7 @@ function DatasetCatalogRenderer({ model }: SceneComponentProps<DatasetCatalogSce
 
       {/* Error */}
       {error && (
-        <Alert title="Error" severity="error" onRemove={() => setError(null)}>
+        <Alert title="Error loading datasets" severity="error" onRemove={() => setError(null)}>
           {error}
         </Alert>
       )}
@@ -177,7 +138,7 @@ function DatasetCatalogRenderer({ model }: SceneComponentProps<DatasetCatalogSce
         <div className={styles.emptyContainer}>
           <Icon name="database" size="xxxl" className={styles.emptyIcon} />
           <h2>No datasets found</h2>
-          <p>Try a different search term</p>
+          <p>Try a different search term or change the language</p>
         </div>
       ) : (
         <>
@@ -225,7 +186,7 @@ function DatasetCatalogRenderer({ model }: SceneComponentProps<DatasetCatalogSce
       )}
     </div>
   );
-}
+};
 
 // ============================================================================
 // Styles
@@ -333,3 +294,5 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: ${theme.colors.text.disabled};
   `,
 });
+
+export default DatasetCatalogContent;

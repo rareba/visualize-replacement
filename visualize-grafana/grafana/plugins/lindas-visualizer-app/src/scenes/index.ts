@@ -2,6 +2,6 @@
  * Scenes Module Exports
  */
 
-export { VisualBuilderAppRoot, getVisualBuilderApp } from './VisualBuilderApp';
-export { DatasetCatalogScene } from './DatasetCatalogScene';
-export { VisualBuilderScene } from './VisualBuilderScene';
+export { VisualBuilderAppRoot } from './VisualBuilderApp';
+export { DatasetCatalogContent } from './DatasetCatalogScene';
+export { VisualBuilderContent } from './VisualBuilderScene';

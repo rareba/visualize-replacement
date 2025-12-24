@@ -2,12 +2,7 @@
  * Visual Builder SceneApp
  *
  * Main entry point for the Scenes-based Visual Builder.
- * Uses SceneApp for state management and URL-based deep linking.
- *
- * Architecture:
- * - SceneApp manages overall plugin state and routing
- * - Landing page shows dataset catalog
- * - Visual Builder page with split layout (sidebar + canvas)
+ * Uses SceneApp for routing and SceneReactObject for React components.
  */
 
 import React from 'react';
@@ -17,14 +12,15 @@ import {
   EmbeddedScene,
   SceneFlexLayout,
   SceneFlexItem,
+  SceneReactObject,
 } from '@grafana/scenes';
 
-import { DatasetCatalogScene } from './DatasetCatalogScene';
-import { VisualBuilderScene } from './VisualBuilderScene';
+import { DatasetCatalogContent } from './DatasetCatalogScene';
+import { VisualBuilderContent } from './VisualBuilderScene';
 import { PLUGIN_BASE_URL } from '../constants';
 
 // ============================================================================
-// Embedded Scene Wrappers
+// Scene Creation Functions
 // ============================================================================
 
 function createCatalogScene(): EmbeddedScene {
@@ -33,7 +29,10 @@ function createCatalogScene(): EmbeddedScene {
       direction: 'column',
       children: [
         new SceneFlexItem({
-          body: new DatasetCatalogScene({}),
+          minHeight: '100%',
+          body: new SceneReactObject({
+            component: DatasetCatalogContent,
+          }),
         }),
       ],
     }),
@@ -46,7 +45,10 @@ function createBuilderScene(cubeUri: string): EmbeddedScene {
       direction: 'column',
       children: [
         new SceneFlexItem({
-          body: new VisualBuilderScene({ cubeUri }),
+          minHeight: '100%',
+          body: new SceneReactObject({
+            component: () => <VisualBuilderContent cubeUri={cubeUri} />,
+          }),
         }),
       ],
     }),
@@ -54,38 +56,28 @@ function createBuilderScene(cubeUri: string): EmbeddedScene {
 }
 
 // ============================================================================
-// Route Definitions
+// SceneApp Definition
 // ============================================================================
 
-function getCatalogPage(): SceneAppPage {
-  return new SceneAppPage({
-    title: 'Swiss Open Data',
-    subTitle: 'Browse and visualize datasets from LINDAS',
-    url: PLUGIN_BASE_URL,
-    getScene: () => createCatalogScene(),
-  });
-}
-
-// ============================================================================
-// Main App Scene
-// ============================================================================
-
-export function getVisualBuilderApp(): SceneApp {
+function getVisualBuilderApp(): SceneApp {
   return new SceneApp({
     pages: [
-      getCatalogPage(),
+      new SceneAppPage({
+        title: 'Swiss Open Data',
+        subTitle: 'Browse and visualize datasets from LINDAS',
+        url: PLUGIN_BASE_URL,
+        getScene: () => createCatalogScene(),
+      }),
       new SceneAppPage({
         title: 'Visual Builder',
         url: `${PLUGIN_BASE_URL}/builder/:cubeUri`,
         getScene: (routeMatch) => {
-          // Type assertion for route params
           const params = routeMatch.params as { cubeUri?: string };
           const cubeUri = params.cubeUri
             ? decodeURIComponent(params.cubeUri)
             : '';
           return createBuilderScene(cubeUri);
         },
-        getParentPage: () => getCatalogPage(),
       }),
     ],
   });
@@ -95,17 +87,9 @@ export function getVisualBuilderApp(): SceneApp {
 // App Root Component
 // ============================================================================
 
-let appInstance: SceneApp | null = null;
-
-function getApp(): SceneApp {
-  if (!appInstance) {
-    appInstance = getVisualBuilderApp();
-  }
-  return appInstance;
-}
-
 export const VisualBuilderAppRoot: React.FC = () => {
-  const app = getApp();
+  // Create new app instance on each render to avoid stale state
+  const app = React.useMemo(() => getVisualBuilderApp(), []);
 
   return <app.Component model={app} />;
 };

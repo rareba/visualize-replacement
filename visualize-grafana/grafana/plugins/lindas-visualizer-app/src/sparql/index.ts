@@ -83,10 +83,9 @@ export interface ChartConfig {
 // Constants
 // ============================================================================
 
-// Use Grafana's datasource proxy for SPARQL queries
-// The flandersmake-sparql-datasource has a route that proxies to the configured source
-// Datasource UID: lindas-sparql (configured in provisioning/datasources/lindas.yml)
-const DATASOURCE_PROXY_URL = '/api/datasources/proxy/uid/lindas-sparql/source';
+// Query LINDAS directly - it supports CORS for browser requests
+// This is simpler and more reliable than using Grafana's datasource proxy
+const LINDAS_SPARQL_URL = 'https://lindas.admin.ch/query';
 
 const PREFIXES = `
 PREFIX cube: <https://cube.link/>
@@ -139,12 +138,12 @@ const XSD_TO_FIELD_TYPE: Record<string, FieldType> = {
 // ============================================================================
 
 /**
- * Execute a SPARQL query against LINDAS through Grafana's datasource proxy.
- * Uses the flandersmake-sparql-datasource route for CORS-safe requests.
+ * Execute a SPARQL query against LINDAS.
+ * LINDAS supports CORS, so we can query directly from the browser.
  */
 export async function executeSparql(query: string): Promise<SparqlResult> {
   try {
-    const response = await fetch(DATASOURCE_PROXY_URL, {
+    const response = await fetch(LINDAS_SPARQL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -328,62 +327,37 @@ function buildLabelPattern(
 
 /**
  * Fetch list of available cubes (datasets)
+ * Simplified query for fast loading - only fetches label in selected language
  */
 export async function fetchDatasets(lang: Language, searchTerm?: string): Promise<Dataset[]> {
-  const langs = LANGUAGE_PRIORITY[lang];
+  // Build search filter if provided
+  const searchFilter = searchTerm
+    ? `FILTER(CONTAINS(LCASE(?label), LCASE("${searchTerm.replace(/"/g, '\\"')}")))`
+    : '';
 
   const query = `${PREFIXES}
-SELECT DISTINCT ?cube ?label ?description ?publisher WHERE {
+SELECT DISTINCT ?cube ?label WHERE {
   ?cube a cube:Cube .
-
-  # Only cubes marked for visualize application
   ?cube schema:workExample <https://ld.admin.ch/application/visualize> .
-
-  # Only published cubes
   ?cube schema:creativeWorkStatus <https://ld.admin.ch/vocabulary/CreativeWorkStatus/Published> .
-
-  # Must have observation constraint
-  ?cube cube:observationConstraint ?shape .
-
-  # Exclude expired
   FILTER NOT EXISTS { ?cube schema:expires ?expires }
 
-  # Label with language fallback
-  ${buildLabelPattern('?cube', 'schema:name', 'label', langs)}
+  # Get label - try selected language first, then any language
+  OPTIONAL { ?cube schema:name ?labelLang . FILTER(LANG(?labelLang) = "${lang}") }
+  OPTIONAL { ?cube schema:name ?labelAny }
+  BIND(COALESCE(?labelLang, ?labelAny, STR(?cube)) AS ?label)
 
-  # Description with language fallback
-  OPTIONAL {
-    ${buildLabelPattern('?cube', 'schema:description', 'description', langs, '""')}
-  }
-
-  # Publisher with language fallback
-  OPTIONAL {
-    ?cube dcterms:creator ?creatorIri .
-    ${buildLabelPattern('?creatorIri', 'schema:name', 'publisher', langs, '""')}
-  }
+  ${searchFilter}
 }
-ORDER BY ?label`;
+ORDER BY ?label
+LIMIT 100`;
 
   const result = await executeSparql(query);
 
-  let datasets = result.results.bindings.map(binding => ({
+  return result.results.bindings.map(binding => ({
     uri: binding.cube?.value || '',
     label: binding.label?.value || 'Unknown',
-    description: binding.description?.value || undefined,
-    publisher: binding.publisher?.value || undefined,
   }));
-
-  // Client-side filtering (SPARQL FILTER can be slow)
-  if (searchTerm) {
-    const term = searchTerm.toLowerCase();
-    datasets = datasets.filter(d =>
-      d.label.toLowerCase().includes(term) ||
-      d.description?.toLowerCase().includes(term) ||
-      d.publisher?.toLowerCase().includes(term)
-    );
-  }
-
-  return datasets;
 }
 
 /**

@@ -19,10 +19,8 @@ import {
   LinkButton,
   RadioButtonGroup,
 } from '@grafana/ui';
-import { locationService } from '@grafana/runtime';
-
 import { fetchDatasets, Dataset, Language } from '../sparql';
-import { PLUGIN_BASE_URL, LANGUAGES, LanguageValue } from '../constants';
+import { LANGUAGES, LanguageValue } from '../constants';
 
 // ============================================================================
 // Main Component
@@ -70,7 +68,7 @@ export const DatasetCatalogContent: React.FC = () => {
 
   const handleSelect = useCallback((dataset: Dataset) => {
     const encodedUri = encodeURIComponent(dataset.uri);
-    locationService.push(`${PLUGIN_BASE_URL}/builder/${encodedUri}`);
+    window.location.hash = `#/builder/${encodedUri}`;
   }, []);
 
   const languageOptions: Array<SelectableValue<LanguageValue>> = LANGUAGES.map(l => ({
@@ -153,20 +151,6 @@ export const DatasetCatalogContent: React.FC = () => {
                 onClick={() => handleSelect(dataset)}
               >
                 <Card.Heading>{dataset.label}</Card.Heading>
-                {dataset.publisher && (
-                  <Card.Meta>
-                    <span className={styles.publisher}>
-                      <Icon name="building" size="sm" /> {dataset.publisher}
-                    </span>
-                  </Card.Meta>
-                )}
-                {dataset.description && (
-                  <Card.Description className={styles.description}>
-                    {dataset.description.length > 150
-                      ? dataset.description.slice(0, 150) + '...'
-                      : dataset.description}
-                  </Card.Description>
-                )}
                 <Card.Actions>
                   <Button
                     size="sm"

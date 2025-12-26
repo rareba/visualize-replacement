@@ -1,66 +1,111 @@
-# ECharts Chart Builder Implementation
+# ECharts Chart Builder - Comprehensive Implementation
 
 ## Overview
 
-This document describes the implementation of the new ECharts-based chart builder that replaces the complex D3.js visualization system. The goal was to create a simpler, more maintainable charting solution with a professional user interface.
+This document describes the comprehensive ECharts-based chart builder that replaces the D3.js visualization system. The implementation follows Swiss Federal CI design guidelines and provides a professional, feature-rich data visualization platform.
 
 ## Architecture
 
-### Components Created
+### Core Components
 
-1. **SimpleEChartsChart** (`app/charts/simple-echarts/SimpleEChartsChart.tsx`)
+1. **Chart Builder Page** (`app/pages/chart-builder.tsx`)
+   - Main application entry point
+   - Swiss Federal CI styled header with Swiss cross logo
+   - Navigation sidebar with multiple views
+   - Multiple chart support with vertical stacking
+   - Zen mode for distraction-free viewing
+
+2. **SimpleEChartsChart** (`app/charts/simple-echarts/SimpleEChartsChart.tsx`)
    - Core chart rendering component using ECharts
    - Supports 6 chart types: column, bar, line, area, pie, scatter
-   - Implements smart sorting for chronological date/year ordering
-   - Includes label formatting to extract readable text from LINDAS URIs
+   - Smart sorting for chronological date/year ordering
+   - Label formatting to extract readable text from LINDAS URIs
 
-2. **EChartsVisualization** (`app/charts/simple-echarts/EChartsVisualization.tsx`)
-   - Integration layer that works with the existing ChartDataWrapper
-   - Maps chart configuration types to SimpleEChartsChart types
-   - Handles data fetching via GraphQL
+## Features
 
-3. **SimpleChartPreview** (`app/charts/simple-echarts/SimpleChartPreview.tsx`)
-   - Simplified preview component for the configurator
-   - Uses data from the configurator state
+### Multi-View Interface
 
-4. **Chart Builder Page** (`app/pages/chart-builder.tsx`)
-   - Professional standalone chart creation interface
-   - Direct SPARQL queries to LINDAS endpoint
-   - Features comprehensive configuration options
+The application provides 5 distinct views accessible from the sidebar:
 
-## Chart Builder Features
+1. **Visualization** - Main chart view with configuration controls
+2. **Data Table** - Tabular view of all data with all dimensions and measures
+3. **Filters** - Interactive filtering with checkbox selection per dimension
+4. **Settings** - Global configuration options
+5. **API / Code** - SPARQL queries, JSON export, and embed code
 
-### Data Configuration
-- **X-Axis Selection**: Choose dimension for categories (auto-detects time fields)
-- **Y-Axis Selection**: Choose measure for values (shows units when available)
-- **Group By**: Optional segmentation by another dimension
+### Multiple Charts Dashboard
 
-### Appearance Options
-- **Color Palettes**: Swiss (federal), Blue, Earth, Rainbow
-- **Show Legend**: Toggle for grouped charts
-- **Show Tooltip**: Toggle for interactive tooltips
-- **Chart Height**: Adjustable from 300px to 800px
+- Add multiple charts that stack vertically
+- Each chart has independent configuration:
+  - Chart type
+  - X/Y axis selection
+  - Group by dimension
+  - Color palette
+  - Legend and tooltip toggles
+- Click on a chart to select it for editing
+- Tab navigation when multiple charts exist
+- Remove individual charts (minimum 1 required)
 
-### Views
-- **Chart View**: Interactive ECharts visualization
-- **Data Table View**: Tabular data display with formatting
+### Interactive Filters
 
-### Export
-- **PNG Export**: High-quality image download
-- **CSV Export**: Spreadsheet-compatible data download
+- Filter data across all charts simultaneously
+- Per-dimension filter controls with:
+  - Select All / Clear buttons
+  - Checkbox list for each unique value
+  - Count of selected values shown as chip
+- Clear All Filters button when filters are active
 
-### Data Summary
-- Displays Min, Max, Average, and Count statistics
+### Zen Mode
+
+- Full-screen distraction-free viewing
+- Hides header, sidebar, and all controls
+- Charts expand to fill the viewport
+- Exit button in top-right corner
+
+### Export Options
+
+- **CSV Export** - Data in spreadsheet format
+- **JSON Export** - Full configuration including:
+  - All chart configurations
+  - Global filters
+  - Settings
+
+### Settings Panel
+
+- Default color palette selection
+- Animation duration slider (0-2000ms)
+- Show data labels toggle
+- Compact mode toggle
+- Export quality selection (low/medium/high)
+- Data source information display
+
+### Color Palettes
+
+Six professional color palettes:
+- **Swiss** - Official Swiss federal colors (red, blue, green, yellow)
+- **Federal** - Alternative federal palette
+- **Blue** - Blue gradient scale
+- **Warm** - Warm colors (red to green)
+- **Cool** - Cool colors (blue to pink)
+- **Monochrome** - Grayscale
+
+### API / Code View
+
+- SPARQL query with copy functionality
+- Configuration JSON preview
+- Embed iframe code generation
 
 ## SPARQL Integration
 
 The chart builder queries LINDAS directly using two SPARQL queries:
 
 ### Metadata Query
-Fetches cube title, dimensions, and measures from the SHACL shape.
+Fetches cube title, dimensions, and measures from the SHACL shape with support for English language labels.
 
 ### Observations Query
 ```sparql
+PREFIX cube: <https://cube.link/>
+
 SELECT ?obs ?p ?o WHERE {
   <cubeIri> cube:observationSet ?obsSet .
   ?obsSet cube:observation ?obs .
@@ -68,29 +113,38 @@ SELECT ?obs ?p ?o WHERE {
 } LIMIT 10000
 ```
 
-Note: Uses `cube:observationSet` pattern which is the correct structure for LINDAS cubes (not `cube:observedBy`).
+Note: Uses `cube:observationSet` pattern which is the correct structure for LINDAS cubes.
 
-## Smart Sorting
+## Smart Data Handling
 
-The `smartSort` function handles various date/time formats:
+### Sorting
+The `sortObservations` function handles various date/time formats:
 - Extracts years from URIs like `https://ld.admin.ch/time/year/2020`
 - Handles "Year 2020" format strings
 - Falls back to numeric then alphabetical sorting
 
-## Label Formatting
-
+### Label Formatting
 The `formatLabel` function extracts readable labels from:
-- URIs: Extracts last path segment
+- URIs: Extracts last path segment and decodes
 - "Year 2020" format: Extracts just the year
 - Other values: Returns as-is
 
-## Integration Points
+### Statistics
+Real-time calculation of:
+- Minimum value
+- Maximum value
+- Average
+- Sum
+- Count
 
-### Configurator Integration
-Added `PanelBodyWrapper type="M"` with `ChartPreview` component to the `ConfigureChartStep` in `configurator.tsx`.
+## Swiss Federal CI Design
 
-### Chart Filters Integration
-Updated `chart-with-filters.tsx` to route supported chart types to `EChartsVisualization`.
+The interface follows Swiss Federal CI guidelines:
+- Swiss cross logo in header
+- Official color scheme (#DC0018 for red accent)
+- Dark header with red bottom border
+- Clean typography with proper hierarchy
+- Consistent spacing and padding
 
 ## Usage
 
@@ -104,19 +158,26 @@ Example:
 /chart-builder?cube=https://agriculture.ld.admin.ch/foag/cube/MilkDairyProducts/Production_Index_Year
 ```
 
-## Design Decisions
+## Responsive Design
 
-1. **Direct SPARQL**: Bypasses complex GraphQL infrastructure for simpler data flow
-2. **ECharts over D3**: More maintainable, better React integration, rich features out-of-box
-3. **Swiss Federal Design**: Uses official color palette and styling guidelines
-4. **Collapsible Settings**: Maximizes chart space while keeping options accessible
-5. **Progressive Disclosure**: Basic options visible, advanced options available when needed
+- Sidebar collapses to temporary drawer on mobile
+- Controls wrap on smaller screens
+- Charts resize appropriately
+
+## State Management
+
+- React hooks for local state
+- useMemo for computed values
+- useCallback for event handlers
+- Efficient filtering with Set operations
 
 ## Future Improvements
 
-- Additional chart types (combo charts, maps)
-- Interactive filtering on dimensions
-- Save/share chart configurations
-- Embedding support
-- More color palette options
+- Annotations support (data structure in place)
+- PNG export (canvas capture)
+- Save/load configurations
+- Multi-language support
+- Additional chart types (combo, map)
+- Stacked bar/area modes
 - Custom color picker
+- Chart title editing

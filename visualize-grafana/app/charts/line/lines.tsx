@@ -1,6 +1,7 @@
 import { line } from "d3-shape";
 import { Fragment, memo, useEffect, useMemo, useRef } from "react";
 
+import { EChartsLines as EChartsLinesComponent, useRenderEngine } from "@/charts/adapters";
 import { LinesState } from "@/charts/line/lines-state";
 import { useChartState } from "@/charts/shared/chart-state";
 import { renderTotalValueLabels } from "@/charts/shared/render-value-labels";
@@ -90,7 +91,8 @@ export const ErrorWhiskers = () => {
   return <g ref={ref} />;
 };
 
-export const Lines = ({ dotSize }: { dotSize?: ShowDotsSize }) => {
+// D3-based Lines implementation
+const D3Lines = ({ dotSize }: { dotSize?: ShowDotsSize }) => {
   const { getX, xScale, getY, yScale, grouped, colors, bounds } =
     useChartState() as LinesState;
   const { margins } = bounds;
@@ -144,6 +146,17 @@ export const Lines = ({ dotSize }: { dotSize?: ShowDotsSize }) => {
       <g ref={valueLabelsContainerRef} />
     </g>
   );
+};
+
+// Render engine aware Lines - switches between D3 and ECharts
+export const Lines = ({ dotSize }: { dotSize?: ShowDotsSize }) => {
+  const { isECharts } = useRenderEngine();
+
+  if (isECharts) {
+    return <EChartsLinesComponent dotSize={dotSize} />;
+  }
+
+  return <D3Lines dotSize={dotSize} />;
 };
 
 const Line = memo(function Line({

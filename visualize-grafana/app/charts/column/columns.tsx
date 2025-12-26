@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef } from "react";
 
+import {
+  EChartsColumns as EChartsColumnsComponent,
+  EChartsErrorWhiskers as EChartsErrorWhiskersComponent,
+  useRenderEngine,
+} from "@/charts/adapters";
 import { ColumnsState } from "@/charts/column/columns-state";
 import {
   RenderColumnDatum,
@@ -18,7 +23,8 @@ import {
 import { useChartTheme } from "@/charts/shared/use-chart-theme";
 import { useTransitionStore } from "@/stores/transition";
 
-export const ErrorWhiskers = () => {
+// D3-based Error Whiskers implementation
+const D3ErrorWhiskers = () => {
   const {
     getX,
     getY,
@@ -89,7 +95,19 @@ export const ErrorWhiskers = () => {
   return <g ref={ref} />;
 };
 
-export const Columns = () => {
+// Render engine aware ErrorWhiskers - switches between D3 and ECharts
+export const ErrorWhiskers = () => {
+  const { isECharts } = useRenderEngine();
+
+  if (isECharts) {
+    return <EChartsErrorWhiskersComponent />;
+  }
+
+  return <D3ErrorWhiskers />;
+};
+
+// D3-based Columns implementation
+const D3Columns = () => {
   const {
     chartData,
     bounds: { margins },
@@ -197,4 +215,15 @@ export const Columns = () => {
   ]);
 
   return <g ref={ref} />;
+};
+
+// Render engine aware Columns - switches between D3 and ECharts
+export const Columns = () => {
+  const { isECharts } = useRenderEngine();
+
+  if (isECharts) {
+    return <EChartsColumnsComponent />;
+  }
+
+  return <D3Columns />;
 };

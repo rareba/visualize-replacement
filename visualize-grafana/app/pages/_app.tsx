@@ -10,6 +10,7 @@ import { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { useEffect } from "react";
 
+import { RenderEngineProvider } from "@/charts/adapters";
 import { SnackbarProvider } from "@/components/snackbar";
 import { PUBLIC_URL } from "@/domain/env";
 import { flag } from "@/flags/flag";
@@ -94,16 +95,18 @@ export default function App({
           <I18nProvider i18n={i18n}>
             <GraphqlProvider>
               <ThemeProvider theme={federalTheme.theme}>
-                <EventEmitterProvider>
-                  <SnackbarProvider>
-                    <CssBaseline />
-                    <Flashes />
-                    {shouldShowGQLDebug ? <GQLDebugPanel /> : null}
-                    <AsyncLocalizationProvider locale={locale}>
-                      <Component {...pageProps} />
-                    </AsyncLocalizationProvider>
-                  </SnackbarProvider>
-                </EventEmitterProvider>
+                <RenderEngineProvider>
+                  <EventEmitterProvider>
+                    <SnackbarProvider>
+                      <CssBaseline />
+                      <Flashes />
+                      {shouldShowGQLDebug ? <GQLDebugPanel /> : null}
+                      <AsyncLocalizationProvider locale={locale}>
+                        <Component {...pageProps} />
+                      </AsyncLocalizationProvider>
+                    </SnackbarProvider>
+                  </EventEmitterProvider>
+                </RenderEngineProvider>
               </ThemeProvider>
             </GraphqlProvider>
           </I18nProvider>

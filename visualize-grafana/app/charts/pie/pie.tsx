@@ -1,6 +1,7 @@
 import { select } from "d3-selection";
 import { useEffect, useMemo, useRef } from "react";
 
+import { EChartsPie as EChartsPieComponent, useRenderEngine } from "@/charts/adapters";
 import { PieState } from "@/charts/pie/pie-state";
 import { RenderDatum, renderPies } from "@/charts/pie/rendering-utils";
 import {
@@ -20,7 +21,8 @@ import { Observation } from "@/domain/data";
 import { useTransitionStore } from "@/stores/transition";
 import { useEvent } from "@/utils/use-event";
 
-export const Pie = () => {
+// D3-based Pie implementation
+const D3Pie = () => {
   const {
     bounds: { width, height },
     arcs,
@@ -155,4 +157,15 @@ export const Pie = () => {
       <g ref={labelsRef} />
     </>
   );
+};
+
+// Render engine aware Pie - switches between D3 and ECharts
+export const Pie = () => {
+  const { isECharts } = useRenderEngine();
+
+  if (isECharts) {
+    return <EChartsPieComponent />;
+  }
+
+  return <D3Pie />;
 };

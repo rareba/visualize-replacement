@@ -1,45 +1,23 @@
-import { GetServerSideProps, NextPage } from "next";
-import Head from "next/head";
+import { GetServerSideProps } from "next";
 
-import { AppLayout } from "@/components/layout";
-import { Configurator, ConfiguratorStateProvider } from "@/configurator";
-import { AddNewDatasetPanel } from "@/configurator/components/add-new-dataset-panel";
-
-type PageProps = {
-  locale: string;
-  chartId: string;
-};
-
-export const getServerSideProps: GetServerSideProps<PageProps> = async ({
-  params,
-  locale,
-}) => {
-  const chartId = params!.chartId as string;
-
-  // Show the ECharts-powered configurator for all charts (new and existing)
+/**
+ * Redirect old create pages to the new chart builder
+ *
+ * The old D3-based configurator has been replaced with the ECharts chart builder.
+ * All create routes now redirect to /chart-builder which provides:
+ * - Dataset browser to search and add LINDAS cubes
+ * - Multiple dataset support
+ * - ECharts-based visualization
+ */
+export const getServerSideProps: GetServerSideProps = async () => {
   return {
-    props: {
-      locale: locale!,
-      chartId,
+    redirect: {
+      destination: "/chart-builder",
+      permanent: false,
     },
   };
 };
 
-const ChartConfiguratorPage: NextPage<PageProps> = ({ chartId }) => {
-  return (
-    <>
-      <Head>
-        {/* Disables responsive scaling for this page (other pages still work) */}
-        <meta name="viewport" content="width=1280"></meta>
-      </Head>
-      <AppLayout editing>
-        <ConfiguratorStateProvider chartId={chartId}>
-          <Configurator />
-          <AddNewDatasetPanel />
-        </ConfiguratorStateProvider>
-      </AppLayout>
-    </>
-  );
-};
-
-export default ChartConfiguratorPage;
+export default function CreateRedirect() {
+  return null;
+}

@@ -1,25 +1,20 @@
 import { GetServerSideProps } from "next";
 
-import { SelectDatasetStep } from "@/browse/ui/select-dataset-step";
-import { AppLayout } from "@/components/layout";
-import { ConfiguratorStateProvider } from "@/configurator/configurator-state";
-
-export const getServerSideProps: GetServerSideProps = async ({ query }) => {
+/**
+ * Redirect browse page to the new chart builder
+ *
+ * The old dataset browser has been replaced with the integrated
+ * dataset browser in the ECharts chart builder.
+ */
+export const getServerSideProps: GetServerSideProps = async () => {
   return {
-    props: {
-      hideHeader: query.odsiframe === "true",
+    redirect: {
+      destination: "/chart-builder",
+      permanent: false,
     },
   };
 };
 
-export function DatasetBrowser({ hideHeader }: { hideHeader: boolean }) {
-  return (
-    <AppLayout hideHeader={hideHeader}>
-      <ConfiguratorStateProvider chartId="new" allowDefaultRedirect={false}>
-        <SelectDatasetStep variant="page" />
-      </ConfiguratorStateProvider>
-    </AppLayout>
-  );
+export default function BrowseRedirect() {
+  return null;
 }
-
-export default DatasetBrowser;

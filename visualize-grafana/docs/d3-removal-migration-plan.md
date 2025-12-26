@@ -376,17 +376,23 @@ After migration, visualize-tool will have:
 - [x] Line chart bridge (echarts-line-bridge.tsx)
 - [x] Pie chart bridge (echarts-pie-bridge.tsx)
 - [x] Added echarts dependencies to package.json
+- [x] Integrated RenderEngineProvider into app (_app.tsx)
+- [x] Modified Column chart to use ECharts bridge
+- [x] Modified Line chart to use ECharts bridge
+- [x] Modified Pie chart to use ECharts bridge
 
 ### In Progress
 
-- [ ] Integrate bridges into actual chart components
-- [ ] Test with feature flag
+- [ ] Test with feature flag (?renderEngine=echarts)
+- [ ] Area chart bridge and integration
+- [ ] Scatterplot bridge and integration
 
 ### Pending
 
-- [ ] Area chart bridge
-- [ ] Scatterplot bridge
+- [ ] Bar (horizontal) chart bridge
+- [ ] Combo chart bridges
 - [ ] Update Swiss Federal theming
+- [ ] Performance benchmarking
 - [ ] Remove D3 dependencies after full migration
 
 ---

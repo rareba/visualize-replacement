@@ -12,15 +12,12 @@ import {
   type DataSource,
 } from "@/config-types";
 
-const ChartAreasVisualization = dynamic(
-  () => import("@/charts/area/chart-area").then((mod) => ({ default: mod.ChartAreasVisualization }))
+// Use ECharts visualizations for supported chart types
+const EChartsVisualization = dynamic(
+  () => import("@/charts/simple-echarts").then((mod) => ({ default: mod.EChartsVisualization }))
 );
-const ChartColumnsVisualization = dynamic(
-  () => import("@/charts/column/chart-column").then((mod) => ({ default: mod.ChartColumnsVisualization }))
-);
-const ChartBarsVisualization = dynamic(
-  () => import("@/charts/bar/chart-bar").then((mod) => ({ default: mod.ChartBarsVisualization }))
-);
+
+// Keep D3-based visualizations for complex chart types not yet migrated
 const ChartComboLineSingleVisualization = dynamic(
   () => import("@/charts/combo/chart-combo-line-single").then((mod) => ({ default: mod.ChartComboLineSingleVisualization }))
 );
@@ -30,17 +27,8 @@ const ChartComboLineDualVisualization = dynamic(
 const ChartComboLineColumnVisualization = dynamic(
   () => import("@/charts/combo/chart-combo-line-column").then((mod) => ({ default: mod.ChartComboLineColumnVisualization }))
 );
-const ChartLinesVisualization = dynamic(
-  () => import("@/charts/line/chart-lines").then((mod) => ({ default: mod.ChartLinesVisualization }))
-);
 const ChartMapVisualization = dynamic(
   () => import("@/charts/map/chart-map").then((mod) => ({ default: mod.ChartMapVisualization }))
-);
-const ChartPieVisualization = dynamic(
-  () => import("@/charts/pie/chart-pie").then((mod) => ({ default: mod.ChartPieVisualization }))
-);
-const ChartScatterplotVisualization = dynamic(
-  () => import("@/charts/scatterplot/chart-scatterplot").then((mod) => ({ default: mod.ChartScatterplotVisualization }))
 );
 const ChartTableVisualization = dynamic(
   () => import("@/charts/table/chart-table").then((mod) => ({ default: mod.ChartTableVisualization }))
@@ -75,33 +63,18 @@ const GenericChart = ({
   };
 
   switch (chartConfig.chartType) {
+    // ECharts-based visualizations (new, simplified)
     case "column":
-      return (
-        <ChartColumnsVisualization {...commonProps} chartConfig={chartConfig} />
-      );
     case "bar":
-      return (
-        <ChartBarsVisualization {...commonProps} chartConfig={chartConfig} />
-      );
     case "line":
-      return (
-        <ChartLinesVisualization {...commonProps} chartConfig={chartConfig} />
-      );
     case "area":
-      return (
-        <ChartAreasVisualization {...commonProps} chartConfig={chartConfig} />
-      );
     case "scatterplot":
-      return (
-        <ChartScatterplotVisualization
-          {...commonProps}
-          chartConfig={chartConfig}
-        />
-      );
     case "pie":
       return (
-        <ChartPieVisualization {...commonProps} chartConfig={chartConfig} />
+        <EChartsVisualization {...commonProps} chartConfig={chartConfig} />
       );
+
+    // D3-based visualizations (keep for complex/specialized charts)
     case "table":
       return (
         <ChartTableVisualization {...commonProps} chartConfig={chartConfig} />

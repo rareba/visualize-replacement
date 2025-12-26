@@ -478,6 +478,9 @@ const ConfigureChartStep = () => {
             />
           )}
         </PanelBodyWrapper>
+        <PanelBodyWrapper type="M" sx={{ p: 4, overflow: "auto" }}>
+          <ChartPreview dataSource={state.dataSource} />
+        </PanelBodyWrapper>
         <ConfiguratorDrawer
           anchor="left"
           open={!!chartConfig.activeField}

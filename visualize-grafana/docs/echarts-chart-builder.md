@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the comprehensive ECharts-based chart builder that replaces the D3.js visualization system. The implementation follows Swiss Federal CI design guidelines and provides a professional, feature-rich data visualization platform.
+This document describes the comprehensive ECharts-based chart builder that replaces the D3.js visualization system. The implementation follows Swiss Federal CI design guidelines and provides a professional, feature-rich data visualization platform with support for multiple datasets.
 
 ## Architecture
 
@@ -12,6 +12,7 @@ This document describes the comprehensive ECharts-based chart builder that repla
    - Main application entry point
    - Swiss Federal CI styled header with Swiss cross logo
    - Navigation sidebar with multiple views
+   - Multiple datasets support with dataset browser
    - Multiple chart support with vertical stacking
    - Zen mode for distraction-free viewing
 
@@ -23,15 +24,26 @@ This document describes the comprehensive ECharts-based chart builder that repla
 
 ## Features
 
+### Multi-Dataset Support
+
+The chart builder now supports multiple datasets in a single dashboard:
+
+- **Dataset Browser**: Search and browse LINDAS datasets by keyword
+- **Add Multiple Datasets**: Load multiple cubes into the same dashboard
+- **Charts Per Dataset**: Each chart can use data from any loaded dataset
+- **Dataset Switching**: Change which dataset a chart uses on-the-fly
+- **Add by IRI**: Directly add datasets using their cube IRI
+
 ### Multi-View Interface
 
-The application provides 5 distinct views accessible from the sidebar:
+The application provides 6 distinct views accessible from the sidebar:
 
-1. **Visualization** - Main chart view with configuration controls
-2. **Data Table** - Tabular view of all data with all dimensions and measures
-3. **Filters** - Interactive filtering with checkbox selection per dimension
-4. **Settings** - Global configuration options
-5. **API / Code** - SPARQL queries, JSON export, and embed code
+1. **Datasets** - Browse and add LINDAS datasets
+2. **Visualization** - Main chart view with configuration controls
+3. **Data Table** - Tabular view of all data with all dimensions and measures
+4. **Filters** - Interactive filtering with checkbox selection per dimension
+5. **Settings** - Global configuration options
+6. **API / Code** - SPARQL queries, JSON export, and embed code
 
 ### Multiple Charts Dashboard
 
@@ -97,7 +109,29 @@ Six professional color palettes:
 
 ## SPARQL Integration
 
-The chart builder queries LINDAS directly using two SPARQL queries:
+The chart builder queries LINDAS directly using multiple SPARQL queries:
+
+### Dataset Search Query
+Searches for available cubes in LINDAS:
+```sparql
+PREFIX cube: <https://cube.link/>
+PREFIX schema: <http://schema.org/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT DISTINCT ?cube ?title ?description ?creator ?datePublished ?theme WHERE {
+  ?cube a cube:Cube .
+  ?cube schema:name ?title .
+  FILTER(LANG(?title) = "en" || LANG(?title) = "")
+  FILTER(CONTAINS(LCASE(STR(?title)), LCASE("search term")))
+  OPTIONAL { ?cube schema:description ?description }
+  OPTIONAL { ?cube dcterms:creator/schema:name ?creator }
+  OPTIONAL { ?cube schema:datePublished ?datePublished }
+  OPTIONAL { ?cube dcat:theme/schema:name ?theme }
+}
+ORDER BY DESC(?datePublished)
+LIMIT 50
+```
 
 ### Metadata Query
 Fetches cube title, dimensions, and measures from the SHACL shape with support for English language labels.
@@ -148,7 +182,8 @@ The interface follows Swiss Federal CI guidelines:
 
 ## Usage
 
-Access the chart builder at:
+### With URL Parameter
+Access the chart builder with a pre-loaded dataset:
 ```
 /chart-builder?cube=<cube-iri>
 ```
@@ -157,6 +192,18 @@ Example:
 ```
 /chart-builder?cube=https://agriculture.ld.admin.ch/foag/cube/MilkDairyProducts/Production_Index_Year
 ```
+
+### Without URL Parameter
+Access the chart builder to browse datasets:
+```
+/chart-builder
+```
+
+This opens the Datasets view where you can:
+1. Search for datasets by keyword
+2. Browse available LINDAS cubes
+3. Add multiple datasets to your dashboard
+4. Add datasets by IRI directly
 
 ## Responsive Design
 

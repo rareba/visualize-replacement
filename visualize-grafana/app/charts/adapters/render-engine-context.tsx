@@ -52,9 +52,8 @@ function getDefaultEngine(): RenderEngine {
     return envEngine;
   }
 
-  // Default to d3 for backwards compatibility
-  // Change to "echarts" after migration is complete
-  return "d3";
+  // Default to echarts - D3 has been replaced
+  return "echarts";
 }
 
 interface RenderEngineProviderProps {

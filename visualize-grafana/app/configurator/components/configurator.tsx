@@ -51,7 +51,6 @@ import { LayoutBlocksSelector } from "@/configurator/components/block-options-se
 import { ChartAnnotationsSelector } from "@/configurator/components/chart-annotations/chart-annotations-selector";
 import { isAnnotationField } from "@/configurator/components/chart-annotations/utils";
 import { ChartConfigurator } from "@/configurator/components/chart-configurator";
-import { EmbeddedGrafanaDashboard } from "@/configurator/components/grafana-export";
 import { ChartOptionsSelector } from "@/configurator/components/chart-options-selector";
 import {
   ConfiguratorDrawer,
@@ -478,12 +477,6 @@ const ConfigureChartStep = () => {
               state={state}
             />
           )}
-        </PanelBodyWrapper>
-        <PanelBodyWrapper
-          type="M"
-          sx={{ overflowX: "hidden", overflowY: "auto", p: 0 }}
-        >
-          <EmbeddedGrafanaDashboard />
         </PanelBodyWrapper>
         <ConfiguratorDrawer
           anchor="left"

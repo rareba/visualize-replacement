@@ -1,0 +1,189 @@
+{
+  "uid": "lindas-browser",
+  "title": "LINDAS Cube Browser",
+  "description": "Browse and discover LINDAS datasets. Search, filter, and select a cube to visualize.",
+  "tags": ["lindas", "sparql", "browser"],
+  "editable": true,
+  "schemaVersion": 39,
+  "style": "light",
+  "timezone": "browser",
+  "templating": {
+    "list": [
+      {
+        "name": "search",
+        "type": "textbox",
+        "label": "Search",
+        "description": "Search cubes by name (leave empty for all)",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "hide": 0,
+        "skipUrlSync": false
+      },
+      {
+        "name": "language",
+        "type": "custom",
+        "label": "Language",
+        "description": "Display language for cube names",
+        "current": {
+          "selected": true,
+          "text": "English",
+          "value": "en"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [
+          { "selected": true, "text": "English", "value": "en" },
+          { "selected": false, "text": "Deutsch", "value": "de" },
+          { "selected": false, "text": "Francais", "value": "fr" },
+          { "selected": false, "text": "Italiano", "value": "it" }
+        ],
+        "query": "en,de,fr,it",
+        "skipUrlSync": false
+      },
+      {
+        "name": "limit",
+        "type": "custom",
+        "label": "Results",
+        "description": "Number of cubes to show",
+        "current": {
+          "selected": true,
+          "text": "50",
+          "value": "50"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [
+          { "selected": false, "text": "20", "value": "20" },
+          { "selected": true, "text": "50", "value": "50" },
+          { "selected": false, "text": "100", "value": "100" },
+          { "selected": false, "text": "200", "value": "200" }
+        ],
+        "query": "20,50,100,200",
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "LINDAS Dataset Browser",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "mode": "markdown",
+        "content": "## Browse Swiss Linked Data Cubes\n\nSearch for datasets in the LINDAS knowledge graph. Click on a cube name to view details and create visualizations.\n\n**How to use:**\n1. Type a search term (optional) and press Enter\n2. Browse the results table below\n3. Click on a cube name to open its description\n4. From the description page, click \"Create Visualization\" to build charts",
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Available Cubes",
+      "description": "Click on a cube name to view details",
+      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 4 },
+      "id": 2,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\nSELECT DISTINCT ?cube ?name ?description ?creator ?modified\nWHERE {\n  ?cube a cube:Cube .\n  \n  # Get name in selected language, fallback to any\n  OPTIONAL {\n    ?cube schema:name ?name_lang .\n    FILTER(LANG(?name_lang) = \"${language}\")\n  }\n  OPTIONAL {\n    ?cube schema:name ?name_any .\n  }\n  BIND(COALESCE(?name_lang, ?name_any, STR(?cube)) AS ?name)\n  \n  # Get description\n  OPTIONAL {\n    ?cube schema:description ?desc_lang .\n    FILTER(LANG(?desc_lang) = \"${language}\")\n  }\n  OPTIONAL {\n    ?cube schema:description ?desc_any .\n  }\n  BIND(COALESCE(?desc_lang, ?desc_any, \"\") AS ?description)\n  \n  # Get creator\n  OPTIONAL {\n    ?cube dcterms:creator/schema:name ?creator .\n  }\n  \n  # Get modification date\n  OPTIONAL {\n    ?cube schema:dateModified ?modified .\n  }\n  \n  # Search filter (if search term provided)\n  FILTER(\n    \"${search}\" = \"\" ||\n    CONTAINS(LCASE(STR(?name)), LCASE(\"${search}\")) ||\n    CONTAINS(LCASE(STR(?description)), LCASE(\"${search}\"))\n  )\n}\nORDER BY DESC(?modified)\nLIMIT ${limit}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": true,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "links": []
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "cube" },
+            "properties": [
+              { "id": "displayName", "value": "Cube IRI" },
+              { "id": "custom.width", "value": 400 },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "View cube details",
+                    "url": "/d/lindas-description?var-cube=${__value.raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "name" },
+            "properties": [
+              { "id": "displayName", "value": "Name" },
+              { "id": "custom.width", "value": 300 },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "View cube details",
+                    "url": "/d/lindas-description?var-cube=${__data.fields.cube}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "description" },
+            "properties": [
+              { "id": "displayName", "value": "Description" },
+              { "id": "custom.width", "value": 500 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "creator" },
+            "properties": [
+              { "id": "displayName", "value": "Creator" },
+              { "id": "custom.width", "value": 200 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "modified" },
+            "properties": [
+              { "id": "displayName", "value": "Last Modified" },
+              { "id": "custom.width", "value": 150 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": true,
+          "reducer": ["count"],
+          "countRows": true,
+          "fields": ""
+        }
+      }
+    }
+  ],
+  "time": { "from": "now-1y", "to": "now" },
+  "timepicker": { "hidden": true },
+  "version": 1
+}

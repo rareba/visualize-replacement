@@ -1,0 +1,177 @@
+{
+  "uid": "lindas-description",
+  "title": "Dataset Details",
+  "description": "View cube metadata and data preview",
+  "tags": ["lindas", "sparql", "description"],
+  "editable": true,
+  "schemaVersion": 39,
+  "style": "light",
+  "timezone": "browser",
+  "templating": {
+    "list": [
+      {
+        "name": "cube",
+        "type": "textbox",
+        "label": "Cube IRI",
+        "current": { "text": "", "value": "" },
+        "hide": 2,
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "transparent": true,
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: white; border-bottom: 1px solid #d5d5d5; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <div style=\"display: flex; align-items: center; gap: 16px;\">\n    <div style=\"width: 32px; height: 24px; background: #ff0000; position: relative;\"><div style=\"position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16px; height: 5px; background: white;\"></div><div style=\"position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 5px; height: 16px; background: white;\"></div></div>\n    <div style=\"font-size: 9px; line-height: 1.4; color: #333;\">\n      <div>Schweizerische Eidgenossenschaft</div>\n      <div>Confederation suisse</div>\n      <div>Confederazione Svizzera</div>\n      <div>Confederaziun svizra</div>\n    </div>\n    <div style=\"margin-left: 16px; padding-left: 16px; border-left: 1px solid #ccc; font-weight: 600; font-size: 16px; color: #333;\">visualize.admin.ch</div>\n  </div>\n</div>"
+      }
+    },
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 3 },
+      "id": 2,
+      "transparent": true,
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;\">\n  <a href=\"/d/lindas-catalog\" style=\"display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; color: #333; text-decoration: none; font-size: 14px; background: white;\">&#8592; Back to the datasets</a>\n  <a href=\"/d/lindas-template?var-cube=${cube:raw}\" style=\"display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #333; color: white; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 500;\">Start a visualization &#8594;</a>\n</div>"
+      }
+    },
+    {
+      "type": "marcusolsson-dynamictext-panel",
+      "title": "",
+      "gridPos": { "h": 17, "w": 5, "x": 0, "y": 5 },
+      "id": 10,
+      "transparent": true,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\nPREFIX dcterms: <http://purl.org/dc/terms/>\nPREFIX dcat: <http://www.w3.org/ns/dcat#>\nPREFIX vcard: <http://www.w3.org/2006/vcard/ns#>\n\nSELECT \n  (COALESCE(?creatorName, \"Unknown\") AS ?source)\n  (COALESCE(SUBSTR(STR(?created), 1, 10), SUBSTR(STR(?modified), 1, 10), \"N/A\") AS ?dateCreated)\n  (COALESCE(?versionVal, \"1\") AS ?version)\n  (COALESCE(?contactName, \"\") AS ?contact)\nWHERE {\n  <${cube}> a cube:Cube .\n  OPTIONAL { <${cube}> dcterms:creator/schema:name ?creatorName . }\n  OPTIONAL { <${cube}> schema:dateCreated ?created . }\n  OPTIONAL { <${cube}> schema:dateModified ?modified . }\n  OPTIONAL { <${cube}> schema:version ?versionVal . }\n  OPTIONAL { <${cube}> dcat:contactPoint/vcard:fn ?contactName . }\n}\nLIMIT 1"
+        }
+      ],
+      "options": {
+        "afterRender": "",
+        "content": "{{#each data}}\n<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 0 12px;\">\n  <div style=\"margin-bottom: 20px;\">\n    <div style=\"font-size: 12px; font-weight: 700; color: #333; margin-bottom: 4px;\">Source</div>\n    <div style=\"font-size: 13px; color: #555;\">{{source}}</div>\n  </div>\n  <div style=\"margin-bottom: 20px;\">\n    <div style=\"font-size: 12px; font-weight: 700; color: #333; margin-bottom: 4px;\">Date created</div>\n    <div style=\"font-size: 13px; color: #555;\">{{dateCreated}}</div>\n  </div>\n  <div style=\"margin-bottom: 20px;\">\n    <div style=\"font-size: 12px; font-weight: 700; color: #333; margin-bottom: 4px;\">Version</div>\n    <div style=\"font-size: 13px; color: #555;\">{{version}}</div>\n  </div>\n  {{#if contact}}\n  <div style=\"margin-bottom: 20px;\">\n    <div style=\"font-size: 12px; font-weight: 700; color: #333; margin-bottom: 4px;\">Contact</div>\n    <div style=\"font-size: 13px; color: #555;\">{{contact}}</div>\n  </div>\n  {{/if}}\n  <div style=\"margin-bottom: 20px;\">\n    <div style=\"font-size: 12px; font-weight: 700; color: #333; margin-bottom: 8px;\">Further information</div>\n    <div style=\"font-size: 13px;\"><a href=\"https://lindas.admin.ch\" style=\"color: #1565c0; text-decoration: none;\">&#8599; LINDAS portal</a></div>\n    <div style=\"font-size: 13px; margin-top: 4px;\"><a href=\"https://opendata.swiss\" style=\"color: #1565c0; text-decoration: none;\">&#8599; OpenData.swiss</a></div>\n  </div>\n</div>\n{{/each}}",
+        "contentPartials": [],
+        "defaultContent": "<div style=\"padding: 20px; color: #666;\">Loading...</div>",
+        "editor": { "format": "auto", "language": "html" },
+        "editors": ["default"],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "allRows",
+        "status": "default",
+        "styles": "",
+        "wrap": true
+      }
+    },
+    {
+      "type": "marcusolsson-dynamictext-panel",
+      "title": "",
+      "gridPos": { "h": 4, "w": 19, "x": 5, "y": 5 },
+      "id": 15,
+      "transparent": true,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX schema: <http://schema.org/>\n\nSELECT \n  (SAMPLE(?cubeName) AS ?title)\n  (SAMPLE(?cubeDesc) AS ?description)\nWHERE {\n  <${cube}> a cube:Cube .\n  OPTIONAL { <${cube}> schema:name ?cubeName . }\n  OPTIONAL { <${cube}> schema:description ?cubeDesc . }\n}\nGROUP BY (1)"
+        }
+      ],
+      "options": {
+        "afterRender": "",
+        "content": "{{#each data}}\n<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 0 16px;\">\n  <h1 style=\"font-size: 24px; font-weight: 400; color: #1a1a1a; margin: 0 0 12px 0; line-height: 1.3;\">{{title}}</h1>\n  <p style=\"font-size: 14px; color: #555; line-height: 1.5; margin: 0;\">{{description}}</p>\n</div>\n{{/each}}",
+        "contentPartials": [],
+        "defaultContent": "<div style=\"padding: 20px; color: #666;\">Loading...</div>",
+        "editor": { "format": "auto", "language": "html" },
+        "editors": ["default"],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "allRows",
+        "status": "default",
+        "styles": "",
+        "wrap": true
+      }
+    },
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 1, "w": 19, "x": 5, "y": 9 },
+      "id": 16,
+      "transparent": true,
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 8px 16px; border-bottom: 2px solid #1565c0; display: flex; justify-content: space-between; align-items: center;\">\n  <span style=\"font-size: 14px; font-weight: 600; color: #333;\">Data Preview</span>\n  <a href=\"https://lindas.admin.ch/query?query=PREFIX%20cube%3A%20%3Chttps%3A%2F%2Fcube.link%2F%3E%0APREFIX%20sh%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2Fns%2Fshacl%23%3E%0APREFIX%20schema%3A%20%3Chttp%3A%2F%2Fschema.org%2F%3E%0A%0ASELECT%20*%20WHERE%20%7B%0A%20%20%3C${cube}%3E%20cube%3AobservationSet%2Fcube%3Aobservation%20%3Fobs%20.%0A%20%20%3Fobs%20%3Fp%20%3Fv%20.%0A%7D%20LIMIT%201000&format=text%2Fcsv\" target=\"_blank\" style=\"display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #1565c0; color: white; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 500;\">&#8595; Download CSV</a>\n</div>"
+      }
+    },
+    {
+      "type": "table",
+      "title": "",
+      "gridPos": { "h": 11, "w": 19, "x": 5, "y": 10 },
+      "id": 20,
+      "datasource": {
+        "type": "flandersmake-sparql-datasource",
+        "uid": "lindas-datasource"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryText": "PREFIX cube: <https://cube.link/>\nPREFIX sh: <http://www.w3.org/ns/shacl#>\nPREFIX schema: <http://schema.org/>\n\nSELECT ?Year ?Location ?Value WHERE {\n  <${cube}> cube:observationConstraint ?shape .\n  ?shape sh:property ?prop1, ?prop2, ?prop3 .\n  ?prop1 sh:path ?path1 . \n  ?prop2 sh:path ?path2 . \n  ?prop3 sh:path ?path3 .\n  \n  FILTER(?path1 != cube:observedBy && ?path1 != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n  FILTER(?path2 != cube:observedBy && ?path2 != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n  FILTER(?path3 != cube:observedBy && ?path3 != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)\n  FILTER(STR(?path1) < STR(?path2) && STR(?path2) < STR(?path3))\n  \n  <${cube}> cube:observationSet/cube:observation ?obs .\n  ?obs ?path1 ?v1 .\n  ?obs ?path2 ?v2 .\n  ?obs ?path3 ?v3 .\n  \n  OPTIONAL { ?v1 schema:name ?l1 . FILTER(LANG(?l1) = \"en\" || LANG(?l1) = \"\") }\n  OPTIONAL { ?v2 schema:name ?l2 . FILTER(LANG(?l2) = \"en\" || LANG(?l2) = \"\") }\n  OPTIONAL { ?v3 schema:name ?l3 . FILTER(LANG(?l3) = \"en\" || LANG(?l3) = \"\") }\n  \n  BIND(COALESCE(?l1, IF(isIRI(?v1), REPLACE(STR(?v1), \"^.*/\", \"\"), STR(?v1))) AS ?Year)\n  BIND(COALESCE(?l2, IF(isIRI(?v2), REPLACE(STR(?v2), \"^.*/\", \"\"), STR(?v2))) AS ?Location)\n  BIND(COALESCE(?l3, IF(isIRI(?v3), REPLACE(STR(?v3), \"^.*/\", \"\"), STR(?v3))) AS ?Value)\n}\nORDER BY ?Year ?Location\nLIMIT 20"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "cellOptions": { "type": "auto" },
+            "inspect": false,
+            "filterable": true,
+            "minWidth": 100
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{"color": "green", "value": null}]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": true,
+          "reducer": ["count"],
+          "countRows": true,
+          "fields": "",
+          "enablePagination": false
+        }
+      }
+    },
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": { "h": 1, "w": 19, "x": 5, "y": 21 },
+      "id": 25,
+      "transparent": true,
+      "options": {
+        "mode": "html",
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; padding: 4px 16px; display: flex; justify-content: flex-end;\">\n  <span style=\"font-size: 12px; color: #888;\">Showing first 20 rows</span>\n</div>"
+      }
+    }
+  ],
+  "time": { "from": "now-1y", "to": "now" },
+  "timepicker": { "hidden": true },
+  "version": 1
+}

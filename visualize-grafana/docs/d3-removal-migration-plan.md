@@ -380,10 +380,22 @@ After migration, visualize-tool will have:
 - [x] Modified Column chart to use ECharts bridge
 - [x] Modified Line chart to use ECharts bridge
 - [x] Modified Pie chart to use ECharts bridge
+- [x] Set ECharts as default render engine (no longer requires feature flag)
+- [x] **Removed Grafana integration completely** (moved to /Removed folder)
+  - Removed Grafana redirect from chart creation flow
+  - Removed EmbeddedGrafanaDashboard from configurator
+  - Removed Grafana environment variables
+  - Moved all Grafana-related files to /Removed:
+    - docker-compose.yml (Grafana setup)
+    - grafana/ folder (Grafana config and plugins)
+    - app/pages/create/grafana.tsx
+    - app/pages/dashboards/
+    - app/pages/embed/grafana/
+    - app/utils/grafana-sparql.ts
+    - app/configurator/components/grafana-export.tsx
 
 ### In Progress
 
-- [ ] Test with feature flag (?renderEngine=echarts)
 - [ ] Area chart bridge and integration
 - [ ] Scatterplot bridge and integration
 
@@ -399,20 +411,22 @@ After migration, visualize-tool will have:
 
 ## Quick Start Guide
 
-### Testing ECharts Rendering
+### ECharts is Now Default
 
-1. **Via URL parameter** (for quick testing):
+ECharts is now the default rendering engine. No configuration needed.
+
+1. **To test D3 fallback** (if needed for debugging):
    ```
-   http://localhost:3000/chart?renderEngine=echarts
+   http://localhost:3000/chart?renderEngine=d3
    ```
 
-2. **Via environment variable** (for development):
+2. **Environment variable** (already configured in .env.development):
    ```bash
-   # .env.local
+   # ECharts is default
    NEXT_PUBLIC_RENDER_ENGINE=echarts
    ```
 
-3. **Via code** (for gradual rollout):
+3. **Via code** (for specific components):
    ```tsx
    import { RenderEngineProvider } from "@/charts/adapters";
 

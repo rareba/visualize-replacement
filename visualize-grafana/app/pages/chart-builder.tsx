@@ -391,6 +391,12 @@ export default function ChartBuilderPage() {
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
   const [addDatasetDialogOpen, setAddDatasetDialogOpen] = useState(false);
   const [customCubeIri, setCustomCubeIri] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure client-side only rendering for ECharts
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Charts state
   const [charts, setCharts] = useState<ChartConfig[]>([]);
@@ -1029,19 +1035,22 @@ export default function ChartBuilderPage() {
                             </Typography>
                             <Chip label={chartDataset.title} size="small" variant="outlined" sx={{ fontSize: 10 }} />
                           </Box>
-                          <SimpleEChartsChart
-                            observations={observations}
-                            xField={chart.xField}
-                            yField={chart.yField}
-                            segmentField={chart.groupField || undefined}
-                            chartType={chart.chartType}
-                            height={zenMode ? window.innerHeight - 20 : chart.height}
-                            xAxisLabel={xLabel}
-                            yAxisLabel={yLabel}
-                            showLegend={chart.showLegend && !!chart.groupField}
-                            showTooltip={chart.showTooltip}
-                            colors={COLOR_PALETTES[chart.colorPalette] || COLOR_PALETTES.swiss}
-                          />
+                          {isMounted && (
+                            <SimpleEChartsChart
+                              key={`${chart.id}-${chart.datasetId}-${observations.length}`}
+                              observations={observations}
+                              xField={chart.xField}
+                              yField={chart.yField}
+                              segmentField={chart.groupField || undefined}
+                              chartType={chart.chartType}
+                              height={zenMode && typeof window !== "undefined" ? window.innerHeight - 20 : chart.height}
+                              xAxisLabel={xLabel}
+                              yAxisLabel={yLabel}
+                              showLegend={chart.showLegend && !!chart.groupField}
+                              showTooltip={chart.showTooltip}
+                              colors={COLOR_PALETTES[chart.colorPalette] || COLOR_PALETTES.swiss}
+                            />
+                          )}
                         </Paper>
                       );
                     })}

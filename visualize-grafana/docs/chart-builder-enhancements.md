@@ -147,3 +147,98 @@ SELECT DISTINCT ?measure ?measureLabel ?unit WHERE {
 ```
 
 This matches the approach used in the original visualize.admin.ch codebase (`app/rdf/parse.ts`).
+
+## UI/UX Improvements
+
+### 3. Editable Chart Titles
+
+**Problem:** Chart titles were static and could not be customized after creation.
+
+**Solution:** Replaced static Typography with an editable TextField with a subtle dashed underline style.
+
+**Implementation:**
+```typescript
+<TextField
+  value={chart.title}
+  onChange={(e) => updateChart(chart.id, { title: e.target.value })}
+  variant="standard"
+  size="small"
+  sx={{
+    flex: 1,
+    "& .MuiInput-input": {
+      fontSize: 14,
+      fontWeight: 500,
+      color: "text.secondary",
+      py: 0.5
+    },
+    "& .MuiInput-underline:before": { borderBottom: "1px dashed rgba(0,0,0,0.2)" },
+    "& .MuiInput-underline:hover:before": { borderBottom: "1px solid rgba(0,0,0,0.4)" },
+  }}
+  placeholder="Chart title..."
+/>
+```
+
+### 4. Inline Filters in Visualization Tab
+
+**Problem:** Filters were in a separate tab, requiring users to navigate away from the visualization to apply filters.
+
+**Solution:** Moved filters to a collapsible section directly in the Visualization tab, making them immediately accessible.
+
+**Implementation:**
+
+1. Removed Filters from navigation:
+```typescript
+const NAV_ITEMS = [
+  { id: "datasets", label: "Datasets", icon: "[+]" },
+  { id: "chart", label: "Visualization", icon: "[=]" },
+  { id: "table", label: "Data Table", icon: "[#]" },
+  { id: "settings", label: "Settings", icon: "[*]" },
+  { id: "code", label: "API / Code", icon: "[<>]" },
+];
+```
+
+2. Added `filtersExpanded` state for collapse/expand behavior
+
+3. Added collapsible Paper component in Visualization view with:
+   - Header showing "Filters" with active filter count badge
+   - Multi-select dropdowns for each dimension (up to 50 unique values)
+   - CheckedBox items for filter selection
+
+### 5. Custom Color Palettes
+
+**Problem:** Users could only choose from built-in color palettes without ability to create their own.
+
+**Solution:** Added comprehensive custom palette creation in Settings.
+
+**Implementation:**
+
+1. New state variables:
+```typescript
+const [customPalettes, setCustomPalettes] = useState<Record<string, string[]>>({});
+const [newPaletteName, setNewPaletteName] = useState("");
+const [newPaletteColors, setNewPaletteColors] = useState<string[]>(["#DC0018", "#2D6B9F", "#66B573", "#F9B21A"]);
+const [editingColorIndex, setEditingColorIndex] = useState<number | null>(null);
+
+// Combined palettes
+const allPalettes = useMemo(() => ({ ...COLOR_PALETTES, ...customPalettes }), [customPalettes]);
+```
+
+2. UI features in Settings:
+   - Display existing custom palettes with delete buttons
+   - Palette name input field
+   - Interactive color boxes (click to edit with color picker)
+   - Small "x" badges on colors to remove them
+   - "+" button to add new colors
+   - Hex color input field for manual entry
+   - "Create Palette" button (disabled until name is entered)
+
+3. Updated all palette dropdowns to use `allPalettes` instead of `COLOR_PALETTES`
+
+**Usage:**
+
+1. Navigate to Settings tab
+2. Scroll to "Custom Color Palettes" section
+3. Enter a palette name
+4. Click color boxes to edit colors, or click "+" to add more
+5. Click "Create Palette" to save
+6. New palette appears in all color palette dropdowns

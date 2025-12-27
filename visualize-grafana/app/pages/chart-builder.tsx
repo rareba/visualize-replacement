@@ -62,6 +62,14 @@ import {
   Grid,
 } from "@mui/material";
 import dynamic from "next/dynamic";
+import {
+  encodeChartConfig,
+  generateEmbedCode,
+  isConfigTooLarge,
+  sampleDatasetForEmbed,
+  type EmbedPayload,
+  type EmbedOptions,
+} from "@/utils/chart-config-encoder";
 
 // Dynamically import ECharts
 const SimpleEChartsChart = dynamic(
@@ -543,6 +551,20 @@ export default function ChartBuilderPage() {
   const [selectedJoinFields, setSelectedJoinFields] = useState<{ leftField: string; rightField: string }>({ leftField: "", rightField: "" });
   const [joinType, setJoinType] = useState<"inner" | "left" | "full">("inner");
 
+  // Embed state
+  const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
+  const [embedChartId, setEmbedChartId] = useState<string | null>(null);
+  const [embedOptions, setEmbedOptions] = useState<EmbedOptions>({
+    removeBorder: false,
+    optimizeSpace: false,
+    hideTitle: false,
+    hideLegend: false,
+    height: 400,
+    responsive: true,
+  });
+  const [embedCode, setEmbedCode] = useState<{ url: string; iframe: string; iframeResponsive: string } | null>(null);
+  const [embedCopied, setEmbedCopied] = useState(false);
+
   // Ensure client-side only rendering for ECharts
   useEffect(() => {
     setIsMounted(true);
@@ -813,6 +835,68 @@ export default function ChartBuilderPage() {
     }
     setSnackbar({ open: true, message: `Exported as ${format.toUpperCase()}` });
   }, [datasets, charts, globalFilters, settings, activeChart, activeDataset]);
+
+  // Generate embed code for a chart
+  const generateChartEmbed = useCallback((chartId: string) => {
+    const chart = charts.find(c => c.id === chartId);
+    const dataset = chart ? getDatasetForChart(chart) : null;
+    if (!chart || !dataset) {
+      setSnackbar({ open: true, message: "Chart or dataset not found" });
+      return;
+    }
+
+    // Build embed payload
+    let embedDataset = {
+      title: dataset.title,
+      dimensions: dataset.dimensions,
+      measures: dataset.measures,
+      observations: dataset.observations,
+    };
+
+    // Sample if too large
+    if (embedDataset.observations.length > 1000) {
+      embedDataset = sampleDatasetForEmbed(embedDataset, 1000);
+    }
+
+    const payload: EmbedPayload = {
+      version: 1,
+      chart: {
+        chartType: chart.chartType,
+        xField: chart.xField,
+        yField: chart.yField,
+        groupField: chart.groupField,
+        title: chart.title,
+        colorPalette: chart.colorPalette,
+        showLegend: chart.showLegend,
+        showTooltip: chart.showTooltip,
+        height: chart.height,
+      },
+      dataset: embedDataset,
+      filters: globalFilters,
+      customPalettes,
+    };
+
+    // Check size
+    if (isConfigTooLarge(payload, 8000)) {
+      setSnackbar({ open: true, message: "Configuration too large. Consider reducing data or simplifying." });
+    }
+
+    // Generate embed code
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const code = generateEmbedCode(baseUrl, payload, embedOptions);
+
+    setEmbedCode(code);
+    setEmbedChartId(chartId);
+    setEmbedDialogOpen(true);
+  }, [charts, getDatasetForChart, globalFilters, customPalettes, embedOptions]);
+
+  // Copy embed code to clipboard
+  const copyEmbedCode = useCallback((code: string) => {
+    navigator.clipboard.writeText(code).then(() => {
+      setEmbedCopied(true);
+      setTimeout(() => setEmbedCopied(false), 2000);
+    });
+  }, []);
 
   // Get observations for chart with filters
   const getChartObservations = useCallback((chart: ChartConfig) => {
@@ -1666,6 +1750,39 @@ export default function ChartBuilderPage() {
                   </Box>
                   <Button size="sm" sx={{ mt: 2 }} onClick={() => handleExport("json")}>Download JSON</Button>
                 </Paper>
+                {/* Embed Charts Section */}
+                {charts.length > 0 && (
+                  <Paper sx={{ p: 3 }}>
+                    <Typography variant="subtitle1" fontWeight={600} gutterBottom>Embed Charts</Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Generate embed codes to include charts in external websites.
+                    </Typography>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+                      {charts.map(chart => {
+                        const dataset = getDatasetForChart(chart);
+                        return (
+                          <Box key={chart.id} sx={{ display: "flex", alignItems: "center", gap: 2, p: 2, bgcolor: "#f8fafc", borderRadius: 1 }}>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="subtitle2">{chart.title || "Untitled Chart"}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {CHART_TYPES.find(t => t.type === chart.chartType)?.label} - {dataset?.title || "No dataset"}
+                              </Typography>
+                            </Box>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => generateChartEmbed(chart.id)}
+                              disabled={!dataset}
+                            >
+                              Get Embed Code
+                            </Button>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </Paper>
+                )}
+
                 {datasets.length > 0 && (
                   <Paper sx={{ p: 3 }}>
                     <Typography variant="subtitle1" fontWeight={600} gutterBottom>SPARQL Queries</Typography>
@@ -1877,6 +1994,139 @@ SELECT ?obs ?p ?o WHERE {
             disabled={!selectedJoinFields.leftField || !selectedJoinFields.rightField}
           >
             Create Joined Dataset
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Embed Dialog */}
+      <Dialog open={embedDialogOpen} onClose={() => setEmbedDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Embed Chart
+          {embedChartId && (
+            <Typography variant="body2" color="text.secondary">
+              {charts.find(c => c.id === embedChartId)?.title || "Untitled Chart"}
+            </Typography>
+          )}
+        </DialogTitle>
+        <DialogContent>
+          {embedCode && (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              {/* Embed Options */}
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>Embed Options</Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={embedOptions.removeBorder}
+                        onChange={(e) => setEmbedOptions(p => ({ ...p, removeBorder: e.target.checked }))}
+                        size="small"
+                      />
+                    }
+                    label="Remove border"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={embedOptions.optimizeSpace}
+                        onChange={(e) => setEmbedOptions(p => ({ ...p, optimizeSpace: e.target.checked }))}
+                        size="small"
+                      />
+                    }
+                    label="Optimize space"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={embedOptions.hideTitle}
+                        onChange={(e) => setEmbedOptions(p => ({ ...p, hideTitle: e.target.checked }))}
+                        size="small"
+                      />
+                    }
+                    label="Hide title"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={embedOptions.hideLegend}
+                        onChange={(e) => setEmbedOptions(p => ({ ...p, hideLegend: e.target.checked }))}
+                        size="small"
+                      />
+                    }
+                    label="Hide legend"
+                  />
+                </Box>
+                <TextField
+                  type="number"
+                  label="Height (px)"
+                  value={embedOptions.height}
+                  onChange={(e) => setEmbedOptions(p => ({ ...p, height: parseInt(e.target.value) || 400 }))}
+                  size="small"
+                  sx={{ mt: 2, width: 120 }}
+                  inputProps={{ min: 200, max: 1200 }}
+                />
+                <Button
+                  size="small"
+                  sx={{ mt: 2, ml: 2 }}
+                  onClick={() => embedChartId && generateChartEmbed(embedChartId)}
+                >
+                  Update Preview
+                </Button>
+              </Box>
+
+              {/* Fixed Height Iframe */}
+              <Box>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+                  <Typography variant="subtitle2">Fixed Height Iframe</Typography>
+                  <Button size="small" onClick={() => copyEmbedCode(embedCode.iframe)}>
+                    {embedCopied ? "Copied!" : "Copy"}
+                  </Button>
+                </Box>
+                <Box sx={{ bgcolor: "#1e293b", color: "#e2e8f0", p: 2, borderRadius: 1, fontFamily: "monospace", fontSize: 11, overflow: "auto", maxHeight: 100 }}>
+                  <pre style={{ margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{embedCode.iframe}</pre>
+                </Box>
+              </Box>
+
+              {/* Responsive Iframe */}
+              <Box>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+                  <Typography variant="subtitle2">Responsive Iframe (with auto-resize)</Typography>
+                  <Button size="small" onClick={() => copyEmbedCode(embedCode.iframeResponsive)}>
+                    {embedCopied ? "Copied!" : "Copy"}
+                  </Button>
+                </Box>
+                <Box sx={{ bgcolor: "#1e293b", color: "#e2e8f0", p: 2, borderRadius: 1, fontFamily: "monospace", fontSize: 11, overflow: "auto", maxHeight: 120 }}>
+                  <pre style={{ margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{embedCode.iframeResponsive}</pre>
+                </Box>
+              </Box>
+
+              {/* Direct URL */}
+              <Box>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+                  <Typography variant="subtitle2">Direct URL</Typography>
+                  <Button size="small" onClick={() => copyEmbedCode(embedCode.url)}>
+                    {embedCopied ? "Copied!" : "Copy"}
+                  </Button>
+                </Box>
+                <Box sx={{ bgcolor: "#f1f5f9", p: 2, borderRadius: 1, fontFamily: "monospace", fontSize: 11, overflow: "auto", wordBreak: "break-all" }}>
+                  {embedCode.url}
+                </Box>
+              </Box>
+
+              <Alert severity="info">
+                The chart data is encoded directly in the URL. No server-side storage is required.
+                For very large datasets, consider filtering the data before embedding.
+              </Alert>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEmbedDialogOpen(false)}>Close</Button>
+          <Button
+            variant="contained"
+            onClick={() => embedCode && window.open(embedCode.url, "_blank")}
+          >
+            Preview in New Tab
           </Button>
         </DialogActions>
       </Dialog>

@@ -47,11 +47,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Checkbox,
-  FormGroup,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -152,12 +148,11 @@ const COLOR_PALETTES: Record<string, string[]> = {
 
 const SPARQL_ENDPOINT = "https://lindas.admin.ch/query";
 
-// Navigation items
+// Navigation items (Filters moved to Visualization tab)
 const NAV_ITEMS = [
   { id: "datasets", label: "Datasets", icon: "[+]" },
   { id: "chart", label: "Visualization", icon: "[=]" },
   { id: "table", label: "Data Table", icon: "[#]" },
-  { id: "filters", label: "Filters", icon: "[?]" },
   { id: "settings", label: "Settings", icon: "[*]" },
   { id: "code", label: "API / Code", icon: "[<>]" },
 ];
@@ -568,6 +563,18 @@ export default function ChartBuilderPage() {
     compactMode: false,
     exportQuality: "high",
   });
+
+  // Custom color palettes
+  const [customPalettes, setCustomPalettes] = useState<Record<string, string[]>>({});
+  const [newPaletteName, setNewPaletteName] = useState("");
+  const [newPaletteColors, setNewPaletteColors] = useState<string[]>(["#DC0018", "#2D6B9F", "#66B573", "#F9B21A"]);
+  const [editingColorIndex, setEditingColorIndex] = useState<number | null>(null);
+
+  // Combined palettes (built-in + custom)
+  const allPalettes = useMemo(() => ({ ...COLOR_PALETTES, ...customPalettes }), [customPalettes]);
+
+  // Filters UI state
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   // Load initial cube from URL
   useEffect(() => {
@@ -1209,7 +1216,7 @@ export default function ChartBuilderPage() {
                               label="Colors"
                               onChange={(e) => updateChart(activeChart.id, { colorPalette: e.target.value })}
                             >
-                              {Object.keys(COLOR_PALETTES).map(name => (
+                              {Object.keys(allPalettes).map(name => (
                                 <MenuItem key={name} value={name} sx={{ textTransform: "capitalize" }}>{name}</MenuItem>
                               ))}
                             </Select>
@@ -1224,6 +1231,74 @@ export default function ChartBuilderPage() {
                             </Button>
                           )}
                         </Box>
+                      </Paper>
+                    )}
+
+                    {/* Compact Filters Menu */}
+                    {activeDataset && activeDataset.loaded && activeDataset.dimensions.length > 0 && (
+                      <Paper sx={{ p: 0, overflow: "hidden" }}>
+                        <Box
+                          sx={{
+                            px: 2,
+                            py: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            cursor: "pointer",
+                            bgcolor: filtersExpanded ? "action.selected" : "transparent",
+                            "&:hover": { bgcolor: "action.hover" },
+                          }}
+                          onClick={() => setFiltersExpanded(!filtersExpanded)}
+                        >
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <Typography variant="body2" fontWeight={500}>Filters</Typography>
+                            {Object.values(globalFilters).some(v => v.length > 0) && (
+                              <Chip
+                                label={`${Object.values(globalFilters).filter(v => v.length > 0).length} active`}
+                                size="small"
+                                color="primary"
+                                sx={{ height: 20, fontSize: 11 }}
+                              />
+                            )}
+                          </Box>
+                          <Typography variant="body2" color="text.secondary">{filtersExpanded ? "-" : "+"}</Typography>
+                        </Box>
+                        {filtersExpanded && (
+                          <Box sx={{ px: 2, pb: 2, borderTop: "1px solid", borderColor: "divider" }}>
+                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 2 }}>
+                              {activeDataset.dimensions.map(dim => {
+                                const values = [...new Set(activeDataset.observations.map(o => o[dim.id]).filter(Boolean))].sort();
+                                const selected = globalFilters[dim.id] || [];
+                                if (values.length === 0 || values.length > 50) return null;
+                                return (
+                                  <FormControl key={dim.id} size="small" sx={{ minWidth: 150, maxWidth: 200 }}>
+                                    <InputLabel>{dim.label}</InputLabel>
+                                    <Select
+                                      multiple
+                                      value={selected}
+                                      label={dim.label}
+                                      onChange={(e) => setGlobalFilters(p => ({ ...p, [dim.id]: e.target.value as string[] }))}
+                                      renderValue={(s) => s.length === 0 ? "All" : `${s.length} selected`}
+                                      MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }}
+                                    >
+                                      {values.map(v => (
+                                        <MenuItem key={String(v)} value={String(v)} sx={{ fontSize: 13 }}>
+                                          <Checkbox checked={selected.includes(String(v))} size="small" />
+                                          <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>{String(v)}</Typography>
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                );
+                              })}
+                            </Box>
+                            {Object.values(globalFilters).some(v => v.length > 0) && (
+                              <Button size="sm" sx={{ mt: 1 }} onClick={() => setGlobalFilters({})}>
+                                Clear All Filters
+                              </Button>
+                            )}
+                          </Box>
+                        )}
                       </Paper>
                     )}
 
@@ -1254,11 +1329,27 @@ export default function ChartBuilderPage() {
                           }}
                           onClick={() => setActiveChartId(chart.id)}
                         >
-                          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                            <Typography variant="subtitle2" color="text.secondary">
-                              {chart.title}
-                            </Typography>
-                            <Chip label={chartDataset.title} size="small" variant="outlined" sx={{ fontSize: 10 }} />
+                          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1, gap: 1 }}>
+                            <TextField
+                              value={chart.title}
+                              onChange={(e) => updateChart(chart.id, { title: e.target.value })}
+                              variant="standard"
+                              size="small"
+                              sx={{
+                                flex: 1,
+                                "& .MuiInput-input": {
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  color: "text.secondary",
+                                  py: 0.5
+                                },
+                                "& .MuiInput-underline:before": { borderBottom: "1px dashed rgba(0,0,0,0.2)" },
+                                "& .MuiInput-underline:hover:before": { borderBottom: "1px solid rgba(0,0,0,0.4)" },
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              placeholder="Chart title..."
+                            />
+                            <Chip label={chartDataset.title} size="small" variant="outlined" sx={{ fontSize: 10, flexShrink: 0 }} />
                           </Box>
                           {isMounted && (
                             <SimpleEChartsChart
@@ -1273,7 +1364,7 @@ export default function ChartBuilderPage() {
                               yAxisLabel={yLabel}
                               showLegend={chart.showLegend && !!chart.groupField}
                               showTooltip={chart.showTooltip}
-                              colors={COLOR_PALETTES[chart.colorPalette] || COLOR_PALETTES.swiss}
+                              colors={allPalettes[chart.colorPalette] || allPalettes.swiss}
                             />
                           )}
                         </Paper>
@@ -1352,79 +1443,27 @@ export default function ChartBuilderPage() {
               </Paper>
             )}
 
-            {/* Filters View */}
-            {currentView === "filters" && activeDataset && activeDataset.loaded && (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Paper sx={{ p: 2 }}>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      Interactive Filters
-                    </Typography>
-                    <FormControl size="small" sx={{ minWidth: 200 }}>
-                      <InputLabel>Dataset</InputLabel>
-                      <Select value={activeDatasetId || ""} label="Dataset" onChange={(e) => setActiveDatasetId(e.target.value)}>
-                        {datasets.filter(d => d.loaded).map(d => (
-                          <MenuItem key={d.id} value={d.id}>{d.title}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                </Paper>
-                {activeDataset.dimensions.map(dim => {
-                  const values = getUniqueFieldValues(activeDataset.observations, dim.id);
-                  const selected = globalFilters[dim.id] || [];
-                  return (
-                    <Accordion key={dim.id} defaultExpanded={values.length <= 15}>
-                      <AccordionSummary>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
-                          <Typography fontWeight={500}>{dim.label}</Typography>
-                          {selected.length > 0 && <Chip size="small" label={`${selected.length} selected`} color="primary" />}
-                          <Typography variant="caption" color="text.secondary" sx={{ ml: "auto", mr: 2 }}>{values.length} values</Typography>
-                        </Box>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                          <Button size="sm" onClick={() => setGlobalFilters(p => ({ ...p, [dim.id]: values }))}>Select All</Button>
-                          <Button size="sm" onClick={() => setGlobalFilters(p => ({ ...p, [dim.id]: [] }))}>Clear</Button>
-                        </Box>
-                        <FormGroup sx={{ maxHeight: 250, overflow: "auto" }}>
-                          {values.map(val => (
-                            <FormControlLabel
-                              key={val}
-                              control={
-                                <Checkbox
-                                  size="small"
-                                  checked={selected.includes(val)}
-                                  onChange={(e) => {
-                                    setGlobalFilters(p => ({
-                                      ...p,
-                                      [dim.id]: e.target.checked ? [...(p[dim.id] || []), val] : (p[dim.id] || []).filter(v => v !== val)
-                                    }));
-                                  }}
-                                />
-                              }
-                              label={<Typography variant="body2">{formatLabel(val)}</Typography>}
-                            />
-                          ))}
-                        </FormGroup>
-                      </AccordionDetails>
-                    </Accordion>
-                  );
-                })}
-              </Box>
-            )}
 
             {/* Settings View */}
             {currentView === "settings" && (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2, maxWidth: 600 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2, maxWidth: 700 }}>
                 <Paper sx={{ p: 3 }}>
                   <Typography variant="subtitle1" fontWeight={600} gutterBottom>General Settings</Typography>
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
                     <FormControl fullWidth size="small">
                       <InputLabel>Default Color Palette</InputLabel>
                       <Select value={settings.defaultPalette} label="Default Color Palette" onChange={(e) => setSettings(p => ({ ...p, defaultPalette: e.target.value }))}>
-                        {Object.keys(COLOR_PALETTES).map(name => (
-                          <MenuItem key={name} value={name} sx={{ textTransform: "capitalize" }}>{name}</MenuItem>
+                        {Object.keys(allPalettes).map(name => (
+                          <MenuItem key={name} value={name} sx={{ textTransform: "capitalize" }}>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                              {name}
+                              <Box sx={{ display: "flex", gap: 0.25, ml: 1 }}>
+                                {allPalettes[name].slice(0, 6).map((c, i) => (
+                                  <Box key={i} sx={{ width: 12, height: 12, bgcolor: c, borderRadius: 0.5 }} />
+                                ))}
+                              </Box>
+                            </Box>
+                          </MenuItem>
                         ))}
                       </Select>
                     </FormControl>
@@ -1438,6 +1477,167 @@ export default function ChartBuilderPage() {
                     </Box>
                   </Box>
                 </Paper>
+
+                {/* Custom Color Palettes */}
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>Custom Color Palettes</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Create your own color palettes for chart visualizations.
+                  </Typography>
+
+                  {/* Existing custom palettes */}
+                  {Object.entries(customPalettes).length > 0 && (
+                    <Box sx={{ mb: 3 }}>
+                      {Object.entries(customPalettes).map(([name, colors]) => (
+                        <Box key={name} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, p: 1, bgcolor: "action.hover", borderRadius: 1 }}>
+                          <Typography variant="body2" fontWeight={500} sx={{ minWidth: 100, textTransform: "capitalize" }}>{name}</Typography>
+                          <Box sx={{ display: "flex", gap: 0.5, flex: 1 }}>
+                            {colors.map((c, i) => (
+                              <Box key={i} sx={{ width: 24, height: 24, bgcolor: c, borderRadius: 0.5, border: "1px solid rgba(0,0,0,0.1)" }} />
+                            ))}
+                          </Box>
+                          <Button
+                            size="sm"
+                            color="error"
+                            onClick={() => {
+                              setCustomPalettes(p => {
+                                const updated = { ...p };
+                                delete updated[name];
+                                return updated;
+                              });
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+
+                  {/* Create new palette */}
+                  <Box sx={{ border: "1px solid", borderColor: "divider", borderRadius: 1, p: 2 }}>
+                    <Typography variant="body2" fontWeight={500} gutterBottom>Create New Palette</Typography>
+                    <TextField
+                      size="small"
+                      fullWidth
+                      label="Palette Name"
+                      value={newPaletteName}
+                      onChange={(e) => setNewPaletteName(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
+                      placeholder="e.g., corporate, brand"
+                      sx={{ mb: 2 }}
+                    />
+                    <Typography variant="caption" color="text.secondary" gutterBottom sx={{ display: "block" }}>
+                      Click on a color to edit it. Click + to add more colors.
+                    </Typography>
+                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center", mt: 1, mb: 2 }}>
+                      {newPaletteColors.map((color, index) => (
+                        <Box key={index} sx={{ position: "relative" }}>
+                          <Box
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              bgcolor: color,
+                              borderRadius: 1,
+                              border: editingColorIndex === index ? "3px solid" : "1px solid",
+                              borderColor: editingColorIndex === index ? "primary.main" : "rgba(0,0,0,0.2)",
+                              cursor: "pointer",
+                              "&:hover": { transform: "scale(1.1)" },
+                              transition: "transform 0.1s",
+                            }}
+                            onClick={() => setEditingColorIndex(editingColorIndex === index ? null : index)}
+                          />
+                          {newPaletteColors.length > 2 && (
+                            <Box
+                              sx={{
+                                position: "absolute",
+                                top: -6,
+                                right: -6,
+                                width: 16,
+                                height: 16,
+                                bgcolor: "error.main",
+                                color: "white",
+                                borderRadius: "50%",
+                                fontSize: 10,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                                "&:hover": { bgcolor: "error.dark" },
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNewPaletteColors(p => p.filter((_, i) => i !== index));
+                                setEditingColorIndex(null);
+                              }}
+                            >
+                              x
+                            </Box>
+                          )}
+                        </Box>
+                      ))}
+                      {newPaletteColors.length < 10 && (
+                        <Box
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            border: "2px dashed",
+                            borderColor: "divider",
+                            borderRadius: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            "&:hover": { borderColor: "primary.main", bgcolor: "action.hover" },
+                          }}
+                          onClick={() => {
+                            const randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
+                            setNewPaletteColors(p => [...p, randomColor]);
+                          }}
+                        >
+                          <Typography color="text.secondary">+</Typography>
+                        </Box>
+                      )}
+                    </Box>
+                    {editingColorIndex !== null && (
+                      <Box sx={{ mb: 2 }}>
+                        <TextField
+                          size="small"
+                          label={`Color ${editingColorIndex + 1}`}
+                          value={newPaletteColors[editingColorIndex]}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.match(/^#[0-9A-Fa-f]{0,6}$/)) {
+                              setNewPaletteColors(p => p.map((c, i) => i === editingColorIndex ? value : c));
+                            }
+                          }}
+                          placeholder="#DC0018"
+                          sx={{ width: 150 }}
+                          InputProps={{
+                            startAdornment: (
+                              <Box sx={{ width: 20, height: 20, bgcolor: newPaletteColors[editingColorIndex], borderRadius: 0.5, mr: 1 }} />
+                            ),
+                          }}
+                        />
+                      </Box>
+                    )}
+                    <Button
+                      variant="contained"
+                      size="sm"
+                      disabled={!newPaletteName || newPaletteColors.length < 2 || Object.keys(allPalettes).includes(newPaletteName)}
+                      onClick={() => {
+                        if (newPaletteName && newPaletteColors.length >= 2) {
+                          setCustomPalettes(p => ({ ...p, [newPaletteName]: [...newPaletteColors] }));
+                          setNewPaletteName("");
+                          setNewPaletteColors(["#DC0018", "#2D6B9F", "#66B573", "#F9B21A"]);
+                          setEditingColorIndex(null);
+                        }
+                      }}
+                    >
+                      Create Palette
+                    </Button>
+                  </Box>
+                </Paper>
+
                 <Paper sx={{ p: 3 }}>
                   <Typography variant="subtitle1" fontWeight={600} gutterBottom>Loaded Datasets</Typography>
                   {datasets.map(d => (
@@ -1488,7 +1688,7 @@ SELECT ?obs ?p ?o WHERE {
             )}
 
             {/* Empty state for views that need data */}
-            {(currentView === "table" || currentView === "filters") && (!activeDataset || !activeDataset.loaded) && (
+            {currentView === "table" && (!activeDataset || !activeDataset.loaded) && (
               <Paper sx={{ p: 4, textAlign: "center" }}>
                 <Typography variant="h6" gutterBottom>No Dataset Selected</Typography>
                 <Typography color="text.secondary" gutterBottom>Add a dataset first to view data.</Typography>

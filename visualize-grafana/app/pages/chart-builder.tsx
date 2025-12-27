@@ -24,10 +24,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  CircularProgress,
-  Alert,
-  Chip,
-  Divider,
   Button,
   Tabs,
   Tab,
@@ -55,12 +51,15 @@ import {
   Snackbar,
   useMediaQuery,
   useTheme,
-  LinearProgress,
   Card,
   CardContent,
   CardActions,
   Grid,
+  Alert as MuiAlert,
 } from "@mui/material";
+
+// Lightweight UI components (Swiss Federal CI)
+import { Alert, Chip, Divider, Spinner, LinearProgress } from "@/components/ui";
 import dynamic from "next/dynamic";
 import {
   encodeChartConfig,
@@ -938,9 +937,9 @@ export default function ChartBuilderPage() {
                 </Box>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Chip label={`${datasets.length} datasets`} size="small" sx={{ bgcolor: "rgba(255,255,255,0.1)", color: "white" }} />
-                <Chip label={`${charts.length} charts`} size="small" sx={{ bgcolor: "rgba(255,255,255,0.1)", color: "white" }} />
-                <Divider orientation="vertical" flexItem sx={{ bgcolor: "rgba(255,255,255,0.2)", mx: 1 }} />
+                <Chip label={`${datasets.length} datasets`} size="small" style={{ backgroundColor: "rgba(255,255,255,0.1)", color: "white" }} />
+                <Chip label={`${charts.length} charts`} size="small" style={{ backgroundColor: "rgba(255,255,255,0.1)", color: "white" }} />
+                <Divider orientation="vertical" style={{ height: 24, margin: "0 8px", backgroundColor: "rgba(255,255,255,0.2)" }} />
                 <Button size="sm" sx={{ color: "white", textTransform: "none" }} onClick={() => setZenMode(true)}>
                   Zen Mode
                 </Button>
@@ -994,13 +993,13 @@ export default function ChartBuilderPage() {
                     </ListItemIcon>
                     <ListItemText primary={item.label} primaryTypographyProps={{ fontSize: 14 }} />
                     {item.id === "datasets" && datasets.length > 0 && (
-                      <Chip label={datasets.length} size="small" sx={{ height: 20, fontSize: 11 }} />
+                      <Chip label={String(datasets.length)} size="small" style={{ height: 20, fontSize: 11 }} />
                     )}
                   </ListItemButton>
                 </ListItem>
               ))}
             </List>
-            <Divider sx={{ mt: "auto" }} />
+            <Divider style={{ marginTop: "auto" }} />
             {/* Loaded Datasets List */}
             <Box sx={{ p: 1, maxHeight: 200, overflow: "auto" }}>
               <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>
@@ -1119,7 +1118,7 @@ export default function ChartBuilderPage() {
                             {result.themes && result.themes.length > 0 && (
                               <Box sx={{ mt: 1, display: "flex", gap: 0.5, flexWrap: "wrap" }}>
                                 {result.themes.slice(0, 3).map(theme => (
-                                  <Chip key={theme} label={theme} size="small" sx={{ height: 20, fontSize: 10 }} />
+                                  <Chip key={theme} label={theme} size="small" style={{ height: 20, fontSize: 10 }} />
                                 ))}
                               </Box>
                             )}
@@ -1160,9 +1159,11 @@ export default function ChartBuilderPage() {
                       Loaded Datasets ({datasets.length})
                     </Typography>
                     {errorMessage && (
-                      <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
-                        {errorMessage}
-                      </Alert>
+                      <div style={{ marginBottom: 16 }}>
+                        <Alert severity="error" onClose={() => setErrorMessage(null)}>
+                          {errorMessage}
+                        </Alert>
+                      </div>
                     )}
                     <List>
                       {datasets.map(dataset => (
@@ -1392,7 +1393,7 @@ export default function ChartBuilderPage() {
                       if (!chartDataset || !chartDataset.loaded) {
                         return (
                           <Paper key={chart.id} sx={{ p: 3, textAlign: "center" }}>
-                            <CircularProgress size={24} />
+                            <Spinner size={24} />
                             <Typography color="text.secondary" sx={{ mt: 1 }}>Loading dataset...</Typography>
                           </Paper>
                         );
@@ -1433,7 +1434,7 @@ export default function ChartBuilderPage() {
                               onClick={(e) => e.stopPropagation()}
                               placeholder="Chart title..."
                             />
-                            <Chip label={chartDataset.title} size="small" variant="outlined" sx={{ fontSize: 10, flexShrink: 0 }} />
+                            <Chip label={chartDataset.title} size="small" variant="outlined" style={{ fontSize: 10, flexShrink: 0 }} />
                           </Box>
                           {isMounted && (
                             <SimpleEChartsChart
@@ -1981,9 +1982,11 @@ SELECT ?obs ?p ?o WHERE {
 
           {/* No common fields warning */}
           {selectedJoinDatasets.left && selectedJoinDatasets.right && commonFields.length === 0 && (
-            <Alert severity="warning" sx={{ mt: 2 }}>
-              No common values found between these datasets. You can still join them manually, but the result may be empty.
-            </Alert>
+            <div style={{ marginTop: 16 }}>
+              <Alert severity="warning">
+                No common values found between these datasets. You can still join them manually, but the result may be empty.
+              </Alert>
+            </div>
           )}
         </DialogContent>
         <DialogActions>
@@ -2138,9 +2141,9 @@ SELECT ?obs ?p ?o WHERE {
         onClose={() => setSnackbar({ open: false, message: "" })}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity="info" onClose={() => setSnackbar({ open: false, message: "" })}>
+        <MuiAlert severity="info" onClose={() => setSnackbar({ open: false, message: "" })}>
           {snackbar.message}
-        </Alert>
+        </MuiAlert>
       </Snackbar>
     </Box>
   );

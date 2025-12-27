@@ -403,30 +403,43 @@ async function fetchCubeData(cubeIri: string): Promise<{
   measures: Measure[];
   observations: Observation[];
 }> {
-  const metadataQuery = `
+  // Query for dimensions (not MeasureDimension type)
+  const dimensionsQuery = `
     PREFIX cube: <https://cube.link/>
     PREFIX schema: <http://schema.org/>
     PREFIX sh: <http://www.w3.org/ns/shacl#>
-    PREFIX qudt: <http://qudt.org/schema/qudt/>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-    SELECT DISTINCT ?title ?description ?dimension ?dimensionLabel ?measure ?measureLabel ?unit WHERE {
+    SELECT DISTINCT ?title ?description ?dimension ?dimensionLabel WHERE {
       <${cubeIri}> schema:name ?title .
       FILTER(LANG(?title) = "en" || LANG(?title) = "")
       OPTIONAL { <${cubeIri}> schema:description ?description . FILTER(LANG(?description) = "en" || LANG(?description) = "") }
       <${cubeIri}> cube:observationConstraint ?shape .
+      ?shape sh:property ?prop .
+      ?prop sh:path ?dimension .
+      ?prop schema:name ?dimensionLabel .
+      FILTER(LANG(?dimensionLabel) = "en" || LANG(?dimensionLabel) = "")
+      FILTER NOT EXISTS { ?prop rdf:type cube:MeasureDimension }
+    }
+  `;
+
+  // Query for measures (MeasureDimension type)
+  const measuresQuery = `
+    PREFIX cube: <https://cube.link/>
+    PREFIX schema: <http://schema.org/>
+    PREFIX sh: <http://www.w3.org/ns/shacl#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+    SELECT DISTINCT ?measure ?measureLabel ?unit WHERE {
+      <${cubeIri}> cube:observationConstraint ?shape .
+      ?shape sh:property ?prop .
+      ?prop rdf:type cube:MeasureDimension .
+      ?prop sh:path ?measure .
+      ?prop schema:name ?measureLabel .
+      FILTER(LANG(?measureLabel) = "en" || LANG(?measureLabel) = "")
       OPTIONAL {
-        ?shape sh:property ?dimProp .
-        ?dimProp sh:path ?dimension .
-        ?dimProp schema:name ?dimensionLabel .
-        FILTER(LANG(?dimensionLabel) = "en" || LANG(?dimensionLabel) = "")
-        FILTER NOT EXISTS { ?dimProp qudt:hasUnit ?u }
-      }
-      OPTIONAL {
-        ?shape sh:property ?measureProp .
-        ?measureProp sh:path ?measure .
-        ?measureProp schema:name ?measureLabel .
-        FILTER(LANG(?measureLabel) = "en" || LANG(?measureLabel) = "")
-        ?measureProp qudt:hasUnit ?unitUri .
+        ?prop qudt:hasUnit ?unitUri .
         OPTIONAL { ?unitUri schema:name ?unit }
       }
     }
@@ -441,24 +454,38 @@ async function fetchCubeData(cubeIri: string): Promise<{
     } LIMIT 10000
   `;
 
-  const metadataResponse = await fetch(SPARQL_ENDPOINT, {
+  // Fetch dimensions
+  const dimensionsResponse = await fetch(SPARQL_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/sparql-results+json" },
-    body: `query=${encodeURIComponent(metadataQuery)}`,
+    body: `query=${encodeURIComponent(dimensionsQuery)}`,
   });
-  const metadataJson = await metadataResponse.json();
+  const dimensionsJson = await dimensionsResponse.json();
+
+  // Fetch measures
+  const measuresResponse = await fetch(SPARQL_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/sparql-results+json" },
+    body: `query=${encodeURIComponent(measuresQuery)}`,
+  });
+  const measuresJson = await measuresResponse.json();
 
   const dimensionsMap = new Map<string, Dimension>();
   const measuresMap = new Map<string, Measure>();
   let title = "";
   let description = "";
 
-  for (const binding of metadataJson.results.bindings) {
+  // Process dimensions
+  for (const binding of dimensionsJson.results.bindings) {
     if (binding.title?.value && !title) title = binding.title.value;
     if (binding.description?.value && !description) description = binding.description.value;
     if (binding.dimension?.value && binding.dimensionLabel?.value) {
       dimensionsMap.set(binding.dimension.value, { id: binding.dimension.value, label: binding.dimensionLabel.value });
     }
+  }
+
+  // Process measures
+  for (const binding of measuresJson.results.bindings) {
     if (binding.measure?.value && binding.measureLabel?.value) {
       measuresMap.set(binding.measure.value, { id: binding.measure.value, label: binding.measureLabel.value, unit: binding.unit?.value });
     }

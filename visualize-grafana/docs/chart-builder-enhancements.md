@@ -111,3 +111,39 @@ const [joinType, setJoinType] = useState<"inner" | "left" | "full">("inner");
 - Virtual datasets are stored in the same datasets array with a special "joined" prefix
 - Joined datasets can be used just like regular datasets for chart creation
 - The join auto-detection uses value matching to find compatible fields
+
+## Bug Fix: Measure Detection
+
+### Problem
+All datasets were showing "0 measures" because the SPARQL query was incorrectly using `qudt:hasUnit` to identify measures.
+
+### Solution
+Changed measure detection to use the correct RDF type check:
+- **Measures**: Properties with `rdf:type cube:MeasureDimension`
+- **Dimensions**: Properties without this type
+
+### SPARQL Queries
+
+**Dimensions Query:**
+```sparql
+SELECT DISTINCT ?dimension ?dimensionLabel WHERE {
+  <cubeIri> cube:observationConstraint ?shape .
+  ?shape sh:property ?prop .
+  ?prop sh:path ?dimension .
+  ?prop schema:name ?dimensionLabel .
+  FILTER NOT EXISTS { ?prop rdf:type cube:MeasureDimension }
+}
+```
+
+**Measures Query:**
+```sparql
+SELECT DISTINCT ?measure ?measureLabel ?unit WHERE {
+  <cubeIri> cube:observationConstraint ?shape .
+  ?shape sh:property ?prop .
+  ?prop rdf:type cube:MeasureDimension .
+  ?prop sh:path ?measure .
+  ?prop schema:name ?measureLabel .
+}
+```
+
+This matches the approach used in the original visualize.admin.ch codebase (`app/rdf/parse.ts`).

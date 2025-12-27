@@ -15,4 +15,3 @@ export {
   parseLocaleString,
 } from "../locales/locales";
 export { LocaleProvider, useLocale } from "../locales/use-locale";
-export { DatasetBrowser } from "../pages/browse";

@@ -1,3 +1,17 @@
-import { DatasetBrowser } from "@/pages/browse";
+import { GetServerSideProps } from "next";
 
-export default DatasetBrowser;
+/**
+ * Redirect browse sub-routes to the new chart builder
+ */
+export const getServerSideProps: GetServerSideProps = async () => {
+  return {
+    redirect: {
+      destination: "/chart-builder",
+      permanent: false,
+    },
+  };
+};
+
+export default function BrowseRedirect() {
+  return null;
+}

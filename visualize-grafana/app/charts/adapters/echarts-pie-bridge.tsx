@@ -23,10 +23,11 @@ export const EChartsPie: React.FC = () => {
     getSegmentLabel,
     getY,
     colors,
-    showPercentages,
+    showValues,
   } = state;
 
-  const { margins, chartWidth, chartHeight } = bounds;
+  const { margins } = bounds;
+  const { chartWidth, chartHeight } = bounds;
   const { labelFontSize, fontFamily } = useChartTheme();
   const enableTransition = useTransitionStore((s) => s.enable);
   const transitionDuration = useTransitionStore((s) => s.duration);
@@ -83,7 +84,7 @@ export const EChartsPie: React.FC = () => {
         position: "outside",
         fontFamily,
         fontSize: labelFontSize,
-        formatter: showPercentages
+        formatter: showValues
           ? (params: any) => {
               const percent = ((params.value / total) * 100).toFixed(1);
               return `${params.name}\n${percent}%`;
@@ -141,7 +142,7 @@ export const EChartsPie: React.FC = () => {
     radius,
     center,
     total,
-    showPercentages,
+    showValues,
     enableTransition,
     transitionDuration,
     fontFamily,
@@ -193,10 +194,11 @@ export const EChartsDonut: React.FC<{ innerRadiusRatio?: number }> = ({
     getSegmentLabel,
     getY,
     colors,
-    showPercentages,
+    showValues,
   } = state;
 
-  const { margins, chartWidth, chartHeight } = bounds;
+  const { margins } = bounds;
+  const { chartWidth, chartHeight } = bounds;
   const { labelFontSize, fontFamily } = useChartTheme();
   const enableTransition = useTransitionStore((s) => s.enable);
   const transitionDuration = useTransitionStore((s) => s.duration);
@@ -268,7 +270,7 @@ export const EChartsDonut: React.FC<{ innerRadiusRatio?: number }> = ({
             position: "outside",
             fontFamily,
             fontSize: labelFontSize,
-            formatter: showPercentages
+            formatter: showValues
               ? (params: any) => `${params.name}\n${((params.value / total) * 100).toFixed(1)}%`
               : "{b}",
           },
@@ -290,7 +292,7 @@ export const EChartsDonut: React.FC<{ innerRadiusRatio?: number }> = ({
     radius,
     center,
     total,
-    showPercentages,
+    showValues,
     enableTransition,
     transitionDuration,
     fontFamily,

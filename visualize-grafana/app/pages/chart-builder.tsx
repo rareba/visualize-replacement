@@ -59,13 +59,11 @@ import {
   Snackbar,
   useMediaQuery,
   useTheme,
-  InputAdornment,
   LinearProgress,
   Card,
   CardContent,
   CardActions,
   Grid,
-  IconButton,
 } from "@mui/material";
 import dynamic from "next/dynamic";
 
@@ -200,13 +198,6 @@ function sortObservations(observations: Observation[], field: string): Observati
     if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
     return strA.localeCompare(strB);
   });
-}
-
-function calculateStats(observations: Observation[], field: string) {
-  const values = observations.map(o => Number(o[field])).filter(v => !isNaN(v));
-  if (values.length === 0) return { min: 0, max: 0, avg: 0, sum: 0, count: 0 };
-  const sum = values.reduce((a, b) => a + b, 0);
-  return { min: Math.min(...values), max: Math.max(...values), avg: sum / values.length, sum, count: values.length };
 }
 
 function getUniqueFieldValues(observations: Observation[], field: string): string[] {
@@ -635,10 +626,10 @@ export default function ChartBuilderPage() {
                 <Chip label={`${datasets.length} datasets`} size="small" sx={{ bgcolor: "rgba(255,255,255,0.1)", color: "white" }} />
                 <Chip label={`${charts.length} charts`} size="small" sx={{ bgcolor: "rgba(255,255,255,0.1)", color: "white" }} />
                 <Divider orientation="vertical" flexItem sx={{ bgcolor: "rgba(255,255,255,0.2)", mx: 1 }} />
-                <Button size="small" sx={{ color: "white", textTransform: "none" }} onClick={() => setZenMode(true)}>
+                <Button size="sm" sx={{ color: "white", textTransform: "none" }} onClick={() => setZenMode(true)}>
                   Zen Mode
                 </Button>
-                <Button size="small" sx={{ color: "white", textTransform: "none" }} onClick={() => handleExport("json")}>
+                <Button size="sm" sx={{ color: "white", textTransform: "none" }} onClick={() => handleExport("json")}>
                   Export
                 </Button>
               </Box>
@@ -729,7 +720,7 @@ export default function ChartBuilderPage() {
           {/* Toolbar */}
           {!zenMode && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, px: 2, py: 1.5, bgcolor: "white", borderBottom: "1px solid", borderColor: "divider" }}>
-              <Button size="small" onClick={() => setSidebarOpen(!sidebarOpen)} sx={{ minWidth: 32 }}>
+              <Button size="sm" onClick={() => setSidebarOpen(!sidebarOpen)} sx={{ minWidth: 32 }}>
                 {sidebarOpen ? "[<" : ">]"}
               </Button>
               <Typography variant="subtitle1" fontWeight={600} sx={{ flex: 1 }}>
@@ -775,7 +766,7 @@ export default function ChartBuilderPage() {
                     </Button>
                   </Box>
                   <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                    <Button size="small" onClick={() => setAddDatasetDialogOpen(true)}>
+                    <Button size="sm" onClick={() => setAddDatasetDialogOpen(true)}>
                       Add by IRI
                     </Button>
                   </Box>
@@ -820,7 +811,7 @@ export default function ChartBuilderPage() {
                               </Typography>
                             )}
                             <Button
-                              size="small"
+                              size="sm"
                               variant={isAdded ? "outlined" : "contained"}
                               onClick={() => !isAdded && addDataset(result.iri)}
                               disabled={isAdded}
@@ -854,10 +845,10 @@ export default function ChartBuilderPage() {
                           key={dataset.id}
                           secondaryAction={
                             <Box sx={{ display: "flex", gap: 1 }}>
-                              <Button size="small" onClick={() => addChartFromDataset(dataset.id)} disabled={!dataset.loaded}>
+                              <Button size="sm" onClick={() => addChartFromDataset(dataset.id)} disabled={!dataset.loaded}>
                                 + Chart
                               </Button>
-                              <Button size="small" color="error" onClick={() => removeDataset(dataset.id)}>
+                              <Button size="sm" color="error" onClick={() => removeDataset(dataset.id)}>
                                 Remove
                               </Button>
                             </Box>
@@ -994,7 +985,7 @@ export default function ChartBuilderPage() {
                             label={<Typography variant="body2">Legend</Typography>}
                           />
                           {charts.length > 1 && (
-                            <Button size="small" color="error" onClick={() => removeChart(activeChart.id)}>
+                            <Button size="sm" color="error" onClick={() => removeChart(activeChart.id)}>
                               Remove
                             </Button>
                           )}
@@ -1063,7 +1054,7 @@ export default function ChartBuilderPage() {
                         </Typography>
                         <Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "wrap" }}>
                           {datasets.filter(d => d.loaded).map(d => (
-                            <Button key={d.id} size="small" variant="outlined" onClick={() => addChartFromDataset(d.id)}>
+                            <Button key={d.id} size="sm" variant="outlined" onClick={() => addChartFromDataset(d.id)}>
                               {d.title}
                             </Button>
                           ))}
@@ -1159,8 +1150,8 @@ export default function ChartBuilderPage() {
                       </AccordionSummary>
                       <AccordionDetails>
                         <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                          <Button size="small" onClick={() => setGlobalFilters(p => ({ ...p, [dim.id]: values }))}>Select All</Button>
-                          <Button size="small" onClick={() => setGlobalFilters(p => ({ ...p, [dim.id]: [] }))}>Clear</Button>
+                          <Button size="sm" onClick={() => setGlobalFilters(p => ({ ...p, [dim.id]: values }))}>Select All</Button>
+                          <Button size="sm" onClick={() => setGlobalFilters(p => ({ ...p, [dim.id]: [] }))}>Clear</Button>
                         </Box>
                         <FormGroup sx={{ maxHeight: 250, overflow: "auto" }}>
                           {values.map(val => (
@@ -1239,7 +1230,7 @@ export default function ChartBuilderPage() {
                       settings
                     }, null, 2)}</pre>
                   </Box>
-                  <Button size="small" sx={{ mt: 2 }} onClick={() => handleExport("json")}>Download JSON</Button>
+                  <Button size="sm" sx={{ mt: 2 }} onClick={() => handleExport("json")}>Download JSON</Button>
                 </Paper>
                 {datasets.length > 0 && (
                   <Paper sx={{ p: 3 }}>

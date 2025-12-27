@@ -13,25 +13,7 @@ import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout";
 import { SimpleChartPreview } from "@/charts/simple-echarts";
 import { Observation, Dimension, Measure } from "@/domain/data";
-
-// Sample SPARQL query to fetch data from LINDAS
-const SPARQL_ENDPOINT = "https://lindas-cached.cluster.ldbar.ch/query";
-
-const SAMPLE_QUERY = `
-PREFIX cube: <https://cube.link/>
-PREFIX schema: <http://schema.org/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-
-SELECT ?year ?station ?measurement WHERE {
-  <https://environment.ld.admin.ch/foen/mf008/4> cube:observationSet/cube:observation ?obs .
-
-  ?obs <https://environment.ld.admin.ch/foen/mf008/jahr> ?year ;
-       <https://environment.ld.admin.ch/foen/mf008/messstation> ?station ;
-       <https://environment.ld.admin.ch/foen/mf008/pm10jahresmittelwert> ?measurement .
-}
-ORDER BY ?year ?station
-LIMIT 200
-`;
+import { ComponentId } from "@/graphql/make-component-id";
 
 type PageProps = {
   locale: string;
@@ -47,21 +29,9 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async ({
   };
 };
 
-interface SPARQLResult {
-  results: {
-    bindings: Array<{
-      [key: string]: {
-        type: string;
-        value: string;
-        datatype?: string;
-      };
-    }>;
-  };
-}
-
 const TestEChartsPage: NextPage<PageProps> = () => {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
   const [observations, setObservations] = useState<Observation[]>([]);
   const [dimensions, setDimensions] = useState<Dimension[]>([]);
   const [measures, setMeasures] = useState<Measure[]>([]);
@@ -94,7 +64,8 @@ const TestEChartsPage: NextPage<PageProps> = () => {
 
     setDimensions([
       {
-        id: "year",
+        __typename: "NominalDimension",
+        id: "year" as ComponentId,
         cubeIri: "https://environment.ld.admin.ch/foen/mf008/4",
         label: "Year",
         description: "Measurement year",
@@ -104,9 +75,11 @@ const TestEChartsPage: NextPage<PageProps> = () => {
         })),
         isKeyDimension: true,
         isNumerical: false,
-      },
+        relatedLimitValues: [],
+      } as Dimension,
       {
-        id: "station",
+        __typename: "NominalDimension",
+        id: "station" as ComponentId,
         cubeIri: "https://environment.ld.admin.ch/foen/mf008/4",
         label: "Measurement Station",
         description: "Air quality measurement station",
@@ -116,17 +89,24 @@ const TestEChartsPage: NextPage<PageProps> = () => {
         })),
         isKeyDimension: true,
         isNumerical: false,
-      },
+        relatedLimitValues: [],
+      } as Dimension,
     ]);
 
     setMeasures([
       {
-        id: "measurement",
+        __typename: "NumericalMeasure",
+        id: "measurement" as ComponentId,
         cubeIri: "https://environment.ld.admin.ch/foen/mf008/4",
         label: "PM10 Annual Mean",
         description: "Fine particulate matter concentration (annual average)",
         unit: "ug/m3",
-      },
+        isNumerical: true,
+        isKeyDimension: false,
+        values: [],
+        relatedLimitValues: [],
+        limits: [],
+      } as unknown as Measure,
     ]);
 
     setLoading(false);

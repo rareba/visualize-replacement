@@ -65,7 +65,7 @@ export const SimpleChartPreview: React.FC<SimpleChartPreviewProps> = ({
   const defaultXField = useMemo(() => {
     if (initialXField) return initialXField;
     // Prefer temporal dimensions, then categorical
-    const temporalDim = dimensions.find((d) => d.timeUnit);
+    const temporalDim = dimensions.find((d) => "timeUnit" in d);
     if (temporalDim) return temporalDim.id;
     return dimensions[0]?.id || "";
   }, [initialXField, dimensions]);

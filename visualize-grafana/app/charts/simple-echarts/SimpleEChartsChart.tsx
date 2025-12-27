@@ -11,6 +11,10 @@ import type { EChartsOption } from "echarts";
 import React, { useMemo } from "react";
 
 import { Observation } from "@/domain/data";
+import {
+  SWISS_FEDERAL_CHART_COLORS,
+  CHART_THEME,
+} from "@/charts/shared/echarts-theme";
 
 export type SimpleChartType =
   | "column"
@@ -51,19 +55,8 @@ export interface SimpleEChartsChartProps {
   animationDuration?: number;
 }
 
-// Default Swiss Federal color palette
-const DEFAULT_COLORS = [
-  "#1976d2", // Blue
-  "#d32f2f", // Red
-  "#388e3c", // Green
-  "#f57c00", // Orange
-  "#7b1fa2", // Purple
-  "#0097a7", // Teal
-  "#c2185b", // Pink
-  "#455a64", // Blue-grey
-  "#fbc02d", // Yellow
-  "#5d4037", // Brown
-];
+// Use Swiss Federal color palette from shared theme
+const DEFAULT_COLORS = SWISS_FEDERAL_CHART_COLORS;
 
 /**
  * Extract year from a string value (handles "Year 2020", "2020", "2020-01-01", etc.)
@@ -228,6 +221,16 @@ function buildBarOption(
     axisLabel: {
       rotate: categories.length > 10 ? 45 : 0,
       interval: 0,
+      fontFamily: CHART_THEME.fontFamily,
+      fontSize: CHART_THEME.axisLabelFontSize,
+      color: CHART_THEME.textColor,
+    },
+    axisLine: {
+      lineStyle: { color: CHART_THEME.axisLineColor },
+    },
+    nameTextStyle: {
+      fontFamily: CHART_THEME.fontFamily,
+      fontSize: CHART_THEME.axisLabelFontSize,
     },
   };
 
@@ -236,28 +239,52 @@ function buildBarOption(
     name: yAxisLabel,
     nameLocation: "middle" as const,
     nameGap: 50,
+    axisLabel: {
+      fontFamily: CHART_THEME.fontFamily,
+      fontSize: CHART_THEME.axisLabelFontSize,
+      color: CHART_THEME.textColor,
+    },
+    axisLine: {
+      show: true,
+      lineStyle: { color: CHART_THEME.axisLineColor },
+    },
+    splitLine: {
+      lineStyle: { color: CHART_THEME.gridLineColor },
+    },
+    nameTextStyle: {
+      fontFamily: CHART_THEME.fontFamily,
+      fontSize: CHART_THEME.axisLabelFontSize,
+    },
   };
 
   return {
-    title: title ? { text: title, left: "center" } : undefined,
+    textStyle: {
+      fontFamily: CHART_THEME.fontFamily,
+      fontSize: CHART_THEME.fontSize,
+      color: CHART_THEME.textColor,
+    },
+    title: title ? { text: title, left: "center", textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.titleFontSize } } : undefined,
     tooltip: showTooltip
       ? {
           trigger: "axis",
           axisPointer: { type: "shadow" },
+          backgroundColor: CHART_THEME.tooltipBackgroundColor,
+          textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.fontSize },
         }
       : undefined,
-    legend: showLegend && segmentField ? { top: 30 } : undefined,
+    legend: showLegend && segmentField ? { top: 30, textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.legendFontSize } } : undefined,
     grid: {
-      left: 60,
-      right: 20,
-      top: title ? 60 : 40,
-      bottom: 60,
+      left: CHART_THEME.gridLeft,
+      right: CHART_THEME.gridRight,
+      top: title ? CHART_THEME.gridTop : 40,
+      bottom: CHART_THEME.gridBottom,
       containLabel: true,
     },
     xAxis: isHorizontal ? valueAxis : categoryAxis,
     yAxis: isHorizontal ? categoryAxis : valueAxis,
     series,
     animationDuration,
+    animationEasing: CHART_THEME.animationEasing,
   };
 }
 
@@ -329,18 +356,25 @@ function buildLineOption(
   const formattedCategories = categories.map(formatLabel);
 
   return {
-    title: title ? { text: title, left: "center" } : undefined,
+    textStyle: {
+      fontFamily: CHART_THEME.fontFamily,
+      fontSize: CHART_THEME.fontSize,
+      color: CHART_THEME.textColor,
+    },
+    title: title ? { text: title, left: "center", textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.titleFontSize } } : undefined,
     tooltip: showTooltip
       ? {
           trigger: "axis",
+          backgroundColor: CHART_THEME.tooltipBackgroundColor,
+          textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.fontSize },
         }
       : undefined,
-    legend: showLegend && segmentField ? { top: 30 } : undefined,
+    legend: showLegend && segmentField ? { top: 30, textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.legendFontSize } } : undefined,
     grid: {
-      left: 60,
-      right: 20,
-      top: title ? 60 : 40,
-      bottom: 60,
+      left: CHART_THEME.gridLeft,
+      right: CHART_THEME.gridRight,
+      top: title ? CHART_THEME.gridTop : 40,
+      bottom: CHART_THEME.gridBottom,
       containLabel: true,
     },
     xAxis: {
@@ -350,15 +384,44 @@ function buildLineOption(
       nameLocation: "middle",
       nameGap: 30,
       boundaryGap: false,
+      axisLabel: {
+        fontFamily: CHART_THEME.fontFamily,
+        fontSize: CHART_THEME.axisLabelFontSize,
+        color: CHART_THEME.textColor,
+      },
+      axisLine: {
+        lineStyle: { color: CHART_THEME.axisLineColor },
+      },
+      nameTextStyle: {
+        fontFamily: CHART_THEME.fontFamily,
+        fontSize: CHART_THEME.axisLabelFontSize,
+      },
     },
     yAxis: {
       type: "value",
       name: yAxisLabel,
       nameLocation: "middle",
       nameGap: 50,
+      axisLabel: {
+        fontFamily: CHART_THEME.fontFamily,
+        fontSize: CHART_THEME.axisLabelFontSize,
+        color: CHART_THEME.textColor,
+      },
+      axisLine: {
+        show: true,
+        lineStyle: { color: CHART_THEME.axisLineColor },
+      },
+      splitLine: {
+        lineStyle: { color: CHART_THEME.gridLineColor },
+      },
+      nameTextStyle: {
+        fontFamily: CHART_THEME.fontFamily,
+        fontSize: CHART_THEME.axisLabelFontSize,
+      },
     },
     series,
     animationDuration,
+    animationEasing: CHART_THEME.animationEasing,
   };
 }
 
@@ -392,11 +455,18 @@ function buildPieOption(props: SimpleEChartsChartProps): EChartsOption {
   }));
 
   return {
-    title: title ? { text: title, left: "center" } : undefined,
+    textStyle: {
+      fontFamily: CHART_THEME.fontFamily,
+      fontSize: CHART_THEME.fontSize,
+      color: CHART_THEME.textColor,
+    },
+    title: title ? { text: title, left: "center", textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.titleFontSize } } : undefined,
     tooltip: showTooltip
       ? {
           trigger: "item",
           formatter: "{b}: {c} ({d}%)",
+          backgroundColor: CHART_THEME.tooltipBackgroundColor,
+          textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.fontSize },
         }
       : undefined,
     legend: showLegend
@@ -404,6 +474,7 @@ function buildPieOption(props: SimpleEChartsChartProps): EChartsOption {
           orient: "vertical",
           left: "left",
           top: "middle",
+          textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.legendFontSize },
         }
       : undefined,
     series: [
@@ -422,10 +493,13 @@ function buildPieOption(props: SimpleEChartsChartProps): EChartsOption {
         label: {
           show: true,
           formatter: "{b}: {d}%",
+          fontFamily: CHART_THEME.fontFamily,
+          fontSize: CHART_THEME.fontSize,
         },
       },
     ],
     animationDuration,
+    animationEasing: CHART_THEME.animationEasing,
   };
 }
 
@@ -485,7 +559,12 @@ function buildScatterOption(props: SimpleEChartsChartProps): EChartsOption {
   }
 
   return {
-    title: title ? { text: title, left: "center" } : undefined,
+    textStyle: {
+      fontFamily: CHART_THEME.fontFamily,
+      fontSize: CHART_THEME.fontSize,
+      color: CHART_THEME.textColor,
+    },
+    title: title ? { text: title, left: "center", textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.titleFontSize } } : undefined,
     tooltip: showTooltip
       ? {
           trigger: "item",
@@ -493,14 +572,16 @@ function buildScatterOption(props: SimpleEChartsChartProps): EChartsOption {
             const p = params as { value: [number, number] };
             return `${xAxisLabel || "X"}: ${p.value[0]}<br/>${yAxisLabel || "Y"}: ${p.value[1]}`;
           },
+          backgroundColor: CHART_THEME.tooltipBackgroundColor,
+          textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.fontSize },
         }
       : undefined,
-    legend: showLegend && segmentField ? { top: 30 } : undefined,
+    legend: showLegend && segmentField ? { top: 30, textStyle: { fontFamily: CHART_THEME.fontFamily, fontSize: CHART_THEME.legendFontSize } } : undefined,
     grid: {
-      left: 60,
-      right: 20,
-      top: title ? 60 : 40,
-      bottom: 60,
+      left: CHART_THEME.gridLeft,
+      right: CHART_THEME.gridRight,
+      top: title ? CHART_THEME.gridTop : 40,
+      bottom: CHART_THEME.gridBottom,
       containLabel: true,
     },
     xAxis: {
@@ -508,15 +589,47 @@ function buildScatterOption(props: SimpleEChartsChartProps): EChartsOption {
       name: xAxisLabel,
       nameLocation: "middle",
       nameGap: 30,
+      axisLabel: {
+        fontFamily: CHART_THEME.fontFamily,
+        fontSize: CHART_THEME.axisLabelFontSize,
+        color: CHART_THEME.textColor,
+      },
+      axisLine: {
+        lineStyle: { color: CHART_THEME.axisLineColor },
+      },
+      nameTextStyle: {
+        fontFamily: CHART_THEME.fontFamily,
+        fontSize: CHART_THEME.axisLabelFontSize,
+      },
+      splitLine: {
+        lineStyle: { color: CHART_THEME.gridLineColor },
+      },
     },
     yAxis: {
       type: "value",
       name: yAxisLabel,
       nameLocation: "middle",
       nameGap: 50,
+      axisLabel: {
+        fontFamily: CHART_THEME.fontFamily,
+        fontSize: CHART_THEME.axisLabelFontSize,
+        color: CHART_THEME.textColor,
+      },
+      axisLine: {
+        show: true,
+        lineStyle: { color: CHART_THEME.axisLineColor },
+      },
+      splitLine: {
+        lineStyle: { color: CHART_THEME.gridLineColor },
+      },
+      nameTextStyle: {
+        fontFamily: CHART_THEME.fontFamily,
+        fontSize: CHART_THEME.axisLabelFontSize,
+      },
     },
     series,
     animationDuration,
+    animationEasing: CHART_THEME.animationEasing,
   };
 }
 

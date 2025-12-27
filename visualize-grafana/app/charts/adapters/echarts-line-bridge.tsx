@@ -17,9 +17,9 @@ import { useTransitionStore } from "@/stores/transition";
 
 // Map dot size config to ECharts symbol size
 const DOT_SIZE_MAP: Record<ShowDotsSize, number> = {
-  small: 4,
-  medium: 6,
-  large: 8,
+  Small: 4,
+  Medium: 6,
+  Large: 8,
 };
 
 export interface EChartsLinesProps {
@@ -41,20 +41,18 @@ export const EChartsLines: React.FC<EChartsLinesProps> = ({ dotSize }) => {
     segments,
     xAxisLabel,
     yAxisLabel,
-    formatXAxisTick,
-    showDots,
   } = state;
 
-  const { margins, chartWidth, chartHeight } = bounds;
+  const { margins } = bounds;
   const { labelFontSize, fontFamily, axisLabelFontSize } = useChartTheme();
   const enableTransition = useTransitionStore((s) => s.enable);
   const transitionDuration = useTransitionStore((s) => s.duration);
 
   // Determine symbol size based on config
   const symbolSize = useMemo(() => {
-    if (!showDots) return 0;
-    return DOT_SIZE_MAP[dotSize ?? "medium"];
-  }, [showDots, dotSize]);
+    if (!dotSize) return 0;
+    return DOT_SIZE_MAP[dotSize ?? "Medium"];
+  }, [dotSize]);
 
   // Check if X axis is time-based
   const isTimeAxis = useMemo(() => {
@@ -190,7 +188,7 @@ export const EChartsLines: React.FC<EChartsLinesProps> = ({ dotSize }) => {
         axisLabel: {
           fontFamily,
           fontSize: axisLabelFontSize,
-          formatter: isTimeAxis ? undefined : formatXAxisTick,
+          formatter: isTimeAxis ? undefined : undefined,
         },
         axisLine: {
           lineStyle: { color: "rgba(0, 0, 0, 0.54)" },
@@ -245,7 +243,6 @@ export const EChartsLines: React.FC<EChartsLinesProps> = ({ dotSize }) => {
     fontFamily,
     labelFontSize,
     axisLabelFontSize,
-    formatXAxisTick,
   ]);
 
   // Event handlers

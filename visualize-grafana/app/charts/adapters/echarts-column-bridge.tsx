@@ -41,14 +41,12 @@ export const EChartsColumns: React.FC = () => {
     colors,
     getRenderingKey,
     showValues,
-    formatValue,
-    xDimension,
     xAxisLabel,
     yAxisLabel,
     formatXAxisTick,
   } = state;
 
-  const { margins, chartWidth, chartHeight } = bounds;
+  const { margins } = bounds;
   const { labelFontSize, fontFamily, axisLabelFontSize } = useChartTheme();
   const enableTransition = useTransitionStore((s) => s.enable);
   const transitionDuration = useTransitionStore((s) => s.duration);
@@ -90,7 +88,7 @@ export const EChartsColumns: React.FC = () => {
             fontFamily,
             formatter: (params: any) => {
               const value = params.value;
-              return formatValue ? formatValue(value) : String(value);
+              return String(value);
             },
           }
         : undefined,
@@ -180,7 +178,6 @@ export const EChartsColumns: React.FC = () => {
     showValues,
     labelFontSize,
     fontFamily,
-    formatValue,
     enableTransition,
     transitionDuration,
     xScale,
@@ -241,7 +238,7 @@ export const EChartsErrorWhiskers: React.FC = () => {
     showYUncertainty,
   } = state;
 
-  const { margins, chartWidth, chartHeight } = bounds;
+  const { margins } = bounds;
   const enableTransition = useTransitionStore((s) => s.enable);
   const transitionDuration = useTransitionStore((s) => s.duration);
   const bandwidth = xScale.bandwidth();
@@ -287,7 +284,7 @@ export const EChartsErrorWhiskers: React.FC = () => {
       series: [
         {
           type: "custom",
-          renderItem: (params: any, api: any) => {
+          renderItem: (_params: unknown, api: any) => {
             const xValue = api.value(0);
             const xCoord = api.coord([xValue, 0])[0];
             const lowCoord = api.coord([xValue, api.value(1)])[1];

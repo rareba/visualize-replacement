@@ -129,6 +129,8 @@ interface SearchResult {
   themes?: string[];
 }
 
+// DatasetJoin and JoinedDataset types reserved for future persistence
+
 // Constants
 const CHART_TYPES: Array<{ type: SimpleChartType; label: string; icon: string }> = [
   { type: "column", label: "Column", icon: "||" },
@@ -207,6 +209,134 @@ function getUniqueFieldValues(observations: Observation[], field: string): strin
     if (val != null) unique.add(String(val));
   });
   return Array.from(unique).sort();
+}
+
+// Find common fields between two datasets (potential join keys)
+function findCommonFields(dataset1: Dataset, dataset2: Dataset): Array<{
+  field1: Dimension;
+  field2: Dimension;
+  commonValues: number;
+  totalValues1: number;
+  totalValues2: number;
+  matchScore: number;
+}> {
+  const results: Array<{
+    field1: Dimension;
+    field2: Dimension;
+    commonValues: number;
+    totalValues1: number;
+    totalValues2: number;
+    matchScore: number;
+  }> = [];
+
+  for (const dim1 of dataset1.dimensions) {
+    const values1 = new Set(getUniqueFieldValues(dataset1.observations, dim1.id));
+
+    for (const dim2 of dataset2.dimensions) {
+      const values2 = new Set(getUniqueFieldValues(dataset2.observations, dim2.id));
+
+      // Count common values
+      let commonCount = 0;
+      values1.forEach(v => {
+        if (values2.has(v)) commonCount++;
+      });
+
+      if (commonCount > 0) {
+        // Calculate match score: higher is better
+        const matchScore = (commonCount / Math.min(values1.size, values2.size)) * 100;
+        results.push({
+          field1: dim1,
+          field2: dim2,
+          commonValues: commonCount,
+          totalValues1: values1.size,
+          totalValues2: values2.size,
+          matchScore,
+        });
+      }
+    }
+  }
+
+  // Sort by match score descending
+  return results.sort((a, b) => b.matchScore - a.matchScore);
+}
+
+// Join two datasets on specified fields
+function joinDatasets(
+  left: Dataset,
+  right: Dataset,
+  leftField: string,
+  rightField: string,
+  joinType: "inner" | "left" | "full" = "inner"
+): { observations: Observation[]; dimensions: Dimension[]; measures: Measure[] } {
+  // Build index of right dataset by join field
+  const rightIndex = new Map<string, Observation[]>();
+  right.observations.forEach(obs => {
+    const key = String(obs[rightField] || "");
+    if (!rightIndex.has(key)) rightIndex.set(key, []);
+    rightIndex.get(key)!.push(obs);
+  });
+
+  const joinedObs: Observation[] = [];
+  const usedRightKeys = new Set<string>();
+
+  // Process left dataset
+  for (const leftObs of left.observations) {
+    const key = String(leftObs[leftField] || "");
+    const rightMatches = rightIndex.get(key);
+
+    if (rightMatches && rightMatches.length > 0) {
+      // Join with each matching right observation
+      for (const rightObs of rightMatches) {
+        const joined: Observation = { ...leftObs };
+        // Add right dataset fields with prefix to avoid conflicts
+        for (const [k, v] of Object.entries(rightObs)) {
+          if (k !== rightField) {
+            joined[`right_${k}`] = v;
+          }
+        }
+        joinedObs.push(joined);
+      }
+      usedRightKeys.add(key);
+    } else if (joinType === "left" || joinType === "full") {
+      // Include left row with null right values
+      joinedObs.push({ ...leftObs });
+    }
+  }
+
+  // For full join, include unmatched right rows
+  if (joinType === "full") {
+    for (const rightObs of right.observations) {
+      const key = String(rightObs[rightField] || "");
+      if (!usedRightKeys.has(key)) {
+        const joined: Observation = {};
+        for (const [k, v] of Object.entries(rightObs)) {
+          joined[`right_${k}`] = v;
+        }
+        joinedObs.push(joined);
+      }
+    }
+  }
+
+  // Combine dimensions and measures
+  const dimensions = [
+    ...left.dimensions,
+    ...right.dimensions.filter(d => d.id !== rightField).map(d => ({
+      ...d,
+      id: `right_${d.id}`,
+      label: `${d.label} (${right.title.substring(0, 20)}...)`,
+    })),
+  ];
+
+  const measures = [
+    ...left.measures,
+    ...right.measures.map(m => ({
+      ...m,
+      id: `right_${m.id}`,
+      label: `${m.label} (${right.title.substring(0, 20)}...)`,
+    })),
+  ];
+
+  return { observations: joinedObs, dimensions, measures };
 }
 
 // Search for cubes in LINDAS
@@ -380,9 +510,16 @@ export default function ChartBuilderPage() {
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [zenMode, setZenMode] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [addDatasetDialogOpen, setAddDatasetDialogOpen] = useState(false);
   const [customCubeIri, setCustomCubeIri] = useState("");
   const [isMounted, setIsMounted] = useState(false);
+
+  // Join datasets state
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+  const [selectedJoinDatasets, setSelectedJoinDatasets] = useState<{ left: string; right: string }>({ left: "", right: "" });
+  const [selectedJoinFields, setSelectedJoinFields] = useState<{ leftField: string; rightField: string }>({ leftField: "", rightField: "" });
+  const [joinType, setJoinType] = useState<"inner" | "left" | "full">("inner");
 
   // Ensure client-side only rendering for ECharts
   useEffect(() => {
@@ -525,8 +662,26 @@ export default function ChartBuilderPage() {
 
   // Add chart from dataset
   const addChartFromDataset = useCallback((datasetId: string) => {
+    setErrorMessage(null); // Clear previous error
     const dataset = datasets.find(d => d.id === datasetId);
-    if (!dataset || dataset.dimensions.length === 0 || dataset.measures.length === 0) return;
+    if (!dataset) {
+      const msg = "Dataset not found";
+      setErrorMessage(msg);
+      setSnackbar({ open: true, message: msg });
+      return;
+    }
+    if (dataset.dimensions.length === 0) {
+      const msg = "Dataset has no dimensions - cannot create chart";
+      setErrorMessage(msg);
+      setSnackbar({ open: true, message: msg });
+      return;
+    }
+    if (dataset.measures.length === 0) {
+      const msg = "Dataset has no measures (numeric fields) - cannot create chart. Try using dimensions as Y-axis or select a different dataset.";
+      setErrorMessage(msg);
+      setSnackbar({ open: true, message: msg });
+      return;
+    }
 
     const dateField = dataset.dimensions.find(d => isDateField(d.id, d.label));
     const newChart: ChartConfig = {
@@ -556,6 +711,48 @@ export default function ChartBuilderPage() {
       setActiveChartId(remaining[0]?.id || null);
     }
   }, [charts, activeChartId]);
+
+  // Find common fields between selected datasets
+  const commonFields = useMemo(() => {
+    const left = datasets.find(d => d.id === selectedJoinDatasets.left);
+    const right = datasets.find(d => d.id === selectedJoinDatasets.right);
+    if (!left || !right || !left.loaded || !right.loaded) return [];
+    return findCommonFields(left, right);
+  }, [datasets, selectedJoinDatasets]);
+
+  // Create joined dataset
+  const createJoinedDataset = useCallback(() => {
+    const left = datasets.find(d => d.id === selectedJoinDatasets.left);
+    const right = datasets.find(d => d.id === selectedJoinDatasets.right);
+
+    if (!left || !right || !selectedJoinFields.leftField || !selectedJoinFields.rightField) {
+      setSnackbar({ open: true, message: "Please select datasets and join fields" });
+      return;
+    }
+
+    const joined = joinDatasets(left, right, selectedJoinFields.leftField, selectedJoinFields.rightField, joinType);
+
+    const joinId = generateId();
+    const joinedName = `${left.title.substring(0, 25)}... + ${right.title.substring(0, 25)}...`;
+
+    // Add as a virtual dataset for charting
+    const virtualDataset: Dataset = {
+      id: `joined_${joinId}`,
+      iri: `joined://${joinId}`,
+      title: joinedName,
+      dimensions: joined.dimensions,
+      measures: joined.measures,
+      observations: joined.observations,
+      loaded: true,
+      loading: false,
+    };
+    setDatasets(prev => [...prev, virtualDataset]);
+
+    setJoinDialogOpen(false);
+    setSelectedJoinDatasets({ left: "", right: "" });
+    setSelectedJoinFields({ leftField: "", rightField: "" });
+    setSnackbar({ open: true, message: `Joined dataset created with ${joined.observations.length} observations` });
+  }, [datasets, selectedJoinDatasets, selectedJoinFields, joinType]);
 
   // Export
   const handleExport = useCallback((format: "csv" | "json") => {
@@ -769,6 +966,11 @@ export default function ChartBuilderPage() {
                     <Button size="sm" onClick={() => setAddDatasetDialogOpen(true)}>
                       Add by IRI
                     </Button>
+                    {datasets.filter(d => d.loaded).length >= 2 && (
+                      <Button size="sm" variant="outlined" onClick={() => setJoinDialogOpen(true)}>
+                        Join Datasets
+                      </Button>
+                    )}
                   </Box>
                 </Paper>
 
@@ -839,6 +1041,11 @@ export default function ChartBuilderPage() {
                     <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                       Loaded Datasets ({datasets.length})
                     </Typography>
+                    {errorMessage && (
+                      <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
+                        {errorMessage}
+                      </Alert>
+                    )}
                     <List>
                       {datasets.map(dataset => (
                         <ListItem
@@ -1306,13 +1513,158 @@ SELECT ?obs ?p ?o WHERE {
         </DialogActions>
       </Dialog>
 
+      {/* Join Datasets Dialog */}
+      <Dialog open={joinDialogOpen} onClose={() => setJoinDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Join Datasets</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Combine two datasets by joining them on a common field. This creates a new virtual dataset.
+          </Typography>
+
+          <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Left Dataset</InputLabel>
+              <Select
+                value={selectedJoinDatasets.left}
+                label="Left Dataset"
+                onChange={(e) => {
+                  setSelectedJoinDatasets(p => ({ ...p, left: e.target.value }));
+                  setSelectedJoinFields({ leftField: "", rightField: "" });
+                }}
+              >
+                {datasets.filter(d => d.loaded && d.id !== selectedJoinDatasets.right).map(d => (
+                  <MenuItem key={d.id} value={d.id}>{d.title}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Right Dataset</InputLabel>
+              <Select
+                value={selectedJoinDatasets.right}
+                label="Right Dataset"
+                onChange={(e) => {
+                  setSelectedJoinDatasets(p => ({ ...p, right: e.target.value }));
+                  setSelectedJoinFields({ leftField: "", rightField: "" });
+                }}
+              >
+                {datasets.filter(d => d.loaded && d.id !== selectedJoinDatasets.left).map(d => (
+                  <MenuItem key={d.id} value={d.id}>{d.title}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Auto-detected common fields */}
+          {commonFields.length > 0 && (
+            <Paper sx={{ mt: 3, p: 2, bgcolor: "#f0fdf4", border: "1px solid #86efac" }}>
+              <Typography variant="subtitle2" color="success.dark" gutterBottom>
+                Suggested Join Fields (Auto-detected)
+              </Typography>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                These fields have common values between the two datasets. Click to use.
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                {commonFields.slice(0, 5).map((cf, idx) => (
+                  <Button
+                    key={idx}
+                    size="sm"
+                    variant={selectedJoinFields.leftField === cf.field1.id && selectedJoinFields.rightField === cf.field2.id ? "contained" : "outlined"}
+                    onClick={() => setSelectedJoinFields({ leftField: cf.field1.id, rightField: cf.field2.id })}
+                    sx={{ justifyContent: "flex-start", textAlign: "left" }}
+                  >
+                    <Box>
+                      <Typography variant="body2">
+                        {cf.field1.label} = {cf.field2.label}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {cf.commonValues} common values ({Math.round(cf.matchScore)}% match)
+                      </Typography>
+                    </Box>
+                  </Button>
+                ))}
+              </Box>
+            </Paper>
+          )}
+
+          {/* Manual field selection */}
+          <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+            Or select fields manually:
+          </Typography>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Left Field</InputLabel>
+              <Select
+                value={selectedJoinFields.leftField}
+                label="Left Field"
+                onChange={(e) => setSelectedJoinFields(p => ({ ...p, leftField: e.target.value }))}
+                disabled={!selectedJoinDatasets.left}
+              >
+                {datasets.find(d => d.id === selectedJoinDatasets.left)?.dimensions.map(dim => (
+                  <MenuItem key={dim.id} value={dim.id}>{dim.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Right Field</InputLabel>
+              <Select
+                value={selectedJoinFields.rightField}
+                label="Right Field"
+                onChange={(e) => setSelectedJoinFields(p => ({ ...p, rightField: e.target.value }))}
+                disabled={!selectedJoinDatasets.right}
+              >
+                {datasets.find(d => d.id === selectedJoinDatasets.right)?.dimensions.map(dim => (
+                  <MenuItem key={dim.id} value={dim.id}>{dim.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Join type */}
+          <FormControl fullWidth size="small" sx={{ mt: 2 }}>
+            <InputLabel>Join Type</InputLabel>
+            <Select
+              value={joinType}
+              label="Join Type"
+              onChange={(e) => setJoinType(e.target.value as "inner" | "left" | "full")}
+            >
+              <MenuItem value="inner">Inner Join (only matching rows)</MenuItem>
+              <MenuItem value="left">Left Join (all left rows + matching right)</MenuItem>
+              <MenuItem value="full">Full Join (all rows from both)</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* No common fields warning */}
+          {selectedJoinDatasets.left && selectedJoinDatasets.right && commonFields.length === 0 && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              No common values found between these datasets. You can still join them manually, but the result may be empty.
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setJoinDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={createJoinedDataset}
+            disabled={!selectedJoinFields.leftField || !selectedJoinFields.rightField}
+          >
+            Create Joined Dataset
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={3000}
+        autoHideDuration={6000}
         onClose={() => setSnackbar({ open: false, message: "" })}
-        message={snackbar.message}
-      />
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="info" onClose={() => setSnackbar({ open: false, message: "" })}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

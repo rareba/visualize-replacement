@@ -14,6 +14,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import {
   Box,
@@ -935,6 +936,20 @@ export default function ChartBuilderPage() {
                     Data Visualization Platform
                   </Typography>
                 </Box>
+                <Link href="/data-catalog" passHref legacyBehavior>
+                  <Button
+                    component="a"
+                    size="small"
+                    sx={{
+                      color: "rgba(255,255,255,0.8)",
+                      textTransform: "none",
+                      fontSize: 12,
+                      "&:hover": { color: "white", bgcolor: "rgba(255,255,255,0.1)" },
+                    }}
+                  >
+                    &larr; Data Catalog
+                  </Button>
+                </Link>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Chip label={`${datasets.length} datasets`} size="small" style={{ backgroundColor: "rgba(255,255,255,0.1)", color: "white" }} />

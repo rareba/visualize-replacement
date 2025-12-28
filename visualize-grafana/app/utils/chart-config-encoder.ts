@@ -239,3 +239,128 @@ export function sampleDatasetForEmbed(
     observations: sampled,
   };
 }
+
+/**
+ * Extract the local name from a URI (everything after the last / or #)
+ */
+function getLocalName(uri: string): string {
+  if (!uri || typeof uri !== 'string') return String(uri ?? '');
+  const hashIndex = uri.lastIndexOf('#');
+  const slashIndex = uri.lastIndexOf('/');
+  const index = Math.max(hashIndex, slashIndex);
+  return index >= 0 ? uri.slice(index + 1) : uri;
+}
+
+/**
+ * Minimize observations to only include required fields for the chart
+ * This dramatically reduces URL size by removing unused dimension columns
+ */
+export function minimizeObservationsForEmbed(
+  observations: Array<Record<string, string | number | null>>,
+  chartConfig: EmbedChartConfig,
+  filterFields: string[] = []
+): Array<Record<string, string | number | null>> {
+  // Determine which fields we need
+  const requiredFields = new Set<string>([
+    chartConfig.xField,
+    chartConfig.yField,
+  ]);
+
+  if (chartConfig.groupField) {
+    requiredFields.add(chartConfig.groupField);
+  }
+
+  // Add filter fields
+  filterFields.forEach(f => requiredFields.add(f));
+
+  // Create a mapping from full URIs to short names
+  const fieldMapping = new Map<string, string>();
+  requiredFields.forEach(field => {
+    fieldMapping.set(field, getLocalName(field));
+  });
+
+  // Minimize each observation
+  return observations.map(obs => {
+    const minimized: Record<string, string | number | null> = {};
+
+    for (const [fullField, shortField] of fieldMapping) {
+      if (fullField in obs) {
+        const value = obs[fullField];
+        // Also shorten URI values where possible
+        if (typeof value === 'string' && (value.includes('/') || value.includes('#'))) {
+          minimized[shortField] = getLocalName(value);
+        } else {
+          minimized[shortField] = value;
+        }
+      }
+    }
+
+    return minimized;
+  });
+}
+
+/**
+ * Prepare a payload for embedding by minimizing data size
+ */
+export function preparePayloadForEmbed(
+  payload: EmbedPayload,
+  maxObservations = 100
+): EmbedPayload {
+  const { chart, dataset, filters } = payload;
+
+  // Get filter field names
+  const filterFields = filters ? Object.keys(filters) : [];
+
+  // Sample if too many observations
+  let observations = dataset.observations;
+  if (observations.length > maxObservations) {
+    const step = observations.length / maxObservations;
+    const sampled: typeof observations = [];
+    for (let i = 0; i < maxObservations; i++) {
+      const index = Math.floor(i * step);
+      sampled.push(observations[index]);
+    }
+    observations = sampled;
+  }
+
+  // Minimize observations to only required fields
+  const minimizedObs = minimizeObservationsForEmbed(observations, chart, filterFields);
+
+  // Create shortened chart config
+  const shortChart: EmbedChartConfig = {
+    ...chart,
+    xField: getLocalName(chart.xField),
+    yField: getLocalName(chart.yField),
+    groupField: chart.groupField ? getLocalName(chart.groupField) : '',
+  };
+
+  // Create minimal dimensions/measures list
+  const minDimensions = dataset.dimensions
+    .filter(d => d.id === chart.xField || d.id === chart.groupField || filterFields.includes(d.id))
+    .map(d => ({ id: getLocalName(d.id), label: d.label }));
+
+  const minMeasures = dataset.measures
+    .filter(m => m.id === chart.yField)
+    .map(m => ({ id: getLocalName(m.id), label: m.label, unit: m.unit }));
+
+  // Create minimal filters
+  const minFilters = filters ? Object.fromEntries(
+    Object.entries(filters).map(([k, v]) => [
+      getLocalName(k),
+      v.map(val => typeof val === 'string' ? getLocalName(val) : val)
+    ])
+  ) : undefined;
+
+  return {
+    version: 1,
+    chart: shortChart,
+    dataset: {
+      title: dataset.title,
+      dimensions: minDimensions,
+      measures: minMeasures,
+      observations: minimizedObs,
+    },
+    filters: minFilters,
+    customPalettes: payload.customPalettes,
+  };
+}

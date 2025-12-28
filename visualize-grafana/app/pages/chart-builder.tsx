@@ -66,6 +66,7 @@ import {
   generateEmbedCode,
   isConfigTooLarge,
   sampleDatasetForEmbed,
+  preparePayloadForEmbed,
   type EmbedPayload,
   type EmbedOptions,
 } from "@/utils/chart-config-encoder";
@@ -844,20 +845,8 @@ export default function ChartBuilderPage() {
       return;
     }
 
-    // Build embed payload
-    let embedDataset = {
-      title: dataset.title,
-      dimensions: dataset.dimensions,
-      measures: dataset.measures,
-      observations: dataset.observations,
-    };
-
-    // Sample if too large
-    if (embedDataset.observations.length > 1000) {
-      embedDataset = sampleDatasetForEmbed(embedDataset, 1000);
-    }
-
-    const payload: EmbedPayload = {
+    // Build initial embed payload
+    const initialPayload: EmbedPayload = {
       version: 1,
       chart: {
         chartType: chart.chartType,
@@ -870,14 +859,25 @@ export default function ChartBuilderPage() {
         showTooltip: chart.showTooltip,
         height: chart.height,
       },
-      dataset: embedDataset,
+      dataset: {
+        title: dataset.title,
+        dimensions: dataset.dimensions,
+        measures: dataset.measures,
+        observations: dataset.observations,
+      },
       filters: globalFilters,
       customPalettes,
     };
 
-    // Check size
+    // Minimize payload for URL-based embedding (reduces size dramatically)
+    // - Samples to max 100 observations
+    // - Removes unused dimension columns
+    // - Shortens URI field names
+    const payload = preparePayloadForEmbed(initialPayload, 100);
+
+    // Check size after minimization
     if (isConfigTooLarge(payload, 8000)) {
-      setSnackbar({ open: true, message: "Configuration too large. Consider reducing data or simplifying." });
+      setSnackbar({ open: true, message: "Configuration still too large. Try reducing data further." });
     }
 
     // Generate embed code

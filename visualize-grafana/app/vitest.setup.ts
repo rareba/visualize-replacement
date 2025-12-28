@@ -1,3 +1,4 @@
+import "@testing-library/jest-dom";
 import clownface, { AnyPointer } from "clownface";
 import rdf from "rdf-ext";
 import DatasetExt from "rdf-ext/lib/Dataset";

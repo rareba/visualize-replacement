@@ -234,6 +234,7 @@
     "@types/use-sync-external-store": "^0.0.6",
     "@types/wellknown": "^0.5.1",
     "@vitejs/plugin-react": "^4.5.0",
+    "@vitest/coverage-v8": "^4.0.16",
     "babel-core": "^7.0.0-bridge.0",
     "babel-plugin-module-resolver": "^4.1.0",
     "eslint-plugin-unused-imports": "^4.1.4",
@@ -241,6 +242,6 @@
     "jsdom": "^26.1.0",
     "playwright-testing-library": "^4.5.0",
     "prettier": "^3.2.5",
-    "vitest": "^3.1.4"
+    "vitest": "^4.0.16"
   }
 }

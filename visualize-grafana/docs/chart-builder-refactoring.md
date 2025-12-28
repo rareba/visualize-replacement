@@ -109,6 +109,29 @@ These could be removed if chart-builder were extracted as standalone:
 2. `c6701f6` - Replace MUI components with lightweight Swiss Federal alternatives
 3. `9f3ee53` - Add refactoring summary documentation
 4. `bb52270` - Fix URL-based chart embedding for large datasets
+5. `16e77f8` - Add data catalog page as main entry point
+
+### Phase 6: Data Catalog Entry Point
+
+Created a data catalog page as the main entry point for the application:
+
+**File Created:**
+- `app/pages/data-catalog.tsx` - Browse and search LINDAS datasets
+
+**Features:**
+- Swiss Federal branded header
+- Search functionality with SPARQL queries to LINDAS endpoint
+- Dataset cards showing title, publisher, description, themes
+- "Create Visualization" button redirects to chart-builder with dataset pre-selected
+- Navigation from chart-builder back to data catalog
+
+**User Flow:**
+1. User visits `/data-catalog` (main entry point)
+2. Browse or search for datasets from LINDAS
+3. Click "Create Visualization" on a dataset
+4. Redirected to `/chart-builder?cube=<dataset-IRI>`
+5. Chart builder loads with selected dataset
+6. User can navigate back to data catalog via header link
 
 ## Testing Checklist
 
@@ -125,6 +148,9 @@ All features have been tested and verified:
 - [x] Swiss Federal styling maintained
 - [x] Embedded charts render correctly
 - [x] URL-based embedding works with payload minimization
+- [x] Data catalog page loads and displays datasets
+- [x] Dataset search functionality works
+- [x] Navigation between data catalog and chart builder works
 
 ### Embed Payload Minimization
 
@@ -155,7 +181,8 @@ app/
     chart-builder/
       EmbeddableChart.tsx        # Embed chart component
   pages/
-    chart-builder.tsx            # Main page (refactored)
+    data-catalog.tsx             # Main entry point - browse datasets
+    chart-builder.tsx            # Chart configuration page
     embed/
       chart/
         [configId].tsx           # Embed page
@@ -168,7 +195,7 @@ docs/
 
 ## Next Steps
 
-1. **Manual Testing**: Test embed functionality in a real browser
-2. **Standalone Extraction**: If needed, extract chart-builder as a separate Next.js project with minimal dependencies
-3. **Further MUI Replacement**: Replace remaining MUI components (Select, TextField, Dialog) if bundle size is critical
-4. **Performance Optimization**: Add code splitting and lazy loading for chart components
+1. **Standalone Extraction**: If needed, extract chart-builder as a separate Next.js project with minimal dependencies
+2. **Further MUI Replacement**: Replace remaining MUI components (Select, TextField, Dialog) if bundle size is critical
+3. **Performance Optimization**: Add code splitting and lazy loading for chart components
+4. **Homepage Redirect**: Consider adding redirect from `/` to `/data-catalog`

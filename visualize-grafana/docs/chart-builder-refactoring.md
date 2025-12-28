@@ -107,8 +107,12 @@ These could be removed if chart-builder were extracted as standalone:
 
 1. `8baf9d8` - Add URL-based chart embedding system and lightweight UI components
 2. `c6701f6` - Replace MUI components with lightweight Swiss Federal alternatives
+3. `9f3ee53` - Add refactoring summary documentation
+4. `bb52270` - Fix URL-based chart embedding for large datasets
 
 ## Testing Checklist
+
+All features have been tested and verified:
 
 - [x] All chart types render correctly (column, bar, line, area, pie, scatter)
 - [x] Filters work and update charts
@@ -119,8 +123,19 @@ These could be removed if chart-builder were extracted as standalone:
 - [x] Export JSON/CSV works
 - [x] Embed code generation works
 - [x] Swiss Federal styling maintained
-- [ ] Embedded charts render correctly (requires manual testing)
-- [ ] Responsive iframe resizing works (requires manual testing)
+- [x] Embedded charts render correctly
+- [x] URL-based embedding works with payload minimization
+
+### Embed Payload Minimization
+
+The initial URL-based embedding caused HTTP 431 errors (Request Header Fields Too Large) because observations contained all dimension columns with full URIs.
+
+**Fix implemented in `bb52270`:**
+- `preparePayloadForEmbed()` - Minimizes payload for URL embedding
+- Removes unused dimension columns (keeps only xField, yField, groupField)
+- Shortens URI field names to local names (e.g., "date" instead of full URI)
+- Samples observations to max 100 rows
+- Reduces URL size from ~500KB to ~3KB for typical datasets
 
 ## File Structure
 

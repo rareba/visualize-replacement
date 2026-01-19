@@ -22,7 +22,6 @@ import {
   type EmbedPayload,
   type EmbedChartConfig,
   type EmbedDataset,
-  type EmbedOptions,
 } from "./chart-config-encoder";
 
 // Mock console.error to suppress expected error messages in tests

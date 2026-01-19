@@ -93,7 +93,7 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(
       padding: 0,
       border: "none",
       borderRadius: fullScreen ? 0 : 12,
-      boxShadow: elevations.xl,
+      boxShadow: elevations[4],
       backgroundColor: "#fff",
       maxWidth: fullScreen ? "100vw" : maxWidthValues[maxWidth],
       width: fullScreen ? "100vw" : "calc(100% - 32px)",
@@ -117,7 +117,7 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: `${spacing[3]}px ${spacing[4]}px`,
+      padding: `${spacing(3)} ${spacing(4)}`,
       borderBottom: `1px solid ${colors.monochrome[100]}`,
       flexShrink: 0,
     };
@@ -146,15 +146,15 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(
     const contentStyle: React.CSSProperties = {
       flex: 1,
       overflow: "auto",
-      padding: spacing[4],
+      padding: spacing(4),
     };
 
     const actionsStyle: React.CSSProperties = {
       display: "flex",
       alignItems: "center",
       justifyContent: "flex-end",
-      gap: spacing[2],
-      padding: `${spacing[3]}px ${spacing[4]}px`,
+      gap: spacing(2),
+      padding: `${spacing(3)} ${spacing(4)}`,
       borderTop: `1px solid ${colors.monochrome[100]}`,
       backgroundColor: colors.monochrome[50],
       flexShrink: 0,

@@ -10,7 +10,7 @@ import { ExamplesECharts } from "./examples-echarts";
 
 // Mock next/dynamic to avoid SSR issues
 vi.mock("next/dynamic", () => ({
-  default: (loader: () => Promise<{ default: React.ComponentType<unknown> }>) => {
+  default: (_loader: () => Promise<{ default: React.ComponentType<unknown> }>) => {
     const Component = (props: Record<string, unknown>) => (
       <div data-testid="simple-echarts-chart" {...props}>
         Mock Chart

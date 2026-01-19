@@ -43,17 +43,17 @@ const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
 
 const sizeStyles: Record<ButtonSize, React.CSSProperties> = {
   small: {
-    padding: `${spacing[1]}px ${spacing[2]}px`,
+    padding: `${spacing(1)} ${spacing(2)}`,
     fontSize: 12,
     minHeight: 28,
   },
   medium: {
-    padding: `${spacing[2]}px ${spacing[3]}px`,
+    padding: `${spacing(2)} ${spacing(3)}`,
     fontSize: 14,
     minHeight: 36,
   },
   large: {
-    padding: `${spacing[3]}px ${spacing[4]}px`,
+    padding: `${spacing(3)} ${spacing(4)}`,
     fontSize: 16,
     minHeight: 44,
   },
@@ -79,7 +79,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      gap: spacing[1],
+      gap: spacing(1),
       fontFamily: "'Frutiger Neue', Arial, sans-serif",
       fontWeight: 500,
       borderRadius: 4,

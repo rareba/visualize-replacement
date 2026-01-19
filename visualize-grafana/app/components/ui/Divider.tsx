@@ -23,10 +23,10 @@ export const Divider = forwardRef<HTMLHRElement, DividerProps>(
     const isHorizontal = orientation === "horizontal";
     const hasChildren = Boolean(children);
 
-    const marginValues: Record<string, { left: number; right: number }> = {
+    const marginValues: Record<string, { left: string | number; right: string | number }> = {
       fullWidth: { left: 0, right: 0 },
-      inset: { left: spacing[4], right: 0 },
-      middle: { left: spacing[3], right: spacing[3] },
+      inset: { left: spacing(4), right: 0 },
+      middle: { left: spacing(3), right: spacing(3) },
     };
 
     if (hasChildren && isHorizontal) {
@@ -35,7 +35,7 @@ export const Divider = forwardRef<HTMLHRElement, DividerProps>(
         display: "flex",
         alignItems: "center",
         width: "100%",
-        margin: `${spacing[2]}px 0`,
+        margin: `${spacing(2)} 0`,
         ...style,
       };
 
@@ -46,7 +46,7 @@ export const Divider = forwardRef<HTMLHRElement, DividerProps>(
       };
 
       const textStyle: React.CSSProperties = {
-        padding: `0 ${spacing[2]}px`,
+        padding: `0 ${spacing(2)}`,
         color: colors.monochrome[500],
         fontSize: 12,
         fontFamily: "'Frutiger Neue', Arial, sans-serif",
@@ -69,7 +69,7 @@ export const Divider = forwardRef<HTMLHRElement, DividerProps>(
       ? {
           width: "100%",
           height: 1,
-          margin: `${spacing[2]}px 0`,
+          margin: `${spacing(2)} 0`,
           marginLeft: marginValues[variant].left,
           marginRight: marginValues[variant].right,
           border: "none",
@@ -79,7 +79,7 @@ export const Divider = forwardRef<HTMLHRElement, DividerProps>(
           width: 1,
           height: "auto",
           alignSelf: "stretch",
-          margin: `0 ${spacing[2]}px`,
+          margin: `0 ${spacing(2)}`,
           border: "none",
           backgroundColor: colors.monochrome[200],
         };

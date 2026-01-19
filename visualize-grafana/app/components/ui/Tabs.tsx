@@ -20,7 +20,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   ({ value, onChange, variant = "standard", fullWidth, children, style, ...props }, ref) => {
     const containerStyle: React.CSSProperties = {
       display: "flex",
-      gap: variant === "pills" ? spacing[1] : 0,
+      gap: variant === "pills" ? spacing(1) : 0,
       borderBottom: variant === "standard" ? `1px solid ${colors.monochrome[200]}` : "none",
       backgroundColor: variant === "contained" ? colors.monochrome[100] : "transparent",
       borderRadius: variant === "contained" ? 8 : 0,
@@ -88,8 +88,8 @@ export const Tab = forwardRef<HTMLButtonElement, TabProps>(
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      gap: spacing[1],
-      padding: `${spacing[2]}px ${spacing[3]}px`,
+      gap: spacing(1),
+      padding: `${spacing(2)} ${spacing(3)}`,
       fontFamily: "'Frutiger Neue', Arial, sans-serif",
       fontSize: 14,
       fontWeight: isSelected ? 600 : 400,

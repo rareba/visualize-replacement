@@ -8,11 +8,11 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   footer?: ReactNode;
 }
 
-const paddingValues: Record<string, number> = {
-  none: 0,
-  small: spacing[2],
-  medium: spacing[3],
-  large: spacing[4],
+const paddingValues: Record<string, string> = {
+  none: "0",
+  small: spacing(2),
+  medium: spacing(3),
+  large: spacing(4),
 };
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -31,7 +31,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     const variantStyles: Record<string, React.CSSProperties> = {
       elevated: {
         backgroundColor: "#fff",
-        boxShadow: elevations.md,
+        boxShadow: elevations[2],
         border: "none",
       },
       outlined: {
@@ -58,14 +58,14 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     };
 
     const headerStyle: React.CSSProperties = {
-      padding: `${spacing[2]}px ${paddingValues[padding]}px`,
+      padding: `${spacing(2)} ${paddingValues[padding]}`,
       borderBottom: `1px solid ${colors.monochrome[100]}`,
       fontWeight: 600,
       color: colors.monochrome[800],
     };
 
     const footerStyle: React.CSSProperties = {
-      padding: `${spacing[2]}px ${paddingValues[padding]}px`,
+      padding: `${spacing(2)} ${paddingValues[padding]}`,
       borderTop: `1px solid ${colors.monochrome[100]}`,
       backgroundColor: colors.monochrome[50],
     };

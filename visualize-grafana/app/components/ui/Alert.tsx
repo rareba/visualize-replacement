@@ -80,8 +80,8 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(
     const baseStyle: React.CSSProperties = {
       display: "flex",
       alignItems: "flex-start",
-      gap: spacing[2],
-      padding: spacing[3],
+      gap: spacing(2),
+      padding: spacing(3),
       borderRadius: 6,
       backgroundColor: styles.bg,
       border: `1px solid ${styles.border}`,
@@ -104,7 +104,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(
 
     const titleStyle: React.CSSProperties = {
       fontWeight: 600,
-      marginBottom: children ? spacing[1] : 0,
+      marginBottom: children ? spacing(1) : 0,
     };
 
     const closeButtonStyle: React.CSSProperties = {

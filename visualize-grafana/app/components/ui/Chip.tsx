@@ -43,8 +43,8 @@ const colorStyles: Record<ChipColor, { filled: { bg: string; text: string }; out
 };
 
 const sizeStyles: Record<ChipSize, { height: number; fontSize: number; padding: string }> = {
-  small: { height: 24, fontSize: 11, padding: `0 ${spacing[2]}px` },
-  medium: { height: 32, fontSize: 13, padding: `0 ${spacing[3]}px` },
+  small: { height: 24, fontSize: 11, padding: `0 ${spacing(2)}` },
+  medium: { height: 32, fontSize: 13, padding: `0 ${spacing(3)}` },
 };
 
 export const Chip = forwardRef<HTMLSpanElement, ChipProps>(
@@ -69,7 +69,7 @@ export const Chip = forwardRef<HTMLSpanElement, ChipProps>(
     const baseStyle: React.CSSProperties = {
       display: "inline-flex",
       alignItems: "center",
-      gap: spacing[1],
+      gap: spacing(1),
       height: sizeStyle.height,
       padding: sizeStyle.padding,
       borderRadius: sizeStyle.height / 2,
@@ -79,7 +79,7 @@ export const Chip = forwardRef<HTMLSpanElement, ChipProps>(
       whiteSpace: "nowrap",
       cursor: clickable || onClick ? "pointer" : "default",
       transition: "all 0.15s ease",
-      backgroundColor: variant === "filled" ? colorStyle.bg : "transparent",
+      backgroundColor: variant === "filled" ? (colorStyle as { bg: string }).bg : "transparent",
       color: colorStyle.text,
       border: variant === "outlined" ? `1px solid ${(colorStyle as { border: string }).border}` : "none",
       ...style,
@@ -91,8 +91,8 @@ export const Chip = forwardRef<HTMLSpanElement, ChipProps>(
       justifyContent: "center",
       width: sizeStyle.height - 10,
       height: sizeStyle.height - 10,
-      marginLeft: spacing[1],
-      marginRight: -spacing[1],
+      marginLeft: spacing(1),
+      marginRight: `calc(-1 * ${spacing(1)})`,
       borderRadius: "50%",
       background: "none",
       border: "none",
@@ -104,7 +104,7 @@ export const Chip = forwardRef<HTMLSpanElement, ChipProps>(
 
     return (
       <span ref={ref} style={baseStyle} onClick={onClick} {...props}>
-        {icon && <span style={{ display: "flex", marginLeft: -spacing[1] }}>{icon}</span>}
+        {icon && <span style={{ display: "flex", marginLeft: `calc(-1 * ${spacing(1)})` }}>{icon}</span>}
         {label}
         {onDelete && (
           <button

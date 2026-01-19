@@ -5,14 +5,37 @@
  * using ECharts directly, bypassing the complex D3 state management.
  */
 
-import { Box, Typography } from "@mui/material";
-import { memo, useMemo, useEffect } from "react";
+import { Box, Theme, Typography } from "@mui/material";
+import { makeStyles } from "@mui/styles";
+import { memo, useEffect, useMemo } from "react";
 
-import { SimpleEChartsChart, SimpleChartType } from "./SimpleEChartsChart";
 import { ChartDataWrapper } from "@/charts/chart-data-wrapper";
 import { ChartProps, VisualizationProps } from "@/charts/shared/chart-props";
 import { ChartConfig } from "@/config-types";
 import { Dimension, Measure } from "@/domain/data";
+
+import { SimpleChartType, SimpleEChartsChart } from "./SimpleEChartsChart";
+
+const useStyles = makeStyles((theme: Theme) => ({
+  loadingBox: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    backgroundColor: "#f9f9f9",
+    borderRadius: theme.shape.borderRadius,
+  },
+  warningBox: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    backgroundColor: "#fff3cd",
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(2),
+  },
+}));
 
 // Map config chart types to simple chart types
 function mapChartType(chartType: ChartConfig["chartType"]): SimpleChartType {
@@ -90,6 +113,7 @@ const EChartsChart = memo((props: EChartsChartProps) => {
     measures,
     height = 400
   } = props;
+  const classes = useStyles();
 
   // Debug logging
   useEffect(() => {
@@ -123,17 +147,7 @@ const EChartsChart = memo((props: EChartsChartProps) => {
   // If no observations, show loading or empty state
   if (!observations || observations.length === 0) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height,
-          width: "100%",
-          backgroundColor: "#f9f9f9",
-          borderRadius: 1,
-        }}
-      >
+      <Box className={classes.loadingBox} sx={{ height }}>
         <Typography color="textSecondary">
           Loading data...
         </Typography>
@@ -144,19 +158,7 @@ const EChartsChart = memo((props: EChartsChartProps) => {
   // If no valid fields, show a message
   if (!xField || !yField) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          height,
-          width: "100%",
-          backgroundColor: "#fff3cd",
-          borderRadius: 1,
-          p: 2,
-        }}
-      >
+      <Box className={classes.warningBox} sx={{ height }}>
         <Typography color="warning.dark" variant="body2">
           Chart configuration incomplete
         </Typography>

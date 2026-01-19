@@ -6,11 +6,24 @@
  * but provides its own simple rendering logic.
  */
 
-import { Box, FormControl, InputLabel, MenuItem, Select, Typography, ToggleButton, ToggleButtonGroup, Paper } from "@mui/material";
+import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Theme, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { makeStyles } from "@mui/styles";
 import React, { useMemo, useState } from "react";
 
-import { SimpleEChartsChart, SimpleChartType } from "./SimpleEChartsChart";
-import { Observation, Dimension, Measure } from "@/domain/data";
+import { Dimension, Measure, Observation } from "@/domain/data";
+
+import { SimpleChartType, SimpleEChartsChart } from "./SimpleEChartsChart";
+
+const useStyles = makeStyles((theme: Theme) => ({
+  noDataBox: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f9f9f9",
+    borderRadius: theme.shape.borderRadius,
+  },
+}));
 
 export interface SimpleChartPreviewProps {
   /** Raw observation data */
@@ -61,6 +74,7 @@ export const SimpleChartPreview: React.FC<SimpleChartPreviewProps> = ({
   showControls = true,
   onConfigChange,
 }) => {
+  const classes = useStyles();
   // Find default fields if not provided
   const defaultXField = useMemo(() => {
     if (initialXField) return initialXField;
@@ -142,17 +156,7 @@ export const SimpleChartPreview: React.FC<SimpleChartPreviewProps> = ({
   // Render no data state
   if (!observations || observations.length === 0) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          height,
-          backgroundColor: "#f9f9f9",
-          borderRadius: 1,
-        }}
-      >
+      <Box className={classes.noDataBox} sx={{ height }}>
         <Typography color="textSecondary">
           No data available for visualization
         </Typography>

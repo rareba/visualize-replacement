@@ -10,14 +10,16 @@
  * when using the RENDER_ENGINE="echarts" feature flag.
  */
 
-import React, { useMemo } from "react";
 import ReactECharts from "echarts-for-react";
-import type { EChartsOption, BarSeriesOption } from "echarts";
+import React, { useMemo } from "react";
+
 
 import { ColumnsState } from "@/charts/column/columns-state";
 import { useChartState } from "@/charts/shared/chart-state";
 import { useChartTheme } from "@/charts/shared/use-chart-theme";
 import { useTransitionStore } from "@/stores/transition";
+
+import type { BarSeriesOption, EChartsOption } from "echarts";
 
 // Swiss Federal theme for ECharts
 const ECHARTS_SWISS_THEME = {
@@ -257,10 +259,6 @@ export const EChartsErrorWhiskers: React.FC = () => {
     });
   }, [chartData, getYErrorPresent, getYErrorRange, getX, getY, showYUncertainty]);
 
-  if (errorData.length === 0) {
-    return null;
-  }
-
   const option: EChartsOption = useMemo(() => {
     return {
       grid: {
@@ -347,6 +345,10 @@ export const EChartsErrorWhiskers: React.FC = () => {
       animationDuration: transitionDuration,
     };
   }, [errorData, margins, xScale, yScale, bandwidth, enableTransition, transitionDuration]);
+
+  if (errorData.length === 0) {
+    return null;
+  }
 
   return (
     <ReactECharts

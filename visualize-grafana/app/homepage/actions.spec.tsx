@@ -4,16 +4,17 @@
  * Tests the homepage actions section with contribute, newsletter, and feedback options.
  */
 
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { useIsMobile } from "@/utils/use-is-mobile";
+
 import { Actions } from "./actions";
 
 // Mock useIsMobile hook
 vi.mock("@/utils/use-is-mobile", () => ({
   useIsMobile: vi.fn(() => false),
 }));
-
-import { useIsMobile } from "@/utils/use-is-mobile";
 
 describe("Actions", () => {
   const defaultProps = {

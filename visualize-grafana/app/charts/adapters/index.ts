@@ -23,27 +23,30 @@
 
 // Render engine context for switching between D3 and ECharts
 export {
+  type RenderEngine,
   RenderEngineProvider,
+  RenderIf,
   useRenderEngine,
   withRenderEngine,
-  RenderIf,
-  type RenderEngine,
 } from "./render-engine-context";
 
-// Column chart bridge
+// Column chart bridge (vertical bars)
 export {
   EChartsColumns,
   EChartsErrorWhiskers,
 } from "./echarts-column-bridge";
 
+// Bar chart bridge (horizontal bars)
+export { EChartsBars } from "./echarts-bar-bridge";
+
 // Line chart bridge
 export { EChartsLines } from "./echarts-line-bridge";
 
 // Pie chart bridge
-export { EChartsPie, EChartsDonut } from "./echarts-pie-bridge";
+export { EChartsDonut, EChartsPie } from "./echarts-pie-bridge";
 
-// Area chart bridge (to be implemented)
-// export { EChartsAreas } from "./echarts-area-bridge";
+// Scatterplot bridge
+export { EChartsScatterplot } from "./echarts-scatterplot-bridge";
 
-// Scatterplot bridge (to be implemented)
-// export { EChartsScatterplot } from "./echarts-scatterplot-bridge";
+// Area chart bridge
+export { EChartsAreas } from "./echarts-area-bridge";

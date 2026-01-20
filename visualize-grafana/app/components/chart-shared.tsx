@@ -211,12 +211,14 @@ export const ChartMoreButton = ({
     if (chartConfig.chartType !== "table") {
       actions.push(
         <TableViewChartMenuActionItem
+          key="table-view"
           chartType={chartConfig.chartType}
           onSuccess={handleClose}
         />
       );
       actions.push(
         <DownloadPNGImageMenuActionItem
+          key="download-png"
           configKey={configKey}
           chartKey={chartKey}
           components={components}
@@ -231,8 +233,8 @@ export const ChartMoreButton = ({
       configKey &&
       !disableDatabaseRelatedActions
     ) {
-      actions.push(<CopyChartMenuActionItem configKey={configKey} />);
-      actions.push(<ShareChartMenuActionItem configKey={configKey} />);
+      actions.push(<CopyChartMenuActionItem key="copy" configKey={configKey} />);
+      actions.push(<ShareChartMenuActionItem key="share" configKey={configKey} />);
     }
 
     return actions;
@@ -254,6 +256,7 @@ export const ChartMoreButton = ({
     if (!isConfiguring(state)) {
       actions.push(
         <MenuActionItem
+          key="edit"
           type="button"
           as="menuitem"
           onClick={() => {
@@ -268,6 +271,7 @@ export const ChartMoreButton = ({
 
     actions.push(
       <DuplicateChartMenuActionItem
+        key="duplicate"
         chartConfig={chartConfig}
         onSuccess={handleClose}
       />
@@ -276,12 +280,14 @@ export const ChartMoreButton = ({
     if (chartConfig.chartType !== "table") {
       actions.push(
         <TableViewChartMenuActionItem
+          key="table-view"
           chartType={chartConfig.chartType}
           onSuccess={handleClose}
         />
       );
       actions.push(
         <DownloadPNGImageMenuActionItem
+          key="download-png"
           configKey={configKey}
           chartKey={chartKey}
           components={components}
@@ -294,6 +300,7 @@ export const ChartMoreButton = ({
     if (state.chartConfigs.length > 1) {
       actions.push(
         <MenuActionItem
+          key="delete"
           type="button"
           as="menuitem"
           color="red"

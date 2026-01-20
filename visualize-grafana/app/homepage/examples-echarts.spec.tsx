@@ -4,18 +4,50 @@
  * Tests the homepage example charts component that uses ECharts.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { ExamplesECharts } from "./examples-echarts";
 
 // Mock next/dynamic to avoid SSR issues
 vi.mock("next/dynamic", () => ({
   default: (_loader: () => Promise<{ default: React.ComponentType<unknown> }>) => {
-    const Component = (props: Record<string, unknown>) => (
-      <div data-testid="simple-echarts-chart" {...props}>
-        Mock Chart
-      </div>
-    );
+    const Component = (props: Record<string, unknown>) => {
+      // Filter out non-DOM props to avoid React warnings
+      const {
+        observations,
+        xField,
+        yField,
+        segmentField,
+        chartType,
+        showLegend,
+        showTooltip,
+        colors,
+        animationDuration,
+        xAxisLabel,
+        yAxisLabel,
+        title,
+        ...domProps
+      } = props;
+      // Use void to avoid unused variable warnings
+      void observations;
+      void xField;
+      void yField;
+      void segmentField;
+      void chartType;
+      void showLegend;
+      void showTooltip;
+      void colors;
+      void animationDuration;
+      void xAxisLabel;
+      void yAxisLabel;
+      void title;
+      return (
+        <div data-testid="simple-echarts-chart" {...domProps}>
+          Mock Chart
+        </div>
+      );
+    };
     Component.displayName = "MockDynamicComponent";
     return Component;
   },

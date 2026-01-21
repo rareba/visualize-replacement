@@ -1,0 +1,1 @@
+export { SupersetEmbed } from './SupersetEmbed';

@@ -25,22 +25,28 @@ export class HomeComponent {
       title: 'Dashboards',
       description: 'View interactive dashboards powered by Apache Superset for comprehensive data visualization.',
       icon: 'dashboard',
-      link: '/dashboard',
+      link: '/dashboard/1',
       color: '#722ed1'
     },
     {
       title: 'Charts',
       description: 'Explore individual charts and visualizations created from LINDAS data cubes.',
       icon: 'bar_chart',
-      link: '/chart',
+      link: '/chart/1',
       color: '#52c41a'
     },
     {
-      title: 'GraphQL',
+      title: 'GraphQL API',
       description: 'Query LINDAS data using our GraphQL API. Build custom queries and explore the data model.',
       icon: 'code',
       link: '/graphql',
       color: '#eb2f96'
     }
+  ];
+
+  endpoints = [
+    { name: 'Production', url: 'lindas-cached.cluster.ldbar.ch' },
+    { name: 'Integration', url: 'lindas-cached.int.cluster.ldbar.ch' },
+    { name: 'Test', url: 'lindas-cached.test.cluster.ldbar.ch' }
   ];
 }

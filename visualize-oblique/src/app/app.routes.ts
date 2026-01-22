@@ -14,6 +14,14 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/cube-detail/cube-detail.component').then(m => m.CubeDetailComponent)
   },
   {
+    path: 'dashboard/:dashboardId',
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
+  },
+  {
+    path: 'chart/:chartId',
+    loadComponent: () => import('./pages/chart/chart.component').then(m => m.ChartComponent)
+  },
+  {
     path: 'graphql',
     loadComponent: () => import('./pages/graphql-playground/graphql-playground.component').then(m => m.GraphqlPlaygroundComponent)
   },

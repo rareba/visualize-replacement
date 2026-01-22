@@ -6,6 +6,7 @@ Provides a GraphQL API for querying cube data from LINDAS SPARQL endpoints.
 import strawberry
 from strawberry.types import Info
 from typing import List, Optional, Any, Dict
+from enum import Enum
 import logging
 from datetime import datetime
 
@@ -27,7 +28,7 @@ JSON = strawberry.scalar(
 
 
 @strawberry.enum
-class Endpoint(strawberry.enum.Enum):
+class Endpoint(Enum):
     """Available LINDAS endpoints."""
     PROD = "prod"
     INT = "int"

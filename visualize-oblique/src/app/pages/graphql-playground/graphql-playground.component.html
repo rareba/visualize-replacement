@@ -1,0 +1,122 @@
+<div class="playground-container">
+  <nav class="breadcrumbs">
+    @for (crumb of breadcrumbs; track crumb.label; let last = $last) {
+      @if (crumb.url && !last) {
+        <a [routerLink]="crumb.url">{{ crumb.label }}</a>
+        <span class="separator">/</span>
+      } @else {
+        <span class="current">{{ crumb.label }}</span>
+      }
+    }
+  </nav>
+
+  <h1>GraphQL Playground</h1>
+  <p class="description">
+    Query LINDAS data using GraphQL. Select an example query or write your own.
+  </p>
+
+  <div class="playground-layout">
+    <div class="sidebar">
+      <h3>Example Queries</h3>
+      @for (example of exampleQueries; track example.name) {
+        <mat-card class="example-card" (click)="loadExample(example)">
+          <mat-card-header>
+            <mat-card-title>{{ example.name }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p>{{ example.description }}</p>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <h3>Quick Reference</h3>
+      <div class="reference-table">
+        <table>
+          <tr>
+            <th>Query</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td><code>cubes</code></td>
+            <td>List data cubes</td>
+          </tr>
+          <tr>
+            <td><code>cube</code></td>
+            <td>Get single cube</td>
+          </tr>
+          <tr>
+            <td><code>cubeDimensions</code></td>
+            <td>Cube dimensions</td>
+          </tr>
+          <tr>
+            <td><code>dimensionValues</code></td>
+            <td>Dimension values</td>
+          </tr>
+          <tr>
+            <td><code>executeSparql</code></td>
+            <td>Raw SPARQL query</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="controls">
+        <mat-form-field appearance="outline" class="endpoint-field">
+          <mat-label>Endpoint</mat-label>
+          <mat-select [value]="selectedEndpoint()" (selectionChange)="selectedEndpoint.set($event.value)">
+            @for (endpoint of endpoints; track endpoint) {
+              <mat-option [value]="endpoint">{{ endpoint | uppercase }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="executeQuery()" [disabled]="loading()">
+          @if (loading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>play_arrow</mat-icon>
+          }
+          Execute
+        </button>
+      </div>
+
+      <div class="editor-container">
+        <h4>Query</h4>
+        <textarea
+          class="query-editor"
+          [ngModel]="query()"
+          (ngModelChange)="query.set($event)"
+          placeholder="Enter your GraphQL query here..."
+          spellcheck="false"
+        ></textarea>
+      </div>
+
+      @if (error()) {
+        <div class="error-message">
+          <mat-icon>error</mat-icon>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <div class="result-container">
+        <h4>
+          Result
+          @if (executionTime() !== null) {
+            <span class="execution-time">({{ executionTime() }}ms)</span>
+          }
+        </h4>
+        @if (loading()) {
+          <div class="loading">
+            <mat-spinner diameter="24"></mat-spinner>
+            <span>Executing query...</span>
+          </div>
+        } @else if (result()) {
+          <pre class="result-output">{{ result() }}</pre>
+        } @else {
+          <p class="no-result">Execute a query to see results</p>
+        }
+      </div>
+    </div>
+  </div>
+</div>

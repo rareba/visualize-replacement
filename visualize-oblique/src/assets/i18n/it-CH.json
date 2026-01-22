@@ -1,0 +1,26 @@
+{
+  "app": {
+    "title": "LINDAS Visualizer",
+    "description": "Esplora e visualizza i Linked Data svizzeri"
+  },
+  "nav": {
+    "home": "Home",
+    "cubes": "Cubi di dati",
+    "graphql": "Playground GraphQL"
+  },
+  "home": {
+    "title": "Benvenuto in LINDAS Visualizer",
+    "subtitle": "Esplora e visualizza i Linked Data svizzeri dalla piattaforma LINDAS"
+  },
+  "cubes": {
+    "title": "Cubi di dati",
+    "search": "Cerca cubi",
+    "endpoint": "Endpoint",
+    "noResults": "Nessun cubo di dati trovato"
+  },
+  "graphql": {
+    "title": "Playground GraphQL",
+    "execute": "Esegui",
+    "examples": "Query di esempio"
+  }
+}

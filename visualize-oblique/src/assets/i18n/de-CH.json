@@ -1,0 +1,26 @@
+{
+  "app": {
+    "title": "LINDAS Visualizer",
+    "description": "Erkunden und Visualisieren von Schweizer Linked Data"
+  },
+  "nav": {
+    "home": "Startseite",
+    "cubes": "Datenwuerfel",
+    "graphql": "GraphQL Spielplatz"
+  },
+  "home": {
+    "title": "Willkommen beim LINDAS Visualizer",
+    "subtitle": "Erkunden und visualisieren Sie Schweizer Linked Data von der LINDAS-Plattform"
+  },
+  "cubes": {
+    "title": "Datenwuerfel",
+    "search": "Wuerfel suchen",
+    "endpoint": "Endpunkt",
+    "noResults": "Keine Datenwuerfel gefunden"
+  },
+  "graphql": {
+    "title": "GraphQL Spielplatz",
+    "execute": "Ausfuehren",
+    "examples": "Beispielabfragen"
+  }
+}

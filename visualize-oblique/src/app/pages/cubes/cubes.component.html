@@ -1,0 +1,75 @@
+<div class="cubes-container">
+  <nav class="breadcrumbs">
+    @for (crumb of breadcrumbs; track crumb.label; let last = $last) {
+      @if (crumb.url && !last) {
+        <a [routerLink]="crumb.url">{{ crumb.label }}</a>
+        <span class="separator">/</span>
+      } @else {
+        <span class="current">{{ crumb.label }}</span>
+      }
+    }
+  </nav>
+
+  <h1>Data Cubes</h1>
+  <p class="description">
+    Browse and search through available LINDAS data cubes. Click on a cube to view its schema and details.
+  </p>
+
+  <div class="controls">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search cubes</mat-label>
+      <input matInput
+             [value]="searchQuery()"
+             (input)="onSearchInput($event)"
+             placeholder="Search by title or description...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="endpoint-field">
+      <mat-label>Endpoint</mat-label>
+      <mat-select [value]="selectedEndpoint()" (selectionChange)="onEndpointChange($event.value)">
+        @for (endpoint of endpoints; track endpoint) {
+          <mat-option [value]="endpoint">{{ endpoint | uppercase }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (error()) {
+    <div class="error-message">
+      <mat-icon>error</mat-icon>
+      <span>{{ error() }}</span>
+      <button mat-button (click)="loadCubes()">Retry</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading data cubes...</p>
+    </div>
+  } @else {
+    <div class="cubes-grid">
+      @for (cube of cubes(); track cube.iri) {
+        <mat-card class="cube-card" (click)="selectCube(cube)">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>storage</mat-icon>
+            <mat-card-title>{{ cube.title || cube.identifier }}</mat-card-title>
+            <mat-card-subtitle>{{ cube.publisher }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="cube-description">{{ cube.description || 'No description available' }}</p>
+            <div class="cube-meta">
+              <span><mat-icon>calendar_today</mat-icon> {{ formatDate(cube.dateModified) }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      } @empty {
+        <div class="no-results">
+          <mat-icon>search_off</mat-icon>
+          <p>No data cubes found matching your search criteria.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

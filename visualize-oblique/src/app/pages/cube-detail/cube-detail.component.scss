@@ -1,0 +1,169 @@
+.cube-detail-container {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+
+  a {
+    color: #1890ff;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .separator {
+    color: #999;
+  }
+
+  .current {
+    color: #666;
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+  color: #666;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  border-radius: 4px;
+  color: #cf1322;
+
+  mat-icon {
+    color: #ff4d4f;
+  }
+
+  button {
+    margin-left: auto;
+  }
+}
+
+.cube-header {
+  margin: 1.5rem 0 2rem;
+
+  h1 {
+    margin: 0 0 0.5rem;
+    color: #333;
+  }
+
+  .publisher {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .description {
+    color: #555;
+    line-height: 1.6;
+  }
+}
+
+.tab-content {
+  padding: 1.5rem 0;
+
+  h3 {
+    margin: 0 0 1rem;
+    color: #333;
+  }
+}
+
+.schema-table {
+  width: 100%;
+  border: 1px solid #e8e8e8;
+
+  th {
+    background: #fafafa;
+    font-weight: 600;
+  }
+
+  td {
+    vertical-align: top;
+  }
+
+  .dim-description {
+    color: #999;
+    display: block;
+    margin-top: 0.25rem;
+  }
+}
+
+.no-data {
+  color: #999;
+  text-align: center;
+  padding: 2rem;
+}
+
+.coming-soon {
+  color: #999;
+  text-align: center;
+  padding: 3rem;
+  font-style: italic;
+}
+
+.sparql-container {
+  position: relative;
+  background: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  margin: 1rem 0;
+
+  .sparql-code {
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .copy-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: white;
+    border: 1px solid #e1e4e8;
+  }
+}
+
+.endpoint-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+
+  mat-icon {
+    color: #1890ff;
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  code {
+    background: #f0f0f0;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: monospace;
+  }
+}

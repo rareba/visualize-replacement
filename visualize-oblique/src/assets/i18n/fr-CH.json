@@ -1,0 +1,26 @@
+{
+  "app": {
+    "title": "LINDAS Visualizer",
+    "description": "Explorer et visualiser les donnees liees suisses"
+  },
+  "nav": {
+    "home": "Accueil",
+    "cubes": "Cubes de donnees",
+    "graphql": "Terrain de jeu GraphQL"
+  },
+  "home": {
+    "title": "Bienvenue sur LINDAS Visualizer",
+    "subtitle": "Explorez et visualisez les donnees liees suisses de la plateforme LINDAS"
+  },
+  "cubes": {
+    "title": "Cubes de donnees",
+    "search": "Rechercher des cubes",
+    "endpoint": "Point de terminaison",
+    "noResults": "Aucun cube de donnees trouve"
+  },
+  "graphql": {
+    "title": "Terrain de jeu GraphQL",
+    "execute": "Executer",
+    "examples": "Exemples de requetes"
+  }
+}

@@ -1,0 +1,24 @@
+<ob-master-layout>
+  <ng-container obHeaderTitle>LINDAS Visualizer</ng-container>
+
+  <ng-container obHeaderControls>
+    <button class="ob-font-larger" aria-label="Language">
+      EN
+    </button>
+  </ng-container>
+
+  <nav obNavigation>
+    <ob-nav-tree [items]="navigation" [prefix]="'nav'"></ob-nav-tree>
+  </nav>
+
+  <router-outlet></router-outlet>
+
+  <ng-container obFooterInfo>
+    <span>LINDAS - Linked Data Service</span>
+  </ng-container>
+
+  <ng-container obFooterLinks>
+    <a href="https://lindas.admin.ch" target="_blank" rel="noopener">LINDAS Portal</a>
+    <a href="https://www.bfs.admin.ch" target="_blank" rel="noopener">BFS/SFSO</a>
+  </ng-container>
+</ob-master-layout>

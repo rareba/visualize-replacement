@@ -1,0 +1,54 @@
+<div class="home-container">
+  <section class="hero-section">
+    <h1>LINDAS Visualizer</h1>
+    <p class="subtitle">
+      Explore and visualize Swiss Linked Data from the LINDAS platform.
+      Access data cubes, create dashboards, and query using GraphQL.
+    </p>
+  </section>
+
+  <section class="features-section">
+    <h2>Features</h2>
+    <div class="features-grid">
+      @for (feature of features; track feature.title) {
+        <mat-card class="feature-card" [routerLink]="feature.link">
+          <mat-card-header>
+            <mat-icon [style.color]="feature.color">{{ feature.icon }}</mat-icon>
+            <mat-card-title>{{ feature.title }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p>{{ feature.description }}</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button [style.color]="feature.color">
+              Explore <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  </section>
+
+  <section class="about-section">
+    <h2>About LINDAS</h2>
+    <p>
+      LINDAS (Linked Data Service) is the Swiss Federal platform for publishing and consuming
+      Linked Open Data. It provides a SPARQL endpoint for querying RDF data cubes from various
+      Swiss federal offices and organizations.
+    </p>
+    <p>
+      This visualizer provides an intuitive interface for exploring LINDAS data, creating
+      visualizations, and building custom queries without requiring deep knowledge of SPARQL.
+    </p>
+    <div class="links">
+      <a href="https://lindas.admin.ch" target="_blank" rel="noopener" mat-stroked-button>
+        <mat-icon>open_in_new</mat-icon>
+        Visit LINDAS Portal
+      </a>
+      <a href="https://www.bfs.admin.ch" target="_blank" rel="noopener" mat-stroked-button>
+        <mat-icon>open_in_new</mat-icon>
+        Federal Statistical Office
+      </a>
+    </div>
+  </section>
+</div>

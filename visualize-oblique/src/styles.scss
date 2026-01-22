@@ -1,0 +1,69 @@
+/* Global styles */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Material Design customizations */
+.mat-mdc-card {
+  --mdc-elevated-card-container-elevation: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Utility classes */
+.ob-font-larger {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+}
+
+/* Fix for Oblique master layout content spacing */
+ob-master-layout {
+  .ob-master-layout-content {
+    padding: 0;
+  }
+}
+
+/* Breadcrumb styling */
+ob-breadcrumb {
+  margin-bottom: 1rem;
+}
+
+/* Form field adjustments */
+.mat-mdc-form-field {
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+}
+
+/* Code styling */
+code, pre {
+  font-family: 'Fira Code', 'Monaco', 'Consolas', 'Courier New', monospace;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+
+  &:hover {
+    background: #a8a8a8;
+  }
+}

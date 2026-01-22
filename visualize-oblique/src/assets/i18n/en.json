@@ -1,0 +1,26 @@
+{
+  "app": {
+    "title": "LINDAS Visualizer",
+    "description": "Explore and visualize Swiss Linked Data"
+  },
+  "nav": {
+    "home": "Home",
+    "cubes": "Data Cubes",
+    "graphql": "GraphQL Playground"
+  },
+  "home": {
+    "title": "Welcome to LINDAS Visualizer",
+    "subtitle": "Explore and visualize Swiss Linked Data from the LINDAS platform"
+  },
+  "cubes": {
+    "title": "Data Cubes",
+    "search": "Search cubes",
+    "endpoint": "Endpoint",
+    "noResults": "No data cubes found"
+  },
+  "graphql": {
+    "title": "GraphQL Playground",
+    "execute": "Execute",
+    "examples": "Example Queries"
+  }
+}

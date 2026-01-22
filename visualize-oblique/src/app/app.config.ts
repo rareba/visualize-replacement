@@ -4,7 +4,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader, provideTranslateHttpLoader } from '@ngx-translate/http-loader';
-import { ObMasterLayoutModule, WINDOW } from '@oblique/oblique';
+import { ObMasterLayoutModule, ObIconModule, WINDOW, provideObliqueConfiguration } from '@oblique/oblique';
 
 import { routes } from './app.routes';
 
@@ -15,6 +15,18 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptorsFromDi()),
     provideAnimationsAsync(),
     { provide: WINDOW, useValue: window },
+    provideObliqueConfiguration({
+      accessibilityStatement: {
+        applicationName: 'LINDAS Visualizer',
+        applicationOperator: 'Swiss Federal Administration',
+        createdOn: new Date('2025-01-22'),
+        conformity: 'full',
+        contact: [{
+          email: 'lindas@admin.ch'
+        }]
+      },
+      hasLanguageInUrl: false
+    }),
     provideTranslateHttpLoader({
       prefix: './assets/i18n/',
       suffix: '.json'
@@ -27,6 +39,7 @@ export const appConfig: ApplicationConfig = {
         },
         defaultLanguage: 'en'
       }),
+      ObIconModule,
       ObMasterLayoutModule
     )
   ]

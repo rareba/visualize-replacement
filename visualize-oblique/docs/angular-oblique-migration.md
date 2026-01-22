@@ -160,11 +160,46 @@ The application requires the SPARQL proxy backend to be running:
 The application uses the following Oblique features:
 - Master Layout (`ObMasterLayoutModule`)
 - Navigation Tree (`ObNavTreeComponent`)
+- Icon Module (`ObIconModule`) for SVG icons
 - Translations integration with ngx-translate
 - Swiss Federal corporate design styling
+
+### Required Configuration
+
+Oblique requires proper configuration in `app.config.ts`:
+
+```typescript
+import { ObMasterLayoutModule, ObIconModule, WINDOW, provideObliqueConfiguration } from '@oblique/oblique';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    { provide: WINDOW, useValue: window },
+    provideObliqueConfiguration({
+      accessibilityStatement: {
+        applicationName: 'LINDAS Visualizer',
+        applicationOperator: 'Swiss Federal Administration',
+        createdOn: new Date('2025-01-22'),
+        conformity: 'full',
+        contact: [{ email: 'contact@example.ch' }]
+      },
+      hasLanguageInUrl: false
+    }),
+    importProvidersFrom(ObIconModule, ObMasterLayoutModule)
+  ]
+};
+```
+
+### Material Icons
+
+Material Icons must be loaded in `index.html`:
+
+```html
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+```
 
 ## Known Limitations
 
 1. Bundle size is larger than typical Angular applications due to Oblique framework
-2. Some Material Design icon errors in tests (cosmetic, tests pass)
+2. Some Oblique icon errors in tests (cosmetic, tests pass) - icons require HTTP requests for SVG files
 3. Requires Angular 20+ for Oblique 14 compatibility
+4. HttpErrorResponse errors expected when SPARQL backend is not running

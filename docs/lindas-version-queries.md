@@ -9,8 +9,8 @@ All queries target the LINDAS SPARQL endpoint: `https://ld.admin.ch/query`
 ## Graph Structure
 
 ```
-Graph IRI:  https://lindas.admin.ch/elcom/electricityprice
-Cube IRI:   https://energy.ld.admin.ch/elcom/electricityprice
+Graph IRI:  https://lindas.admin.ch/sfoe/cube
+Cube IRI:   https://energy.ld.admin.ch/sfoe/bfe_ogd84_einmalverguetung_fuer_photovoltaikanlagen/9
 ```
 
 ---
@@ -34,7 +34,7 @@ ORDER BY ?graph
 PREFIX cube: <https://cube.link/>
 
 SELECT (COUNT(?obs) as ?totalObs)
-FROM <https://lindas.admin.ch/elcom/electricityprice>
+FROM <https://lindas.admin.ch/sfoe/cube>
 WHERE {
   ?cube a cube:Cube .
   ?cube cube:observationSet ?obsSet .
@@ -48,7 +48,7 @@ WHERE {
 PREFIX cube: <https://cube.link/>
 
 SELECT (COUNT(*) as ?tripleCount)
-FROM <https://lindas.admin.ch/elcom/electricityprice>
+FROM <https://lindas.admin.ch/sfoe/cube>
 WHERE {
   ?obs a cube:Observation .
   ?obs ?p ?o .
@@ -61,7 +61,7 @@ WHERE {
 PREFIX cube: <https://cube.link/>
 
 SELECT ?cube ?versionNum (COUNT(?obs) as ?obsCount)
-FROM <https://lindas.admin.ch/fsvo/cube>
+FROM <https://lindas.admin.ch/sfoe/cube>
 WHERE {
   ?cube a cube:Cube .
   ?cube cube:observationSet ?obsSet .
@@ -79,7 +79,7 @@ ORDER BY DESC(?versionNum)
 PREFIX cube: <https://cube.link/>
 
 SELECT ?baseCube (MAX(?versionNum) as ?latestVersion) (COUNT(?cube) as ?versionCount)
-FROM <https://lindas.admin.ch/fsvo/cube>
+FROM <https://lindas.admin.ch/sfoe/cube>
 WHERE {
   ?cube a cube:Cube .
   BIND(REPLACE(STR(?cube), "/[0-9]+$", "") AS ?baseCube)
@@ -96,7 +96,7 @@ ORDER BY DESC(?versionCount)
 PREFIX cube: <https://cube.link/>
 
 SELECT ?baseCube ?versionNum (COUNT(?obs) as ?obsCount)
-FROM <https://lindas.admin.ch/fsvo/cube>
+FROM <https://lindas.admin.ch/sfoe/cube>
 WHERE {
   ?cube a cube:Cube .
   ?cube cube:observationSet ?obsSet .
@@ -117,7 +117,7 @@ PREFIX cube: <https://cube.link/>
 SELECT
   (COUNT(DISTINCT ?cube) as ?totalCubes)
   (COUNT(?obs) as ?totalObs)
-FROM <https://lindas.admin.ch/fsvo/cube>
+FROM <https://lindas.admin.ch/sfoe/cube>
 WHERE {
   ?cube a cube:Cube .
   ?cube cube:observationSet ?obsSet .
@@ -214,7 +214,7 @@ curl -X POST "https://ld.admin.ch/query" \
   -H "Accept: application/sparql-results+json" \
   --data 'PREFIX cube: <https://cube.link/>
 SELECT (COUNT(?obs) as ?totalObs)
-FROM <https://lindas.admin.ch/elcom/electricityprice>
+FROM <https://lindas.admin.ch/sfoe/cube>
 WHERE {
   ?cube a cube:Cube .
   ?cube cube:observationSet ?obsSet .
@@ -238,6 +238,7 @@ curl -X POST "https://ld.admin.ch/query" \
 
 | Domain | Graph IRI |
 |--------|-----------|
+| **Energy (SFOE)** | **`https://lindas.admin.ch/sfoe/cube`** (used in examples) |
 | Energy (ELCOM) | `https://lindas.admin.ch/elcom/electricityprice` |
 | Health (FSVO) | `https://lindas.admin.ch/fsvo/cube` |
 | Environment (FOEN) | `https://lindas.admin.ch/foen/cube` |

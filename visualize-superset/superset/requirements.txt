@@ -3,13 +3,9 @@ apache-superset==4.0.0
 
 # Database drivers
 psycopg2-binary==2.9.9
-sqlalchemy==1.4.51
 
-# Redis
-redis==5.0.1
-
-# Celery
-celery==5.3.4
+# Note: SQLAlchemy, Redis, Celery versions are managed by apache-superset
+# Do not specify versions that conflict with superset's requirements
 
 # Additional requirements for custom features
 requests==2.31.0

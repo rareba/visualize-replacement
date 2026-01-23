@@ -20,12 +20,13 @@ export function SupersetEmbed({
   type,
   id,
   height = '600px',
-  filters,
+  filters: _filters,
 }: SupersetEmbedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  // Note: _filters can be used in future for dashboard filter presets
+  void _filters;
 
   const fetchGuestToken = useCallback(async () => {
     try {
@@ -118,7 +119,6 @@ export function SupersetEmbed({
         }
 
         if (isMounted) {
-          setMounted(true);
           setLoading(false);
         }
       } catch (err) {

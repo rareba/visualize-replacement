@@ -8,7 +8,13 @@ from datetime import timedelta
 # -----------------------------------------------------------------------------
 # SECRETS AND SECURITY
 # -----------------------------------------------------------------------------
-SECRET_KEY = os.environ.get("SUPERSET_SECRET_KEY", "your-secret-key-change-in-production")
+# Superset 4.0+ requires a secret key of at least 32 bytes
+_default_secret = "this-is-a-default-secret-key-for-development-only-minimum-42-chars"
+SECRET_KEY = os.environ.get("SUPERSET_SECRET_KEY", _default_secret)
+
+# Ensure secret key is at least 32 bytes for async query manager
+if len(SECRET_KEY) < 32:
+    SECRET_KEY = _default_secret
 
 # -----------------------------------------------------------------------------
 # DATABASE CONFIGURATION
@@ -91,12 +97,17 @@ FEATURE_FLAGS = {
     "ENABLE_TEMPLATE_PROCESSING": True,
     "ALERT_REPORTS": True,
     "TAGGING_SYSTEM": True,
-    "GLOBAL_ASYNC_QUERIES": True,
+    # Disable global async queries as it requires special JWT configuration
+    "GLOBAL_ASYNC_QUERIES": False,
 
     # SQL Lab features
     "SQLLAB_BACKEND_PERSISTENCE": True,
     "ESTIMATE_QUERY_COST": False,
 }
+
+# Global async queries JWT secret (must be at least 32 bytes)
+# Even though we disabled GLOBAL_ASYNC_QUERIES, Superset 4.0 still checks this
+GLOBAL_ASYNC_QUERIES_JWT_SECRET = SECRET_KEY
 
 # -----------------------------------------------------------------------------
 # EMBEDDING CONFIGURATION
@@ -126,19 +137,27 @@ GUEST_TOKEN_JWT_ALGO = "HS256"
 GUEST_TOKEN_HEADER_NAME = "X-GuestToken"
 GUEST_TOKEN_JWT_EXP_SECONDS = 3600  # 1 hour
 
-# Public role for anonymous access (optional)
-PUBLIC_ROLE_LIKE = "Gamma"
-
 # -----------------------------------------------------------------------------
 # SECURITY CONFIGURATION
 # -----------------------------------------------------------------------------
-# Enable row level security
-ENABLE_ROW_LEVEL_SECURITY = True
+# Disable authentication for development/embedded use
+# WARNING: Do not use this in production without proper security measures
 
-# WTF CSRF configuration
-WTF_CSRF_ENABLED = True
+# Allow public access without login
+from flask_appbuilder.security.manager import AUTH_DB
+AUTH_TYPE = AUTH_DB
+
+# Make public role have full access (like Admin role)
+PUBLIC_ROLE_LIKE = "Admin"
+
+# Enable row level security
+ENABLE_ROW_LEVEL_SECURITY = False
+
+# Disable WTF CSRF for API access
+WTF_CSRF_ENABLED = False
 WTF_CSRF_EXEMPT_LIST = [
     "superset.views.api",
+    "superset.views.core",
 ]
 
 # Session configuration
@@ -148,6 +167,10 @@ SESSION_COOKIE_HTTPONLY = True
 
 # Permanent session lifetime
 PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
+
+# Allow anonymous users to access dashboards
+FAB_ADD_SECURITY_VIEWS = False
+FAB_ADD_SECURITY_PERMISSION_VIEW = False
 
 # -----------------------------------------------------------------------------
 # WEBSERVER CONFIGURATION

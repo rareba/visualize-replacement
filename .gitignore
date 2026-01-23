@@ -22,3 +22,9 @@ metabase/
 .env
 .env.local
 *.env
+
+# Claude Code settings
+.claude/
+
+# Task files
+task.txt

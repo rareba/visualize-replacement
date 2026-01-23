@@ -135,6 +135,45 @@ Created setup scripts and comprehensive documentation:
 
 3. **Cube Discovery**: The cube mapping from SQL table names to cube URIs uses a convention-based approach. A more robust mapping system may be needed for complex scenarios.
 
+## Phase 6: Superset 4.0 Compatibility Fixes (2026-01-23)
+
+### Issues Encountered
+
+1. **Dependency Conflicts**: Superset 4.0 has specific version requirements for celery (>=5.3.6) and redis (<5.0), which conflicted with pinned versions in requirements.txt.
+
+2. **JWT Secret Requirement**: Superset 4.0's async query manager requires a JWT secret of at least 32 bytes, even when GLOBAL_ASYNC_QUERIES is disabled.
+
+3. **TypeScript Errors**: The SupersetEmbed component had unused variables that caused build failures.
+
+### Solutions Implemented
+
+1. **Fixed requirements.txt**: Removed pinned versions for celery, redis, and sqlalchemy to let apache-superset manage its own dependencies.
+
+2. **Updated superset_config.py**:
+   - Added default secret key with 42+ characters
+   - Added length check to ensure SECRET_KEY is at least 32 bytes
+   - Disabled GLOBAL_ASYNC_QUERIES feature flag
+   - Added GLOBAL_ASYNC_QUERIES_JWT_SECRET setting
+
+3. **Fixed SupersetEmbed.tsx**: Renamed unused `filters` prop to `_filters` with void statement, removed unused `mounted` state.
+
+### Testing Results
+
+- SPARQL Proxy: Working, health endpoint responding
+- Frontend: Working, successfully fetching cubes from LINDAS
+- Superset: Working, database connection established
+- Database: PostgreSQL "LINDAS Data" database connected and exposed in SQL Lab
+
+### Services Running
+
+| Service | Port | Status |
+|---------|------|--------|
+| Frontend | 3000 | Healthy |
+| Superset | 8088 | Healthy |
+| SPARQL Proxy | 8089 | Healthy |
+| PostgreSQL | 5432 | Healthy |
+| Redis | 6379 | Healthy |
+
 ## Future Enhancements
 
 1. **Advanced SQL Support**: Extend SQL-to-SPARQL translation for complex queries
@@ -142,3 +181,4 @@ Created setup scripts and comprehensive documentation:
 3. **Chart Builder**: Add a visual chart builder interface
 4. **Data Export**: Add support for exporting data to CSV/Excel
 5. **Saved Queries**: Allow users to save and share queries
+6. **Trino/Presto Integration**: Add Trino connector for native SPARQL-to-SQL federation

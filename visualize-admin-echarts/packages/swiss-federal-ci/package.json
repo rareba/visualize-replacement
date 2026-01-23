@@ -1,0 +1,97 @@
+{
+  "name": "@visualize-admin/swiss-federal-ci",
+  "description": "Fork of swiss-federal-ci with React-compatible SVG attributes (fillRule, clipRule, clipPath).",
+  "version": "3.1.0-fork.1",
+  "license": "bsd-3-clause",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build:clean": "rm -rf ./dist",
+    "build:watch": "rollup -c --watch",
+    "lint": "yarn eslint src/ --ext ts,tsx ",
+    "typecheck": "yarn run tsc",
+    "build": "yarn build:clean && rollup -c",
+    "storybook": "storybook dev -p 6006",
+    "storybook:noopen": "storybook dev -p 6006 --no-open",
+    "build-storybook": "storybook build",
+    "serve-storybook": "serve storybook-static",
+    "semantic-release": "semantic-release"
+  },
+  "devDependencies": {
+    "@argos-ci/cli": "^1.0.3",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.13.3",
+    "@playwright-testing-library/test": "^4.5.0",
+    "@playwright/test": "^1.49.1",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-terser": "^0.4.3",
+    "@rollup/plugin-typescript": "^11.1.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.2",
+    "@storybook/addon-essentials": "^7.0.18",
+    "@storybook/addon-interactions": "^7.0.18",
+    "@storybook/addon-links": "^7.0.18",
+    "@storybook/react": "^7.0.18",
+    "@storybook/react-vite": "^7.0.18",
+    "@types/node": "^16.7.13",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "eslint": "^8.54.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-storybook": "^0.6.15",
+    "eslint-plugin-unused-imports": "^3.0.0",
+    "next": "^13.5.6",
+    "playwright": "^1.49.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-transition-group": "^4.4.5",
+    "rollup": "^3.23.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-preserve-directives": "^1.1.1",
+    "semantic-release": "^22.0.7",
+    "serve": "^14.2.0",
+    "storybook": "^7.0.20",
+    "tslib": "^2.5.2",
+    "tss-react": "^4.9.3",
+    "ttypescript": "^1.5.15",
+    "typescript": "^4.4.2",
+    "typescript-transform-paths": "^3.4.7",
+    "vite": "^4.3.9"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.13.3",
+    "next": "^13.5.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-transition-group": "^4.4.5",
+    "tss-react": "^4.9.3"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/interactivethings/swiss-federal-ci.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

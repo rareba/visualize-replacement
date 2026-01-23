@@ -174,11 +174,74 @@ Created setup scripts and comprehensive documentation:
 | PostgreSQL | 5432 | Healthy |
 | Redis | 6379 | Healthy |
 
+## Phase 7: Chart Builder Implementation (2026-01-23)
+
+### Goal
+
+Create a visual chart builder similar to visualize.admin.ch that allows users to:
+1. Browse LINDAS data cubes
+2. Select dimensions and measures
+3. Create visualizations interactively
+4. Preview charts in real-time
+
+### Implementation
+
+#### New Components
+
+1. **ChartBuilderPage.tsx** - Main chart configuration interface:
+   - Chart type selector (bar, line, pie, scatter)
+   - X-axis dimension dropdown (auto-selects date fields)
+   - Y-axis measure dropdown (auto-selects revenue/amount/value fields)
+   - Color-by grouping dropdown (optional)
+   - Real-time chart preview using ECharts
+
+2. **Updated lindas.ts service**:
+   - Added `getObservations()` function to fetch cube data via SPARQL
+   - Dynamically builds SPARQL queries based on selected dimensions/measures
+   - Returns data formatted for chart rendering
+
+3. **Updated CubeDetailPage.tsx**:
+   - Added "Create Chart" button linking to chart builder
+   - Improved layout with action button in header
+
+4. **Updated App.tsx**:
+   - Added route `/cubes/:cubeId/chart` for chart builder
+
+#### Dependencies Added
+
+- `echarts: ^5.5.0` - Powerful charting library
+- `echarts-for-react: ^3.0.2` - React wrapper for ECharts
+
+#### Key Features
+
+- **Auto-detection**: Automatically identifies date columns for X-axis and numeric columns for Y-axis
+- **Multi-series charts**: Support for grouping by a dimension to create multi-line/bar charts
+- **Interactive preview**: Chart updates automatically when configuration changes
+- **SPARQL integration**: Fetches real LINDAS data via the SPARQL proxy
+
+### Testing Results
+
+Successfully tested with "Advertising revenue of television broadcasters" cube:
+- X-axis: observationDate (2000-2024)
+- Y-axis: advertisingRevenue (0-800M CHF)
+- Color-by: conceptsendegruppe (3 program types)
+- Chart types: Bar, Line, Pie, Scatter all working
+
+### Screenshots
+
+The chart builder displays:
+- Configuration panel on the left with dropdowns and chart type buttons
+- Preview panel on the right with interactive ECharts visualization
+- Multi-series line chart showing advertising revenue trends by program type
+
 ## Future Enhancements
 
 1. **Advanced SQL Support**: Extend SQL-to-SPARQL translation for complex queries
 2. **User Authentication**: Implement OAuth/OIDC for user authentication
-3. **Chart Builder**: Add a visual chart builder interface
-4. **Data Export**: Add support for exporting data to CSV/Excel
-5. **Saved Queries**: Allow users to save and share queries
-6. **Trino/Presto Integration**: Add Trino connector for native SPARQL-to-SQL federation
+3. **Save Charts**: Allow users to save chart configurations
+4. **Export to Superset**: Create Superset datasets/charts from the builder
+5. **Data Export**: Add support for exporting data to CSV/Excel
+6. **Saved Queries**: Allow users to save and share queries
+7. **Trino/Presto Integration**: Add Trino connector for native SPARQL-to-SQL federation
+8. **Filters**: Add interactive filters for dimensions
+9. **Aggregations**: Support SUM, AVG, COUNT, etc. for measures

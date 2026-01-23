@@ -1,0 +1,4 @@
+{
+  "query": "SELECT DISTINCT ?cube ?title WHERE { ?cube a cube:Cube ; schema:name ?title . FILTER(LANG(?title) = \"en\" || LANG(?title) = \"\") } LIMIT 5",
+  "endpoint": "prod"
+}

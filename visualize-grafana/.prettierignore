@@ -1,6 +1,0 @@
-.next
-.yarn
-node_modules
-__fixtures/**/*.json
-build
-dist

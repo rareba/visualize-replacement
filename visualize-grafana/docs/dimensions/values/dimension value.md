@@ -1,4 +1,0 @@
-- `literal`
-- `namedNode`
-	- regular `namedNode`
-	- [[temporal entity]]

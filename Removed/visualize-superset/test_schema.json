@@ -1,0 +1,4 @@
+{
+  "query": "SELECT DISTINCT ?shape ?dimension ?label WHERE { <https://health.ld.admin.ch/fsvo/Tierversuchsstatistik_Abgeschlossene_Versuche/3> cube:observationConstraint ?constraint . ?constraint sh:property ?shape . ?shape sh:path ?dimension . OPTIONAL { ?dimension schema:name ?label } } LIMIT 10",
+  "endpoint": "prod"
+}

@@ -17,7 +17,9 @@ import {
   Alert,
   Tabs,
   Tab,
+  Button,
 } from '@mui/material';
+import { BarChart as ChartIcon } from '@mui/icons-material';
 import { useState } from 'react';
 import { lindasService } from '@/services/lindas';
 
@@ -114,17 +116,27 @@ export function CubeDetailPage() {
       </Breadcrumbs>
 
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {cubeName}
-        </Typography>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ wordBreak: 'break-all' }}
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant="h4" component="h1" gutterBottom>
+            {cubeName}
+          </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ wordBreak: 'break-all' }}
+          >
+            {decodedCubeId}
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<ChartIcon />}
+          onClick={() => navigate(`/cubes/${cubeId}/chart`)}
+          sx={{ flexShrink: 0 }}
         >
-          {decodedCubeId}
-        </Typography>
+          Create Chart
+        </Button>
       </Box>
 
       {/* Tabs */}

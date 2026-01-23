@@ -335,6 +335,60 @@ export async function executeSparqlGraphQL(
   };
 }
 
+// Types for cube columns
+export interface CubeColumn {
+  name: string;
+  iri: string;
+  label: string;
+  type: 'dimension' | 'temporalDimension' | 'measure';
+  dataType: string | null;
+}
+
+/**
+ * Fetch observations from a cube with specified dimensions and measures.
+ */
+export async function getObservations(
+  cubeId: string,
+  options: {
+    dimensions: string[];
+    measures: string[];
+    limit?: number;
+  },
+  endpoint: Endpoint = 'prod'
+): Promise<Record<string, any>[]> {
+  // First get the schema to build proper SPARQL query
+  const schema = await getCubeSchema(cubeId, endpoint);
+
+  const columns = schema.columns.filter(
+    (col) => options.dimensions.includes(col.name) || options.measures.includes(col.name)
+  );
+
+  if (columns.length === 0) {
+    return [];
+  }
+
+  // Build SPARQL SELECT clause
+  const selectVars = columns.map((col) => `?${col.name}`).join(' ');
+
+  // Build WHERE patterns
+  const patterns = columns.map((col) => `  ?obs <${col.iri}> ?${col.name} .`).join('\n');
+
+  const sparqlQuery = `
+PREFIX cube: <https://cube.link/>
+
+SELECT ${selectVars}
+WHERE {
+  <${cubeId}> cube:observationSet ?set .
+  ?set cube:observation ?obs .
+${patterns}
+}
+LIMIT ${options.limit || 1000}
+  `.trim();
+
+  const result = await executeSparqlQuery(sparqlQuery, endpoint);
+  return result.rows;
+}
+
 export const lindasService = {
   getHealth,
   listCubes,
@@ -342,6 +396,7 @@ export const lindasService = {
   executeSqlQuery,
   executeSparqlQuery,
   listEndpoints,
+  getObservations,
   // GraphQL versions
   listCubesGraphQL,
   getCubeGraphQL,

@@ -183,10 +183,27 @@ describe("enabled chart types", () => {
     const expectedChartTypes = [
       "area",
       "bar",
+      "bar3d",
+      "boxplot",
       "column",
+      "donut",
+      "funnel",
+      "gauge",
+      "heatmap",
       "line",
+      "line3d",
       "pie",
+      "pie3d",
+      "polar",
+      "radar",
+      "sankey",
+      "scatter3d",
+      "sunburst",
+      "surface",
       "table",
+      "treemap",
+      "waterfall",
+      "wordcloud",
     ];
     const { enabledChartTypes, possibleChartTypesDict } = getEnabledChartTypes({
       dimensions: bathingWaterData.data.dataCubeByIri
@@ -227,6 +244,7 @@ describe("enabled chart types", () => {
     expect(enabledChartTypes.sort()).toEqual([
       "bar",
       "column",
+      "globe",
       "map",
       "pie",
       "table",

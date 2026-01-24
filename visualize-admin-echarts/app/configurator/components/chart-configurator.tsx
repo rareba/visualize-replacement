@@ -77,6 +77,7 @@ import {
   OnOffControlTabField,
 } from "@/configurator/components/field";
 import { canRenderDatePickerField } from "@/configurator/components/field-date-picker";
+import { PowerBIConfigurator } from "@/configurator/components/powerbi";
 import {
   getFiltersByMappingStatus,
   isConfiguring,
@@ -108,6 +109,9 @@ import { Icon } from "@/icons";
 import { useLocale } from "@/locales/use-locale";
 import { InteractiveFiltersChartProvider } from "@/stores/interactive-filters";
 import { useEvent } from "@/utils/use-event";
+
+// Feature flag for PowerBI-style interface
+const USE_POWERBI_INTERFACE = true;
 
 export const DataFilterSelectGeneric = ({
   rawDimension,
@@ -609,6 +613,22 @@ const InteractiveDataFilterToggle = ({ id }: { id: string }) => {
 };
 
 export const ChartConfigurator = ({
+  state,
+}: {
+  state: ConfiguratorStateConfiguringChart;
+}) => {
+  // Use PowerBI-style interface if enabled
+  if (USE_POWERBI_INTERFACE) {
+    return <PowerBIConfigurator state={state} />;
+  }
+
+  return <LegacyChartConfigurator state={state} />;
+};
+
+/**
+ * Legacy chart configurator - kept for reference and fallback
+ */
+const LegacyChartConfigurator = ({
   state,
 }: {
   state: ConfiguratorStateConfiguringChart;

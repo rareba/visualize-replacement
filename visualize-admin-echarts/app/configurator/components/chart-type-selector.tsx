@@ -52,6 +52,13 @@ const chartTypeDescriptions: Record<ChartType, string> = {
   comboLineSingle: "Multiple lines with same scale",
   comboLineDual: "Lines with dual Y-axes for different units",
   comboLineColumn: "Combine lines and columns",
+  // 3D Charts
+  bar3d: "3D bar chart with depth perspective",
+  scatter3d: "3D scatter plot in 3D space",
+  line3d: "3D line visualization with spatial depth",
+  surface: "3D surface plot for continuous data",
+  globe: "Geographic data on a 3D globe",
+  pie3d: "3D pie chart with depth effect",
 };
 
 export const ChartTypeSelector = ({

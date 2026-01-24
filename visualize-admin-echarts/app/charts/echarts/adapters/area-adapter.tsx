@@ -18,6 +18,7 @@ import {
   safeGetBounds,
   safeGetNumericDomain,
 } from "@/charts/echarts/adapter-utils";
+import { groupTimeSeriesData } from "@/charts/echarts/data-utils";
 import { EChartsWrapper } from "@/charts/echarts/EChartsWrapper";
 import { useDataZoom, useDataZoomEvents } from "@/charts/echarts/hooks";
 import { createAreaSeriesGroup } from "@/charts/echarts/series-builders";
@@ -25,53 +26,6 @@ import { getSwissFederalTheme, SWISS_FEDERAL_COLORS } from "@/charts/echarts/the
 import { useChartState } from "@/charts/shared/chart-state";
 
 import type { EChartsOption } from "echarts";
-
-/**
- * Groups time-series data by segment.
- */
-const groupTimeSeriesData = <T,>(
-  chartData: T[],
-  segments: string[],
-  getSegment: (d: T) => string,
-  getX: (d: T) => Date,
-  getY: (d: T) => number | null
-): {
-  xValues: number[];
-  xLabels: string[];
-  segmentDataMap: Map<string, Map<number, number | null>>;
-} => {
-  // Get unique X values
-  const xValues = [...new Set(chartData.map((d) => getX(d).getTime()))].sort(
-    (a, b) => a - b
-  );
-  const xLabels = xValues.map((t) => new Date(t).toLocaleDateString());
-
-  // Group data by segment
-  const segmentDataMap = new Map<string, Map<number, number | null>>();
-
-  if (segments.length > 0) {
-    segments.forEach((segment) => {
-      segmentDataMap.set(segment, new Map());
-    });
-
-    chartData.forEach((d) => {
-      const segment = getSegment(d);
-      const x = getX(d).getTime();
-      const y = getY(d);
-      segmentDataMap.get(segment)?.set(x, y);
-    });
-  } else {
-    // Single area
-    segmentDataMap.set("default", new Map());
-    chartData.forEach((d) => {
-      const x = getX(d).getTime();
-      const y = getY(d);
-      segmentDataMap.get("default")?.set(x, y);
-    });
-  }
-
-  return { xValues, xLabels, segmentDataMap };
-};
 
 /**
  * Area chart adapter with dataZoom support for time range filtering

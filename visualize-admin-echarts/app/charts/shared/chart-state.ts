@@ -361,7 +361,7 @@ export const useTemporalXVariables = (
 
   return {
     xAxisLabel,
-    xDimension,
+    xDimension: xDimension as TemporalDimension | TemporalEntityDimension,
     getX: isTemporalDimension(xDimension) ? getXTemporal : getXTemporalEntity,
     getXAsString,
   };
@@ -399,7 +399,7 @@ export const useTemporalMaybeXVariables = (
   const getXTemporalEntity = useTemporalEntityVariable(values)(componentId);
 
   return {
-    xDimension,
+    xDimension: xDimension as TemporalDimension | TemporalEntityDimension | undefined,
     getX: isTemporalDimension(xDimension) ? getXTemporal : getXTemporalEntity,
   };
 };

@@ -2,6 +2,7 @@ import { makeStyles } from "@mui/styles";
 import dynamic from "next/dynamic";
 import { forwardRef } from "react";
 
+import { isEChartsChart } from "@/charts/chart-registry";
 import { useQueryFilters } from "@/charts/shared/chart-helpers";
 import { Observer } from "@/charts/shared/use-size";
 import { useSyncInteractiveFilters } from "@/charts/shared/use-sync-interactive-filters";
@@ -12,14 +13,25 @@ import {
   type DataSource,
 } from "@/config-types";
 
-const ChartAreasVisualization = dynamic(
-  () => import("@/charts/area/chart-area").then((mod) => ({ default: mod.ChartAreasVisualization }))
+// ============================================================================
+// Universal ECharts Architecture
+// ============================================================================
+
+// Import the universal chart component for all ECharts-based charts
+const UniversalEChartsChart = dynamic(
+  () => import("@/charts/UniversalEChartsChart").then((mod) => ({ default: mod.UniversalEChartsChart }))
 );
-const ChartColumnsVisualization = dynamic(
-  () => import("@/charts/column/chart-column").then((mod) => ({ default: mod.ChartColumnsVisualization }))
+
+// ============================================================================
+// Non-ECharts Chart Components (Map, Table, Combo)
+// These use specialized rendering that doesn't fit the ECharts adapter pattern
+// ============================================================================
+
+const ChartMapVisualization = dynamic(
+  () => import("@/charts/map/chart-map").then((mod) => ({ default: mod.ChartMapVisualization }))
 );
-const ChartBarsVisualization = dynamic(
-  () => import("@/charts/bar/chart-bar").then((mod) => ({ default: mod.ChartBarsVisualization }))
+const ChartTableVisualization = dynamic(
+  () => import("@/charts/table/chart-table").then((mod) => ({ default: mod.ChartTableVisualization }))
 );
 const ChartComboLineSingleVisualization = dynamic(
   () => import("@/charts/combo/chart-combo-line-single").then((mod) => ({ default: mod.ChartComboLineSingleVisualization }))
@@ -30,21 +42,10 @@ const ChartComboLineDualVisualization = dynamic(
 const ChartComboLineColumnVisualization = dynamic(
   () => import("@/charts/combo/chart-combo-line-column").then((mod) => ({ default: mod.ChartComboLineColumnVisualization }))
 );
-const ChartLinesVisualization = dynamic(
-  () => import("@/charts/line/chart-lines").then((mod) => ({ default: mod.ChartLinesVisualization }))
-);
-const ChartMapVisualization = dynamic(
-  () => import("@/charts/map/chart-map").then((mod) => ({ default: mod.ChartMapVisualization }))
-);
-const ChartPieVisualization = dynamic(
-  () => import("@/charts/pie/chart-pie").then((mod) => ({ default: mod.ChartPieVisualization }))
-);
-const ChartScatterplotVisualization = dynamic(
-  () => import("@/charts/scatterplot/chart-scatterplot").then((mod) => ({ default: mod.ChartScatterplotVisualization }))
-);
-const ChartTableVisualization = dynamic(
-  () => import("@/charts/table/chart-table").then((mod) => ({ default: mod.ChartTableVisualization }))
-);
+
+// ============================================================================
+// GenericChart Component
+// ============================================================================
 
 type GenericChartProps = {
   dataSource: DataSource;
@@ -74,56 +75,23 @@ const GenericChart = ({
     embedParams,
   };
 
+  // Use Universal ECharts architecture for all ECharts-based charts
+  // This covers: column, bar, line, area, pie, donut, scatterplot,
+  // radar, funnel, gauge, treemap, sunburst, polar, wordcloud,
+  // heatmap, boxplot, waterfall, sankey
+  if (isEChartsChart(chartConfig.chartType)) {
+    return (
+      <UniversalEChartsChart
+        chartConfig={chartConfig}
+        dataSource={dataSource}
+        observationQueryFilters={observationQueryFilters}
+        componentIds={componentIds}
+      />
+    );
+  }
+
+  // Non-ECharts charts require specialized components
   switch (chartConfig.chartType) {
-    case "column":
-      return (
-        <ChartColumnsVisualization {...commonProps} chartConfig={chartConfig} />
-      );
-    case "bar":
-      return (
-        <ChartBarsVisualization {...commonProps} chartConfig={chartConfig} />
-      );
-    case "line":
-      return (
-        <ChartLinesVisualization {...commonProps} chartConfig={chartConfig} />
-      );
-    case "area":
-      return (
-        <ChartAreasVisualization {...commonProps} chartConfig={chartConfig} />
-      );
-    case "scatterplot":
-      return (
-        <ChartScatterplotVisualization
-          {...commonProps}
-          chartConfig={chartConfig}
-        />
-      );
-    case "pie":
-      return (
-        <ChartPieVisualization {...commonProps} chartConfig={chartConfig} />
-      );
-    // New ECharts-based chart types - using pie visualization as fallback for now
-    // These chart types share similar data structure with pie (categorical + measure)
-    case "donut":
-    case "radar":
-    case "funnel":
-    case "gauge":
-    case "treemap":
-    case "sunburst":
-    case "polar":
-    case "wordcloud":
-      return (
-        <ChartPieVisualization {...commonProps} chartConfig={chartConfig as any} />
-      );
-    // Statistical and flow charts - using column visualization as fallback
-    // These chart types share similar data structure with column (x-axis + y-axis)
-    case "heatmap":
-    case "boxplot":
-    case "waterfall":
-    case "sankey":
-      return (
-        <ChartColumnsVisualization {...commonProps} chartConfig={chartConfig as any} />
-      );
     case "table":
       return (
         <ChartTableVisualization {...commonProps} chartConfig={chartConfig} />
@@ -155,10 +123,19 @@ const GenericChart = ({
       );
 
     default:
-      const _exhaustiveCheck: never = chartConfig;
-      return _exhaustiveCheck;
+      // This should never happen if all chart types are handled
+      console.error(`Unhandled chart type: ${(chartConfig as ChartConfig).chartType}`);
+      return (
+        <div style={{ padding: 20, color: "#666" }}>
+          Chart type not supported
+        </div>
+      );
   }
 };
+
+// ============================================================================
+// ChartWithFilters Component
+// ============================================================================
 
 type ChartWithFiltersProps = {
   dataSource: DataSource;

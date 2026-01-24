@@ -340,6 +340,13 @@ export const supportsAnnotations = (chartConfig: ChartConfig) => {
     case "sankey":
     case "polar":
     case "wordcloud":
+    // 3D Charts (ECharts GL)
+    case "bar3d":
+    case "scatter3d":
+    case "surface":
+    case "line3d":
+    case "globe":
+    case "pie3d":
       return false;
     default:
       const _exhaustiveCheck: never = chartConfig;
@@ -927,6 +934,134 @@ const WordcloudConfig = t.intersection([
 ]);
 export type WordcloudConfig = t.TypeOf<typeof WordcloudConfig>;
 
+// ============================================================================
+// 3D Chart Configs (ECharts GL)
+// ============================================================================
+
+// 3D Bar Chart
+const Bar3dFields = t.type({
+  x: GenericField,
+  y: GenericField,
+  color: t.union([SingleColorField, SegmentColorField]),
+});
+export type Bar3dFields = t.TypeOf<typeof Bar3dFields>;
+
+const Bar3dConfig = t.intersection([
+  GenericChartConfig,
+  t.type(
+    {
+      chartType: t.literal("bar3d"),
+      fields: Bar3dFields,
+    },
+    "Bar3dConfig"
+  ),
+]);
+export type Bar3dConfig = t.TypeOf<typeof Bar3dConfig>;
+
+// 3D Scatter Chart
+const Scatter3dFields = t.type({
+  x: GenericField,
+  y: GenericField,
+  color: t.union([SingleColorField, SegmentColorField]),
+});
+export type Scatter3dFields = t.TypeOf<typeof Scatter3dFields>;
+
+const Scatter3dConfig = t.intersection([
+  GenericChartConfig,
+  t.type(
+    {
+      chartType: t.literal("scatter3d"),
+      fields: Scatter3dFields,
+    },
+    "Scatter3dConfig"
+  ),
+]);
+export type Scatter3dConfig = t.TypeOf<typeof Scatter3dConfig>;
+
+// 3D Surface Chart
+const SurfaceFields = t.type({
+  x: GenericField,
+  y: GenericField,
+  color: SingleColorField,
+});
+export type SurfaceFields = t.TypeOf<typeof SurfaceFields>;
+
+const SurfaceConfig = t.intersection([
+  GenericChartConfig,
+  t.type(
+    {
+      chartType: t.literal("surface"),
+      fields: SurfaceFields,
+    },
+    "SurfaceConfig"
+  ),
+]);
+export type SurfaceConfig = t.TypeOf<typeof SurfaceConfig>;
+
+// 3D Line Chart
+const Line3dFields = t.type({
+  x: GenericField,
+  y: GenericField,
+  color: t.union([SingleColorField, SegmentColorField]),
+});
+export type Line3dFields = t.TypeOf<typeof Line3dFields>;
+
+const Line3dConfig = t.intersection([
+  GenericChartConfig,
+  t.type(
+    {
+      chartType: t.literal("line3d"),
+      fields: Line3dFields,
+    },
+    "Line3dConfig"
+  ),
+]);
+export type Line3dConfig = t.TypeOf<typeof Line3dConfig>;
+
+// Globe Chart
+const GlobeFields = t.type({
+  x: GenericField, // latitude or geo field
+  y: GenericField, // value/measure
+  color: SingleColorField,
+});
+export type GlobeFields = t.TypeOf<typeof GlobeFields>;
+
+const GlobeConfig = t.intersection([
+  GenericChartConfig,
+  t.type(
+    {
+      chartType: t.literal("globe"),
+      fields: GlobeFields,
+    },
+    "GlobeConfig"
+  ),
+]);
+export type GlobeConfig = t.TypeOf<typeof GlobeConfig>;
+
+// 3D Pie Chart
+const Pie3dFields = t.intersection([
+  t.type({
+    y: GenericField,
+    color: t.union([SingleColorField, SegmentColorField]),
+  }),
+  t.partial({
+    segment: PieSegmentField,
+  }),
+]);
+export type Pie3dFields = t.TypeOf<typeof Pie3dFields>;
+
+const Pie3dConfig = t.intersection([
+  GenericChartConfig,
+  t.type(
+    {
+      chartType: t.literal("pie3d"),
+      fields: Pie3dFields,
+    },
+    "Pie3dConfig"
+  ),
+]);
+export type Pie3dConfig = t.TypeOf<typeof Pie3dConfig>;
+
 const DivergingPaletteType = t.union([
   t.literal("BrBG"),
   t.literal("PiYG"),
@@ -1392,6 +1527,13 @@ const RegularChartConfig = t.union([
   SankeyConfig,
   PolarConfig,
   WordcloudConfig,
+  // 3D Charts (ECharts GL)
+  Bar3dConfig,
+  Scatter3dConfig,
+  SurfaceConfig,
+  Line3dConfig,
+  GlobeConfig,
+  Pie3dConfig,
 ]);
 export type RegularChartConfig = t.TypeOf<typeof RegularChartConfig>;
 

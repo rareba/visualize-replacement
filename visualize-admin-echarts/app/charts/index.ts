@@ -1,5 +1,6 @@
 import { t } from "@lingui/macro";
 import { ascending, descending, group, rollup, rollups } from "d3-array";
+import { schemeCategory10 } from "d3-scale-chromatic";
 import produce from "immer";
 import get from "lodash/get";
 import mapValues from "lodash/mapValues";
@@ -113,6 +114,14 @@ const chartTypes: ChartType[] = [
   "sankey",
   "polar",
   "wordcloud",
+  // 3D Charts (ECharts GL)
+  "bar3d",
+  "scatter3d",
+  "surface",
+  "line3d",
+  "globe",
+  "pie3d",
+  // Combo charts
   "comboLineSingle",
   "comboLineDual",
   "comboLineColumn",
@@ -139,6 +148,13 @@ export const regularChartTypes: RegularChartType[] = [
   "sankey",
   "polar",
   "wordcloud",
+  // 3D Charts (ECharts GL)
+  "bar3d",
+  "scatter3d",
+  "surface",
+  "line3d",
+  "globe",
+  "pie3d",
 ];
 
 const comboDifferentUnitChartTypes: ComboChartType[] = [
@@ -176,7 +192,7 @@ export const chartTypeCategories: ChartCategoryConfig[] = [
   {
     id: "basic",
     labelKey: "controls.chart.category.basic",
-    chartTypes: ["column", "bar", "line", "area", "scatterplot"],
+    chartTypes: ["column", "bar", "line", "area", "scatterplot", "bar3d", "scatter3d", "line3d", "surface", "globe", "pie3d"],
   },
   {
     id: "partOfWhole",
@@ -237,6 +253,13 @@ function getChartTypeOrder({ cubeCount }: { cubeCount: number }): ChartOrder {
     comboLineSingle: 20 + multiCubeBoost,
     comboLineDual: 21 + multiCubeBoost,
     comboLineColumn: 22 + multiCubeBoost,
+    // 3D Charts
+    bar3d: 23,
+    scatter3d: 24,
+    line3d: 25,
+    surface: 26,
+    globe: 27,
+    pie3d: 28,
   };
 }
 
@@ -1132,6 +1155,116 @@ export const getInitialConfig = (
             colorMapping: mapValueIrisToColor({
               paletteId: wordcloudPalette,
               dimensionValues: wordcloudSegmentComponent.values,
+            }),
+          },
+        },
+      };
+    }
+
+    // 3D Charts (ECharts GL)
+    case "bar3d": {
+      const bar3dSegment = getCategoricalDimensions(dimensions)[0] ?? getGeoDimensions(dimensions)[0];
+      return {
+        ...getGenericConfig(),
+        chartType: "bar3d",
+        fields: {
+          x: { componentId: bar3dSegment.id },
+          y: { componentId: numericalMeasures[0].id },
+          color: {
+            type: "single",
+            paletteId: "category10",
+            color: schemeCategory10[0],
+          },
+        },
+      };
+    }
+
+    case "scatter3d": {
+      const scatter3dSegment = getCategoricalDimensions(dimensions)[0] ?? getGeoDimensions(dimensions)[0];
+      return {
+        ...getGenericConfig(),
+        chartType: "scatter3d",
+        fields: {
+          x: { componentId: scatter3dSegment.id },
+          y: { componentId: numericalMeasures[0].id },
+          color: {
+            type: "single",
+            paletteId: "category10",
+            color: schemeCategory10[0],
+          },
+        },
+      };
+    }
+
+    case "surface": {
+      const surfaceSegment = getCategoricalDimensions(dimensions)[0] ?? getGeoDimensions(dimensions)[0];
+      return {
+        ...getGenericConfig(),
+        chartType: "surface",
+        fields: {
+          x: { componentId: surfaceSegment.id },
+          y: { componentId: numericalMeasures[0].id },
+          color: {
+            type: "single",
+            paletteId: "category10",
+            color: schemeCategory10[0],
+          },
+        },
+      };
+    }
+
+    case "line3d": {
+      const line3dSegment = getCategoricalDimensions(dimensions)[0] ?? temporalDimensions[0] ?? getGeoDimensions(dimensions)[0];
+      return {
+        ...getGenericConfig(),
+        chartType: "line3d",
+        fields: {
+          x: { componentId: line3dSegment.id },
+          y: { componentId: numericalMeasures[0].id },
+          color: {
+            type: "single",
+            paletteId: "category10",
+            color: schemeCategory10[0],
+          },
+        },
+      };
+    }
+
+    case "globe": {
+      const globeGeo = getGeoDimensions(dimensions)[0] ?? getCategoricalDimensions(dimensions)[0];
+      return {
+        ...getGenericConfig(),
+        chartType: "globe",
+        fields: {
+          x: { componentId: globeGeo.id },
+          y: { componentId: numericalMeasures[0].id },
+          color: {
+            type: "single",
+            paletteId: "category10",
+            color: schemeCategory10[0],
+          },
+        },
+      };
+    }
+
+    case "pie3d": {
+      const pie3dSegment = getCategoricalDimensions(dimensions)[0] ?? getGeoDimensions(dimensions)[0];
+      const pie3dPalette = getDefaultCategoricalPaletteId(pie3dSegment);
+      return {
+        ...getGenericConfig(),
+        chartType: "pie3d",
+        fields: {
+          y: { componentId: numericalMeasures[0].id },
+          segment: {
+            componentId: pie3dSegment.id,
+            sorting: DEFAULT_SORTING,
+          },
+          color: {
+            type: "segment",
+            paletteId: pie3dPalette,
+            colorMapping: mapValueIrisToColor({
+              paletteId: pie3dPalette,
+              dimensionValues: pie3dSegment.values,
             }),
           },
         },
@@ -3033,6 +3166,12 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
           case "sankey":
           case "polar":
           case "wordcloud":
+          case "bar3d":
+          case "scatter3d":
+          case "surface":
+          case "line3d":
+          case "globe":
+          case "pie3d":
             break;
           default:
             const _exhaustiveCheck: never = oldChartConfig;
@@ -3175,6 +3314,13 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
           case "sankey":
           case "polar":
           case "wordcloud":
+          // 3D Charts (ECharts GL)
+          case "bar3d":
+          case "scatter3d":
+          case "surface":
+          case "line3d":
+          case "globe":
+          case "pie3d":
             break;
           default:
             const _exhaustiveCheck: never = oldChartConfig;
@@ -3461,6 +3607,319 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
         },
       },
       color: ({ newChartConfig }) => newChartConfig,
+    },
+    interactiveFiltersConfig: interactiveFiltersAdjusters,
+  },
+  // 3D Charts (ECharts GL)
+  bar3d: {
+    cubes: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.cubes = oldValue;
+      });
+    },
+    annotations: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.annotations = oldValue;
+      });
+    },
+    limits: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.limits = mapValues(oldValue, (limits) =>
+          limits.map(({ symbolType, ...rest }) => rest)
+        );
+      });
+    },
+    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.conversionUnitsByComponentId = oldValue;
+      });
+    },
+    fields: {
+      x: {
+        componentId: ({ oldValue, newChartConfig, dimensions }) => {
+          if (dimensions.find((d) => d.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).x.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      y: {
+        componentId: ({ oldValue, newChartConfig, measures }) => {
+          if (measures.find((m) => m.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).y.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      color: ({ newChartConfig }) => newChartConfig,
+    },
+    interactiveFiltersConfig: interactiveFiltersAdjusters,
+  },
+  scatter3d: {
+    cubes: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.cubes = oldValue;
+      });
+    },
+    annotations: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.annotations = oldValue;
+      });
+    },
+    limits: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.limits = mapValues(oldValue, (limits) =>
+          limits.map(({ symbolType, ...rest }) => rest)
+        );
+      });
+    },
+    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.conversionUnitsByComponentId = oldValue;
+      });
+    },
+    fields: {
+      x: {
+        componentId: ({ oldValue, newChartConfig, dimensions }) => {
+          if (dimensions.find((d) => d.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).x.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      y: {
+        componentId: ({ oldValue, newChartConfig, measures }) => {
+          if (measures.find((m) => m.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).y.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      z: {
+        componentId: ({ oldValue, newChartConfig, measures }) => {
+          if (measures.find((m) => m.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).z.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      color: ({ newChartConfig }) => newChartConfig,
+    },
+    interactiveFiltersConfig: interactiveFiltersAdjusters,
+  },
+  surface: {
+    cubes: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.cubes = oldValue;
+      });
+    },
+    annotations: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.annotations = oldValue;
+      });
+    },
+    limits: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.limits = mapValues(oldValue, (limits) =>
+          limits.map(({ symbolType, ...rest }) => rest)
+        );
+      });
+    },
+    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.conversionUnitsByComponentId = oldValue;
+      });
+    },
+    fields: {
+      x: {
+        componentId: ({ oldValue, newChartConfig, dimensions }) => {
+          if (dimensions.find((d) => d.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).x.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      y: {
+        componentId: ({ oldValue, newChartConfig, dimensions }) => {
+          if (dimensions.find((d) => d.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).y.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      z: {
+        componentId: ({ oldValue, newChartConfig, measures }) => {
+          if (measures.find((m) => m.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).z.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      color: ({ newChartConfig }) => newChartConfig,
+    },
+    interactiveFiltersConfig: interactiveFiltersAdjusters,
+  },
+  line3d: {
+    cubes: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.cubes = oldValue;
+      });
+    },
+    annotations: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.annotations = oldValue;
+      });
+    },
+    limits: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.limits = mapValues(oldValue, (limits) =>
+          limits.map(({ symbolType, ...rest }) => rest)
+        );
+      });
+    },
+    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.conversionUnitsByComponentId = oldValue;
+      });
+    },
+    fields: {
+      x: {
+        componentId: ({ oldValue, newChartConfig, dimensions }) => {
+          if (dimensions.find((d) => d.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).x.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      y: {
+        componentId: ({ oldValue, newChartConfig, measures }) => {
+          if (measures.find((m) => m.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).y.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      color: ({ newChartConfig }) => newChartConfig,
+    },
+    interactiveFiltersConfig: interactiveFiltersAdjusters,
+  },
+  globe: {
+    cubes: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.cubes = oldValue;
+      });
+    },
+    annotations: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.annotations = oldValue;
+      });
+    },
+    limits: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.limits = mapValues(oldValue, (limits) =>
+          limits.map(({ symbolType, ...rest }) => rest)
+        );
+      });
+    },
+    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.conversionUnitsByComponentId = oldValue;
+      });
+    },
+    fields: {
+      geo: {
+        componentId: ({ oldValue, newChartConfig, dimensions }) => {
+          if (dimensions.find((d) => d.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).geo.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      value: {
+        componentId: ({ oldValue, newChartConfig, measures }) => {
+          if (measures.find((m) => m.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).value.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      color: ({ newChartConfig }) => newChartConfig,
+    },
+    interactiveFiltersConfig: interactiveFiltersAdjusters,
+  },
+  pie3d: {
+    cubes: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.cubes = oldValue;
+      });
+    },
+    annotations: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.annotations = oldValue;
+      });
+    },
+    limits: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.limits = mapValues(oldValue, (limits) =>
+          limits.map(({ symbolType, ...rest }) => rest)
+        );
+      });
+    },
+    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.conversionUnitsByComponentId = oldValue;
+      });
+    },
+    fields: {
+      y: {
+        componentId: ({ oldValue, newChartConfig, measures }) => {
+          if (measures.find((m) => m.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).y.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      color: ({ oldValue, oldChartConfig, newChartConfig, dimensions }) => {
+        return produce(newChartConfig, (draft) => {
+          if (oldValue.type === "single") {
+            const oldColor = getCompatibleColorField(oldChartConfig);
+            const segmentDimension = dimensions.find(
+              (d) => d.id === (newChartConfig.fields as $IntentionalAny).segment?.componentId
+            );
+
+            draft.fields.color = getSegmentColorField({
+              oldColorField: oldColor,
+              segmentDimension,
+            });
+          }
+        });
+      },
     },
     interactiveFiltersConfig: interactiveFiltersAdjusters,
   },
@@ -3935,6 +4394,35 @@ const chartConfigsPathOverrides: {
       // Wordcloud uses categorical data like pie
     },
   },
+  // 3D Charts (ECharts GL)
+  bar3d: {
+    column: {
+      // Bar3d has similar x/y structure to column
+    },
+  },
+  scatter3d: {
+    scatterplot: {
+      // Scatter3d extends scatterplot with z dimension
+    },
+  },
+  surface: {
+    // Surface has unique x/y/z grid structure
+  },
+  line3d: {
+    line: {
+      // Line3d has similar structure to line
+    },
+  },
+  globe: {
+    map: {
+      // Globe has similar geo structure to map
+    },
+  },
+  pie3d: {
+    pie: {
+      // Pie3d has same structure as pie
+    },
+  },
 };
 type ChartConfigPathOverrides =
   (typeof chartConfigsPathOverrides)[ChartType][ChartType];
@@ -3974,6 +4462,12 @@ const categoricalEnabledChartTypes: RegularChartType[] = [
   "waterfall",
   "polar",
   "wordcloud",
+  // 3D Charts
+  "bar3d",
+  "scatter3d",
+  "surface",
+  "line3d",
+  "pie3d",
 ];
 
 // Charts that require at least one geographical dimension
@@ -3982,6 +4476,7 @@ const geoEnabledChartTypes: RegularChartType[] = [
   "bar",
   "map",
   "pie",
+  "globe", // 3D globe visualization
 ];
 
 // Charts that require two categorical dimensions for flow visualization
@@ -4374,15 +4869,21 @@ export const getChartSymbol = (
     case "waterfall":
     case "sankey":
     case "wordcloud":
+    case "bar3d":
+    case "pie3d":
+    case "surface":
       return "square";
     case "comboLineDual":
     case "comboLineSingle":
     case "line":
     case "radar":
+    case "line3d":
       return "line";
     case "scatterplot":
     case "gauge":
     case "polar":
+    case "scatter3d":
+    case "globe":
       return "circle";
     default:
       const _exhaustiveCheck: never = chartType;

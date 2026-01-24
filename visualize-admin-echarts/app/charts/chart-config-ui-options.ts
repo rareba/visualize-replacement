@@ -1936,6 +1936,129 @@ const chartConfigOptionsUISpec: ChartSpecs = {
     ],
     interactiveFilters: [],
   },
+  // ============================================================================
+  // 3D Charts (ECharts GL)
+  // ============================================================================
+  bar3d: {
+    chartType: "bar3d",
+    encodings: [
+      {
+        field: "x",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NominalDimension", "OrdinalDimension", "TemporalDimension", "TemporalEntityDimension"],
+        filters: true,
+      },
+      {
+        field: "y",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NumericalMeasure"],
+        filters: false,
+      },
+    ],
+    interactiveFilters: [],
+  },
+  scatter3d: {
+    chartType: "scatter3d",
+    encodings: [
+      {
+        field: "x",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NumericalMeasure", "NominalDimension", "OrdinalDimension"],
+        filters: true,
+      },
+      {
+        field: "y",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NumericalMeasure"],
+        filters: false,
+      },
+    ],
+    interactiveFilters: [],
+  },
+  surface: {
+    chartType: "surface",
+    encodings: [
+      {
+        field: "x",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NominalDimension", "OrdinalDimension", "NumericalMeasure"],
+        filters: true,
+      },
+      {
+        field: "y",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NumericalMeasure"],
+        filters: false,
+      },
+    ],
+    interactiveFilters: [],
+  },
+  line3d: {
+    chartType: "line3d",
+    encodings: [
+      {
+        field: "x",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["TemporalDimension", "TemporalEntityDimension", "OrdinalDimension"],
+        filters: true,
+      },
+      {
+        field: "y",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NumericalMeasure"],
+        filters: false,
+      },
+    ],
+    interactiveFilters: [],
+  },
+  globe: {
+    chartType: "globe",
+    encodings: [
+      {
+        field: "x",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NumericalMeasure", "GeoCoordinatesDimension"],
+        filters: false,
+      },
+      {
+        field: "y",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NumericalMeasure"],
+        filters: false,
+      },
+    ],
+    interactiveFilters: [],
+  },
+  pie3d: {
+    chartType: "pie3d",
+    encodings: [
+      {
+        field: "y",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NumericalMeasure"],
+        filters: false,
+      },
+      {
+        field: "segment",
+        optional: true,
+        idAttributes: ["componentId"],
+        componentTypes: SEGMENT_ENABLED_COMPONENTS,
+        filters: true,
+      },
+    ],
+    interactiveFilters: [],
+  },
 };
 
 export const getChartFieldChangeSideEffect = (

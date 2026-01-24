@@ -83,6 +83,19 @@ export const getChartIcon = (chartType: ChartType): IconName => {
       return "dualAxisChart";
     case "comboLineColumn":
       return "columnLineChart";
+    // 3D Charts (ECharts GL)
+    case "bar3d":
+      return "chartColumn"; // Using column icon for 3D bar
+    case "scatter3d":
+      return "scatterplotChart"; // Using scatter icon for 3D scatter
+    case "surface":
+      return "areasChart"; // Using area icon for surface
+    case "line3d":
+      return "lineChart"; // Using line icon for 3D line
+    case "globe":
+      return "mapChart"; // Using map icon for globe
+    case "pie3d":
+      return "pieChart"; // Using pie icon for 3D pie
     default:
       const _exhaustiveCheck: never = chartType;
       return _exhaustiveCheck;

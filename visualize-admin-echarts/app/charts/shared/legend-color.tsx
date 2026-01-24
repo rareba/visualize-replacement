@@ -14,16 +14,10 @@ import { MaybeTooltip } from "@/components/maybe-tooltip";
 import { OpenMetadataPanelWrapper } from "@/components/metadata-panel";
 import { useChartConfigFilters, useLimits } from "@/config-utils";
 import {
-  AreaConfig,
-  BarConfig,
   ChartConfig,
-  ColumnConfig,
   GenericField,
   isSegmentInConfig,
-  LineConfig,
   MapConfig,
-  PieConfig,
-  ScatterPlotConfig,
   useReadOnlyConfiguratorState,
 } from "@/configurator";
 import {
@@ -121,13 +115,7 @@ export const LegendColor = memo(function LegendColor({
   dimensionsById,
   limits,
 }: {
-  chartConfig:
-    | AreaConfig
-    | BarConfig
-    | ColumnConfig
-    | LineConfig
-    | PieConfig
-    | ScatterPlotConfig;
+  chartConfig: ChartConfig;
   symbol: LegendSymbol;
   /** If the legend is based on measures, this function can be used to get the
    * corresponding measure to open the metadata panel.
@@ -139,8 +127,9 @@ export const LegendColor = memo(function LegendColor({
   limits?: ReturnType<typeof useLimits>;
 }) {
   const { colors, getColorLabel } = useChartState() as ColorsChartState;
+  const colorField = "color" in chartConfig.fields ? chartConfig.fields.color : null;
   const values =
-    chartConfig.fields.color.type === "segment" ? colors.domain() : [];
+    colorField && "type" in colorField && colorField.type === "segment" ? colors.domain() : [];
   const groups = useLegendGroups({ chartConfig, values });
   const segmentComponent =
     isSegmentInConfig(chartConfig) &&

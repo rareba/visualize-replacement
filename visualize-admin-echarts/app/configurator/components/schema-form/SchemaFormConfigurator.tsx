@@ -1,7 +1,7 @@
 /**
  * Schema Form Configurator
  *
- * A simplified chart configurator that uses react-jsonschema-form with MUI
+ * A simplified chart configurator that uses react-jsonschema-form core
  * to auto-generate the configuration UI from JSON schemas.
  *
  * Benefits:
@@ -13,11 +13,11 @@
 
 "use client";
 
-import Form from "@rjsf/mui";
+import Form from "@rjsf/core";
 import type { IChangeEvent } from "@rjsf/core";
-import type { UiSchema, FieldTemplateProps, ObjectFieldTemplateProps, WidgetProps } from "@rjsf/utils";
+import type { UiSchema, FieldTemplateProps, ObjectFieldTemplateProps, WidgetProps, RegistryWidgetsType } from "@rjsf/utils";
 import validator from "@rjsf/validator-ajv8";
-import { Box, Paper, Typography, Tabs, Tab, Divider } from "@mui/material";
+import { Box, Paper, Typography, Tabs, Tab, Divider, TextField, Select, MenuItem, FormControl, InputLabel, Checkbox, FormControlLabel } from "@mui/material";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { getChartSchema, type ChartType } from "@/configurator/schemas/base-schema";
@@ -43,21 +43,94 @@ export interface SchemaFormConfiguratorProps {
 }
 
 // ============================================================================
-// Custom Widgets
+// Custom MUI Widgets for @rjsf/core
 // ============================================================================
 
 /**
- * Custom select widget that shows available data fields
+ * Custom text input widget using MUI TextField
  */
-const FieldSelectWidget = ({
+const TextWidget = (props: WidgetProps) => {
+  const { id, value, onChange, label, required, disabled, readonly, placeholder } = props;
+  return (
+    <TextField
+      id={id}
+      label={label}
+      value={value ?? ""}
+      onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
+      required={required}
+      disabled={disabled || readonly}
+      placeholder={placeholder}
+      fullWidth
+      size="small"
+      sx={{ mb: 2 }}
+    />
+  );
+};
+
+/**
+ * Custom select widget using MUI Select
+ */
+const SelectWidget = (props: WidgetProps) => {
+  const { id, value, onChange, label, required, disabled, readonly, options } = props;
+  const enumOptions = options?.enumOptions || [];
+
+  return (
+    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+      <InputLabel id={`${id}-label`}>{label}{required ? " *" : ""}</InputLabel>
+      <Select
+        labelId={`${id}-label`}
+        id={id}
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
+        disabled={disabled || readonly}
+        label={`${label}${required ? " *" : ""}`}
+      >
+        <MenuItem value="">
+          <em>Select...</em>
+        </MenuItem>
+        {enumOptions.map((opt: { value: string; label: string }) => (
+          <MenuItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+};
+
+/**
+ * Custom checkbox widget using MUI Checkbox
+ */
+const CheckboxWidget = (props: WidgetProps) => {
+  const { id, value, onChange, label, disabled, readonly } = props;
+  return (
+    <FormControlLabel
+      control={
+        <Checkbox
+          id={id}
+          checked={value ?? false}
+          onChange={(e) => onChange(e.target.checked)}
+          disabled={disabled || readonly}
+        />
+      }
+      label={label || ""}
+      sx={{ mb: 1 }}
+    />
+  );
+};
+
+/**
+ * Custom data field select widget that shows available dimensions/measures
+ */
+const createFieldSelectWidget = ({
   dimensions,
   measures,
 }: {
   dimensions: Dimension[];
   measures: Measure[];
 }) => {
-  return function SelectWidget(props: WidgetProps) {
-    const { id, value, onChange, label, required } = props;
+  return function DataFieldSelectWidget(props: WidgetProps) {
+    const { id, value, onChange, label, required, disabled, readonly } = props;
 
     // Determine if this field expects a dimension or measure
     const fieldName = id.split("_").pop() || "";
@@ -86,32 +159,26 @@ const FieldSelectWidget = ({
     }
 
     return (
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="caption" color="text.secondary" gutterBottom>
-          {label}
-          {required && " *"}
-        </Typography>
-        <select
+      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+        <InputLabel id={`${id}-label`}>{label}{required ? " *" : ""}</InputLabel>
+        <Select
+          labelId={`${id}-label`}
           id={id}
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px 12px",
-            borderRadius: "4px",
-            border: "1px solid #ccc",
-            fontSize: "14px",
-            backgroundColor: "white",
-          }}
+          value={value ?? ""}
+          onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
+          disabled={disabled || readonly}
+          label={`${label}${required ? " *" : ""}`}
         >
-          <option value="">Select a field...</option>
+          <MenuItem value="">
+            <em>Select a field...</em>
+          </MenuItem>
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
+            <MenuItem key={opt.value} value={opt.value}>
               {opt.label}
-            </option>
+            </MenuItem>
           ))}
-        </select>
-      </Box>
+        </Select>
+      </FormControl>
     );
   };
 };
@@ -202,10 +269,14 @@ export const SchemaFormConfigurator = memo(
       [chartType]
     );
 
-    // Create custom widgets with available fields
-    const widgets = useMemo(
+    // Create custom widgets registry
+    const widgets: RegistryWidgetsType = useMemo(
       () => ({
-        SelectWidget: FieldSelectWidget({ dimensions, measures }),
+        TextWidget,
+        SelectWidget,
+        CheckboxWidget,
+        // Override select for data field selection
+        DataFieldSelectWidget: createFieldSelectWidget({ dimensions, measures }),
       }),
       [dimensions, measures]
     );

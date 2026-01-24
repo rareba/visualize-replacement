@@ -37,6 +37,7 @@ module.exports = withPreconstruct(
   withBundleAnalyzer(
     withMDX({
       output: "standalone",
+      transpilePackages: ["@rjsf/core", "@rjsf/utils", "@rjsf/validator-ajv8"],
       i18n: {
         locales,
         defaultLocale,

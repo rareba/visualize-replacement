@@ -89,8 +89,9 @@ const interactiveFiltersStoreCreator: StateCreator<State> = (set) => {
     },
     removeCategory: (category: string) => {
       set((state) => {
-        delete state.categories[category];
-        return { categories: { ...state.categories } };
+        // Create a new object excluding the removed category (immutable update)
+        const { [category]: _, ...remainingCategories } = state.categories;
+        return { categories: remainingCategories };
       });
     },
     resetCategories: () => {

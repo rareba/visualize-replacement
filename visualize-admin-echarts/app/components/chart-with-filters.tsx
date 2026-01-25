@@ -77,8 +77,7 @@ const GenericChart = ({
 
   // Use Universal ECharts architecture for all ECharts-based charts
   // This covers: column, bar, line, area, pie, donut, scatterplot,
-  // radar, funnel, gauge, treemap, sunburst, polar, wordcloud,
-  // heatmap, boxplot, waterfall, sankey
+  // radar, heatmap, boxplot, waterfall
   if (isEChartsChart(chartConfig.chartType)) {
     return (
       <UniversalEChartsChart

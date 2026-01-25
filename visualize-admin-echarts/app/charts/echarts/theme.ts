@@ -16,7 +16,7 @@ export const SWISS_FEDERAL_COLORS = {
   muted: "#666666",
   grid: "#e0e0e0",
   axis: "#666666",
-  // Semantic colors for gauges and status indicators
+  // Semantic colors for status indicators
   success: "#2ca02c",
   warning: "#ff7f0e",
   error: "#d62728",

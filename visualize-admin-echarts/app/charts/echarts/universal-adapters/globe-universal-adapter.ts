@@ -102,6 +102,27 @@ export const globeUniversalAdapter = (state: UniversalChartState): EChartsOption
         autoRotateSpeed: 3,
         distance: 200,
       },
+      // Atmosphere effect for realistic globe appearance
+      atmosphere: {
+        show: true,
+        color: "#3a8ec9",
+        glowPower: 8,
+        innerGlowPower: 2,
+      },
+      // Post-effects for enhanced visuals
+      postEffect: {
+        enable: true,
+        bloom: {
+          enable: true,
+          bloomIntensity: 0.05,
+        },
+        SSAO: {
+          enable: true,
+          radius: 2,
+          intensity: 1,
+          quality: "medium",
+        },
+      },
     },
     series: [
       {

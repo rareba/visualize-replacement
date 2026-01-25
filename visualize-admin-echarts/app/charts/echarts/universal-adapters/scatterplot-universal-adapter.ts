@@ -13,6 +13,7 @@ import {
   createGridConfig,
   createItemTooltip,
   createLegend,
+  createNoDataGraphic,
   createXValueAxis,
   createYValueAxis,
   getDefaultAnimation,
@@ -54,7 +55,8 @@ const buildScatterData = (
     .map((d) => {
       const x = getXNumeric(d);
       const y = getY(d);
-      if (x === null || y === null) {
+      // Filter out null, NaN, and Infinity values
+      if (x === null || y === null || !Number.isFinite(x) || !Number.isFinite(y)) {
         return null;
       }
       return [x, y] as [number, number];
@@ -103,13 +105,33 @@ export const scatterplotUniversalAdapter = (state: UniversalChartState): ECharts
   // Determine if we have segments
   const hasSegments = segments.length > 0 && getSegment;
 
-  // Calculate domains
+  // Calculate domains from valid values only
   const xValues = observations
     .map((d) => getXNumeric?.(d))
-    .filter((v): v is number => v !== null && v !== undefined);
+    .filter((v): v is number => v !== null && v !== undefined && Number.isFinite(v));
   const yValues = observations
     .map((d) => getY?.(d))
-    .filter((v): v is number => v !== null && v !== undefined);
+    .filter((v): v is number => v !== null && v !== undefined && Number.isFinite(v));
+
+  // Handle empty data case
+  if (xValues.length === 0 || yValues.length === 0) {
+    return {
+      ...getSwissFederalTheme(),
+      grid: createGridConfig(safeBounds),
+      graphic: createNoDataGraphic(),
+      xAxis: createXValueAxis({
+        name: metadata.xAxisLabel || "X",
+        min: 0,
+        max: 100,
+      }),
+      yAxis: createYValueAxis({
+        name: metadata.yAxisLabel || "Y",
+        min: 0,
+        max: 100,
+      }),
+      series: [],
+    };
+  }
 
   const xDomain = calculateDomain(xValues);
   const yDomain = calculateDomain(yValues);

@@ -57,26 +57,12 @@ export const getChartIcon = (chartType: ChartType): IconName => {
       return "tableChart";
     case "radar":
       return "radarChart";
-    case "funnel":
-      return "funnelChart";
-    case "gauge":
-      return "gaugeChart";
-    case "treemap":
-      return "treemapChart";
-    case "sunburst":
-      return "sunburstChart";
     case "heatmap":
       return "heatmapChart";
     case "boxplot":
       return "chartBar"; // Using bar chart icon as placeholder
     case "waterfall":
       return "chartColumn"; // Using column chart icon as placeholder
-    case "sankey":
-      return "segments"; // Using segments icon for flow visualization
-    case "polar":
-      return "radarChart"; // Using radar chart icon (both circular)
-    case "wordcloud":
-      return "text"; // Using text icon for word cloud
     case "comboLineSingle":
       return "multilineChart";
     case "comboLineDual":

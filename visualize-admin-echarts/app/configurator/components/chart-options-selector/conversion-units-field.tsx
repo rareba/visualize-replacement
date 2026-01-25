@@ -39,17 +39,10 @@ export const ConversionUnitsField = ({
     case "pie":
     case "donut":
     case "radar":
-    case "funnel":
-    case "gauge":
-    case "treemap":
-    case "sunburst":
     case "heatmap":
     case "scatterplot":
     case "boxplot":
-    case "waterfall":
-    case "sankey":
-    case "polar":
-    case "wordcloud": {
+    case "waterfall": {
       const component = components.find(
         (c) => c.id === (chartConfig.fields as any)[field].componentId
       );

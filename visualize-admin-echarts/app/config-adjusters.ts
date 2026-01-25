@@ -19,8 +19,6 @@ import {
   ComboLineSingleConfig,
   ComboLineSingleFields,
   DonutConfig,
-  FunnelConfig,
-  GaugeConfig,
   GenericChartConfig,
   HeatmapConfig,
   InteractiveFiltersCalculation,
@@ -35,18 +33,13 @@ import {
   PieConfig,
   PieFields,
   PieSegmentField,
-  PolarConfig,
   RadarConfig,
-  SankeyConfig,
   ScatterPlotConfig,
   ScatterPlotFields,
   ScatterPlotSegmentField,
-  SunburstConfig,
   TableConfig,
   TableFields,
-  TreemapConfig,
   WaterfallConfig,
-  WordcloudConfig,
 } from "@/config-types";
 import { Dimension, Measure } from "@/domain/data";
 import { ComponentId } from "@/graphql/make-component-id";
@@ -270,86 +263,6 @@ type RadarAdjusters = BaseAdjusters<RadarConfig> & {
   };
 };
 
-type FunnelAdjusters = BaseAdjusters<FunnelConfig> & {
-  fields: {
-    y: {
-      componentId: FieldAdjuster<FunnelConfig, ComponentId>;
-      showValues: FieldAdjuster<FunnelConfig, boolean>;
-    };
-    color: FieldAdjuster<FunnelConfig, ColorField>;
-    segment: FieldAdjuster<
-      FunnelConfig,
-      | ColumnSegmentField
-      | BarSegmentField
-      | LineSegmentField
-      | AreaSegmentField
-      | ScatterPlotSegmentField
-      | PieSegmentField
-      | TableFields
-    >;
-    animation: FieldAdjuster<FunnelConfig, AnimationField | undefined>;
-  };
-};
-
-type GaugeAdjusters = BaseAdjusters<GaugeConfig> & {
-  fields: {
-    y: {
-      componentId: FieldAdjuster<GaugeConfig, ComponentId>;
-    };
-    color: FieldAdjuster<GaugeConfig, ColorField>;
-    segment: FieldAdjuster<
-      GaugeConfig,
-      | ColumnSegmentField
-      | BarSegmentField
-      | LineSegmentField
-      | AreaSegmentField
-      | ScatterPlotSegmentField
-      | PieSegmentField
-      | TableFields
-    >;
-  };
-};
-
-type TreemapAdjusters = BaseAdjusters<TreemapConfig> & {
-  fields: {
-    y: {
-      componentId: FieldAdjuster<TreemapConfig, ComponentId>;
-      showValues: FieldAdjuster<TreemapConfig, boolean>;
-    };
-    color: FieldAdjuster<TreemapConfig, ColorField>;
-    segment: FieldAdjuster<
-      TreemapConfig,
-      | ColumnSegmentField
-      | BarSegmentField
-      | LineSegmentField
-      | AreaSegmentField
-      | ScatterPlotSegmentField
-      | PieSegmentField
-      | TableFields
-    >;
-  };
-};
-
-type SunburstAdjusters = BaseAdjusters<SunburstConfig> & {
-  fields: {
-    y: {
-      componentId: FieldAdjuster<SunburstConfig, ComponentId>;
-      showValues: FieldAdjuster<SunburstConfig, boolean>;
-    };
-    color: FieldAdjuster<SunburstConfig, ColorField>;
-    segment: FieldAdjuster<
-      SunburstConfig,
-      | ColumnSegmentField
-      | BarSegmentField
-      | LineSegmentField
-      | AreaSegmentField
-      | ScatterPlotSegmentField
-      | PieSegmentField
-      | TableFields
-    >;
-  };
-};
-
 type HeatmapAdjusters = BaseAdjusters<HeatmapConfig> & {
   fields: {
     x: { componentId: FieldAdjuster<HeatmapConfig, ComponentId> };
@@ -385,34 +298,6 @@ type WaterfallAdjusters = BaseAdjusters<WaterfallConfig> & {
     x: { componentId: FieldAdjuster<WaterfallConfig, ComponentId> };
     y: { componentId: FieldAdjuster<WaterfallConfig, ComponentId> };
     color: FieldAdjuster<WaterfallConfig, ColorField>;
-  };
-};
-
-// Sankey needs source, target, and value
-type SankeyAdjusters = BaseAdjusters<SankeyConfig> & {
-  fields: {
-    source: { componentId: FieldAdjuster<SankeyConfig, ComponentId> };
-    target: { componentId: FieldAdjuster<SankeyConfig, ComponentId> };
-    value: { componentId: FieldAdjuster<SankeyConfig, ComponentId> };
-    color: FieldAdjuster<SankeyConfig, ColorField>;
-  };
-};
-
-// Polar uses pie-like structure
-type PolarAdjusters = BaseAdjusters<PolarConfig> & {
-  fields: {
-    angle: { componentId: FieldAdjuster<PolarConfig, ComponentId> };
-    radius: { componentId: FieldAdjuster<PolarConfig, ComponentId> };
-    color: FieldAdjuster<PolarConfig, ColorField>;
-  };
-};
-
-// Wordcloud uses categorical dimension and value
-type WordcloudAdjusters = BaseAdjusters<WordcloudConfig> & {
-  fields: {
-    text: { componentId: FieldAdjuster<WordcloudConfig, ComponentId> };
-    value: { componentId: FieldAdjuster<WordcloudConfig, ComponentId> };
-    color: FieldAdjuster<WordcloudConfig, ColorField>;
   };
 };
 
@@ -499,16 +384,9 @@ export type ChartConfigsAdjusters = {
   table: TableAdjusters;
   map: MapAdjusters;
   radar: RadarAdjusters;
-  funnel: FunnelAdjusters;
-  gauge: GaugeAdjusters;
-  treemap: TreemapAdjusters;
-  sunburst: SunburstAdjusters;
   heatmap: HeatmapAdjusters;
   boxplot: BoxplotAdjusters;
   waterfall: WaterfallAdjusters;
-  sankey: SankeyAdjusters;
-  polar: PolarAdjusters;
-  wordcloud: WordcloudAdjusters;
   comboLineSingle: ComboLineSingleAdjusters;
   comboLineDual: ComboLineDualAdjusters;
   comboLineColumn: ComboLineColumnAdjusters;

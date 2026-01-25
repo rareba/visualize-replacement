@@ -19,7 +19,6 @@ import { styled } from "@mui/material/styles";
 import { makeStyles } from "@mui/styles";
 import { ascending, groups, max, sum } from "d3-array";
 import get from "lodash/get";
-import groupBy from "lodash/groupBy";
 import keyBy from "lodash/keyBy";
 import uniqBy from "lodash/uniqBy";
 import {
@@ -29,7 +28,6 @@ import {
   MutableRefObject,
   ReactNode,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -59,6 +57,7 @@ import {
   ConfiguratorDrawer,
   DRAWER_WIDTH,
 } from "@/configurator/components/drawers";
+import { useEnsureUpToDateColorMapping } from "@/configurator/components/filter-hooks";
 import {
   dimensionToFieldProps,
   MultiFilterField,
@@ -312,7 +311,6 @@ const MultiFilterContent = ({
     return {
       values,
       valueGroups: grouped,
-      valuesByParent: groupBy(values, groupByParent),
     };
   }, [optionsByValue, rawValues]);
 
@@ -612,56 +610,6 @@ const InteractiveToggle = ({
   );
 };
 
-/**
- * Fixes situations where an old chart is being edited and the cube has changed
- * and contains new values in the color dimension.
- * */
-const useEnsureUpToDateColorMapping = ({
-  colorComponentValues,
-  colorMapping,
-}: {
-  colorComponentValues?: DimensionValue[];
-  colorMapping?: ColorMapping;
-}) => {
-  const [state, dispatch] = useConfiguratorState(isConfiguring);
-  const chartConfig = getChartConfig(state);
-  const { dimensionId, colorConfigPath } = useMultiFilterContext();
-  const { activeField } = chartConfig;
-
-  const hasOutdatedMapping = useMemo(() => {
-    return colorMapping && colorComponentValues
-      ? colorComponentValues.some((value) => !colorMapping[value.value])
-      : false;
-  }, [colorComponentValues, colorMapping]);
-
-  const field = isColorInConfig(chartConfig) ? "color" : activeField;
-
-  useEffect(() => {
-    if (hasOutdatedMapping && colorMapping && colorComponentValues && field) {
-      dispatch({
-        type: "CHART_CONFIG_UPDATE_COLOR_MAPPING",
-        value: {
-          dimensionId,
-          colorConfigPath,
-          colorMapping,
-          field,
-          values: colorComponentValues,
-          random: false,
-        },
-      });
-    }
-  }, [
-    field,
-    chartConfig,
-    hasOutdatedMapping,
-    dispatch,
-    dimensionId,
-    colorConfigPath,
-    colorMapping,
-    colorComponentValues,
-  ]);
-};
-
 const useBreadcrumbStyles = makeStyles({
   root: {
     display: "inline",
@@ -836,21 +784,19 @@ const validateChildren = (
 
 const areChildrenSelected = ({
   children,
-  selectedValues,
+  selectedValuesSet,
 }: {
   children: HierarchyValue[] | undefined;
-  selectedValues: HierarchyValue[];
+  selectedValuesSet: Set<string>;
 }): boolean => {
   if (validateChildren(children)) {
-    const values = children.map((d) => d.value);
-    if (selectedValues.some((d) => values.includes(d.value))) {
+    // O(1) lookup using Set instead of O(n) array search
+    if (children.some((d) => selectedValuesSet.has(d.value))) {
       return true;
     } else {
-      return children
-        .map((d) =>
-          areChildrenSelected({ children: d.children, selectedValues })
-        )
-        .some((d) => d === true);
+      return children.some((d) =>
+        areChildrenSelected({ children: d.children, selectedValuesSet })
+      );
     }
   } else {
     return false;
@@ -866,6 +812,7 @@ const Tree = ({
   depthsMetadata,
   options,
   selectedValues,
+  selectedValuesSet: externalSet,
   showColors,
   onSelect,
 }: {
@@ -873,18 +820,27 @@ const Tree = ({
   depthsMetadata: Record<number, { selectable: boolean; expandable: boolean }>;
   options: HierarchyValue[];
   selectedValues: HierarchyValue[];
+  /** Pre-computed Set for O(1) lookups. Created internally if not provided. */
+  selectedValuesSet?: Set<string>;
   showColors: boolean;
   onSelect: (newSelectedValues: HierarchyValue[]) => void;
 }) => {
+  // Create Set once for O(1) lookups instead of O(n) array searches
+  const selectedValuesSet = useMemo(
+    () => externalSet ?? new Set(selectedValues.map((d) => d.value)),
+    [externalSet, selectedValues]
+  );
+
   return (
     <>
       {options.map((d) => {
         const { depth, value, label, children } = d;
         const currentDepthsMetadata = depthsMetadata[depth];
         const hasChildren = validateChildren(children);
-        const state = selectedValues.map((d) => d.value).includes(value)
+        // O(1) Set lookup instead of O(n) array map + includes
+        const state = selectedValuesSet.has(value)
           ? "SELECTED"
-          : areChildrenSelected({ children, selectedValues })
+          : areChildrenSelected({ children, selectedValuesSet })
             ? "CHILDREN_SELECTED"
             : "NOT_SELECTED";
 
@@ -917,6 +873,7 @@ const Tree = ({
                 depthsMetadata={depthsMetadata}
                 options={children as HierarchyValue[]}
                 selectedValues={selectedValues}
+                selectedValuesSet={selectedValuesSet}
                 showColors={showColors}
                 onSelect={onSelect}
               />

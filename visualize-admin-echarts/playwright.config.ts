@@ -64,6 +64,22 @@ export default defineConfig({
       },
     },
 
+    /**
+     * Visual regression project - runs screenshot comparison tests.
+     * Enable with: E2E_VISUAL_REGRESSION=true yarn e2e:dev --project=visual-regression
+     */
+    {
+      name: "visual-regression",
+      testMatch: /all-charts\.spec\.ts/,
+      timeout: 600 * 1000, // 10 minutes for long-running screenshot tests
+      use: {
+        launchOptions: {
+          args: ["--disable-web-security"],
+        },
+        ...devices["Desktop Chrome"],
+      },
+    },
+
     /* Test against mobile viewports. */
     // {
     //   name: 'Mobile Chrome',

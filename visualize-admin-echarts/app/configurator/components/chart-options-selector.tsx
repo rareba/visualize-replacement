@@ -1,9 +1,16 @@
 import { t, Trans } from "@lingui/macro";
 import { Box } from "@mui/material";
 import get from "lodash/get";
+import dynamic from "next/dynamic";
 import { useCallback, useMemo } from "react";
 
 import { getFieldComponentId } from "@/charts";
+
+// Dynamic import to avoid bundling @rjsf/mui when feature flag is off
+const SchemaOptionsPanel = dynamic(
+  () => import("@/configurator/components/schema-form").then((mod) => mod.SchemaOptionsPanel),
+  { ssr: false, loading: () => null }
+);
 import {
   ANIMATION_FIELD_SPEC,
   EncodingFieldType,
@@ -85,6 +92,7 @@ export const ChartOptionsSelector = () => {
   const { dataSource } = state;
   const { activeField } = chartConfig;
   const locale = useLocale();
+  const useSchemaConfigurator = useFlag("schema-configurator");
   const [{ data: metadataData, fetching: fetchingMetadata }] =
     useDataCubesMetadataQuery({
       variables: {
@@ -132,6 +140,17 @@ export const ChartOptionsSelector = () => {
 
   const fetching =
     fetchingMetadata || fetchingComponents || fetchingObservations;
+
+  // Schema-based configurator (when flag is enabled)
+  if (useSchemaConfigurator && dimensions && measures) {
+    return (
+      <SchemaOptionsPanel
+        dimensions={dimensions}
+        measures={measures}
+        loading={fetching}
+      />
+    );
+  }
 
   return cubesMetadata && dimensions && measures && observations ? (
     <Box
@@ -202,7 +221,12 @@ const ActiveFieldSwitch = ({
     : baseEncodings;
   const encoding = encodings.find(
     (e) => e.field === activeField
-  ) as EncodingSpec;
+  ) as EncodingSpec | undefined;
+
+  // Return null if no matching encoding is found for the active field
+  if (!encoding) {
+    return null;
+  }
 
   const activeFieldComponentId = getFieldComponentId(
     chartConfig.fields,

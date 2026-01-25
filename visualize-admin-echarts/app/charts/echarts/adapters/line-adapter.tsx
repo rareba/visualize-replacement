@@ -10,6 +10,7 @@ import { useMemo } from "react";
 import {
   calculateChartDimensions,
   createAxisTooltip,
+  createNoDataGraphic,
   createXCategoryAxis,
   createYValueAxis,
   createGridConfig,
@@ -61,6 +62,26 @@ export const LineChartAdapter = () => {
     const safeBounds = safeGetBounds(bounds);
     const yDomain = safeGetNumericDomain(yScale);
 
+    // Guard: Handle empty data gracefully
+    if (!chartData || chartData.length === 0) {
+      return {
+        ...getSwissFederalTheme(),
+        grid: createGridConfig(safeBounds, extraHeight),
+        graphic: createNoDataGraphic(),
+        xAxis: createXCategoryAxis({
+          categories: [],
+          name: xAxisLabel || "Time",
+          boundaryGap: false,
+        }),
+        yAxis: createYValueAxis({
+          name: yAxisLabel || "Value",
+          min: 0,
+          max: 100,
+        }),
+        series: [],
+      };
+    }
+
     // Group time series data using shared utility
     const { xValues, xLabels, segmentDataMap } = groupTimeSeriesData(
       chartData,
@@ -72,7 +93,7 @@ export const LineChartAdapter = () => {
 
     // Build series using series builder
     const seriesKeys = segments.length > 0 ? segments : ["default"];
-    const series = createLineSeriesGroup(
+    const baseSeries = createLineSeriesGroup(
       seriesKeys,
       (segment) => buildTimeSeriesData(segmentDataMap.get(segment), xValues),
       (segment) =>
@@ -80,12 +101,10 @@ export const LineChartAdapter = () => {
       { lineWidth: 2 }
     );
 
-    // Update series names (default should be empty)
-    series.forEach((s, i) => {
-      if (seriesKeys[i] === "default") {
-        s.name = "";
-      }
-    });
+    // Update series names immutably (default should be empty)
+    const series = baseSeries.map((s, i) =>
+      seriesKeys[i] === "default" ? { ...s, name: "" } : s
+    );
 
     return {
       ...getSwissFederalTheme(),

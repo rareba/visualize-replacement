@@ -20,11 +20,12 @@ import type { ChartType, RegularChartType } from "@/config-types";
 export type ChartCategory =
   | "basic"
   | "partOfWhole"
-  | "hierarchical"
   | "statistical"
   | "flow"
   | "specialized"
-  | "comparison";
+  | "comparison"
+  | "financial"
+  | "stream";
 
 export interface ChartCategoryInfo {
   labelKey: string;
@@ -207,23 +208,6 @@ export const CHART_REGISTRY: Record<ChartType, ChartMetadata> = {
     requiresCategorical: true,
     usesECharts: true,
   },
-  funnel: {
-    type: "funnel",
-    enabled: true,
-    category: "partOfWhole",
-    order: 3,
-    symbol: "square",
-    labelKey: "chart.funnel.title",
-    descriptionKey: "chart.funnel.description",
-    iconName: "funnelChart",
-    isCombo: false,
-    minDimensions: 1,
-    minMeasures: 1,
-    requiresTemporal: false,
-    requiresGeo: false,
-    requiresCategorical: true,
-    usesECharts: true,
-  },
   waterfall: {
     type: "waterfall",
     enabled: true,
@@ -233,44 +217,6 @@ export const CHART_REGISTRY: Record<ChartType, ChartMetadata> = {
     labelKey: "chart.waterfall.title",
     descriptionKey: "chart.waterfall.description",
     iconName: "waterfallChart",
-    isCombo: false,
-    minDimensions: 1,
-    minMeasures: 1,
-    requiresTemporal: false,
-    requiresGeo: false,
-    requiresCategorical: true,
-    usesECharts: true,
-  },
-
-  // ============================================================================
-  // Hierarchical Charts
-  // ============================================================================
-  treemap: {
-    type: "treemap",
-    enabled: true,
-    category: "hierarchical",
-    order: 1,
-    symbol: "square",
-    labelKey: "chart.treemap.title",
-    descriptionKey: "chart.treemap.description",
-    iconName: "treemapChart",
-    isCombo: false,
-    minDimensions: 1,
-    minMeasures: 1,
-    requiresTemporal: false,
-    requiresGeo: false,
-    requiresCategorical: true,
-    usesECharts: true,
-  },
-  sunburst: {
-    type: "sunburst",
-    enabled: true,
-    category: "hierarchical",
-    order: 2,
-    symbol: "square",
-    labelKey: "chart.sunburst.title",
-    descriptionKey: "chart.sunburst.description",
-    iconName: "sunburstChart",
     isCombo: false,
     minDimensions: 1,
     minMeasures: 1,
@@ -319,21 +265,42 @@ export const CHART_REGISTRY: Record<ChartType, ChartMetadata> = {
   },
 
   // ============================================================================
-  // Flow Charts
+  // Financial Charts
   // ============================================================================
-  sankey: {
-    type: "sankey",
+  candlestick: {
+    type: "candlestick",
     enabled: true,
-    category: "flow",
+    category: "financial",
     order: 1,
     symbol: "square",
-    labelKey: "chart.sankey.title",
-    descriptionKey: "chart.sankey.description",
-    iconName: "sankeyChart",
+    labelKey: "chart.candlestick.title",
+    descriptionKey: "chart.candlestick.description",
+    iconName: "candlestickChart",
     isCombo: false,
-    minDimensions: 2,
+    minDimensions: 1,
     minMeasures: 1,
-    requiresTemporal: false,
+    requiresTemporal: true,
+    requiresGeo: false,
+    requiresCategorical: false,
+    usesECharts: true,
+  },
+
+  // ============================================================================
+  // Stream / River Charts
+  // ============================================================================
+  themeriver: {
+    type: "themeriver",
+    enabled: true,
+    category: "stream",
+    order: 1,
+    symbol: "square",
+    labelKey: "chart.themeriver.title",
+    descriptionKey: "chart.themeriver.description",
+    iconName: "themeriverChart",
+    isCombo: false,
+    minDimensions: 1,
+    minMeasures: 1,
+    requiresTemporal: true,
     requiresGeo: false,
     requiresCategorical: true,
     usesECharts: true,
@@ -351,57 +318,6 @@ export const CHART_REGISTRY: Record<ChartType, ChartMetadata> = {
     labelKey: "chart.radar.title",
     descriptionKey: "chart.radar.description",
     iconName: "radarChart",
-    isCombo: false,
-    minDimensions: 1,
-    minMeasures: 1,
-    requiresTemporal: false,
-    requiresGeo: false,
-    requiresCategorical: true,
-    usesECharts: true,
-  },
-  gauge: {
-    type: "gauge",
-    enabled: true,
-    category: "specialized",
-    order: 2,
-    symbol: "circle",
-    labelKey: "chart.gauge.title",
-    descriptionKey: "chart.gauge.description",
-    iconName: "gaugeChart",
-    isCombo: false,
-    minDimensions: 0,
-    minMeasures: 1,
-    requiresTemporal: false,
-    requiresGeo: false,
-    requiresCategorical: false,
-    usesECharts: true,
-  },
-  polar: {
-    type: "polar",
-    enabled: true,
-    category: "specialized",
-    order: 3,
-    symbol: "circle",
-    labelKey: "chart.polar.title",
-    descriptionKey: "chart.polar.description",
-    iconName: "polarChart",
-    isCombo: false,
-    minDimensions: 1,
-    minMeasures: 1,
-    requiresTemporal: false,
-    requiresGeo: false,
-    requiresCategorical: true,
-    usesECharts: true,
-  },
-  wordcloud: {
-    type: "wordcloud",
-    enabled: true,
-    category: "specialized",
-    order: 4,
-    symbol: "square",
-    labelKey: "chart.wordcloud.title",
-    descriptionKey: "chart.wordcloud.description",
-    iconName: "wordcloudChart",
     isCombo: false,
     minDimensions: 1,
     minMeasures: 1,
@@ -667,8 +583,9 @@ export const getChartCategories = (): ChartCategoryInfo[] => {
   const categories: ChartCategory[] = [
     "basic",
     "partOfWhole",
-    "hierarchical",
     "statistical",
+    "financial",
+    "stream",
     "flow",
     "specialized",
     "comparison",
@@ -689,5 +606,10 @@ export const getEChartsChartTypes = (): ChartType[] => {
 
 /** Check if chart uses ECharts */
 export const isEChartsChart = (chartType: ChartType): boolean => {
-  return CHART_REGISTRY[chartType].usesECharts;
+  const metadata = CHART_REGISTRY[chartType];
+  if (!metadata) {
+    console.warn(`Chart type "${chartType}" not found in registry`);
+    return false;
+  }
+  return metadata.usesECharts;
 };

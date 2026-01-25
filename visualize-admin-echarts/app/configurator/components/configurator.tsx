@@ -79,7 +79,7 @@ import {
   saveChartLocally,
   useConfiguratorState,
 } from "@/configurator/configurator-state";
-import { ChartConfiguratorTable } from "@/configurator/table/table-chart-configurator";
+// ChartConfiguratorTable is no longer used - table charts now use the PowerBI interface
 import { useUserConfig } from "@/domain/user-configs";
 import { useDataCubesComponentsQuery } from "@/graphql/hooks";
 import { Icon } from "@/icons";
@@ -467,16 +467,12 @@ const ConfigureChartStep = () => {
             flexDirection: "column",
           }}
         >
-          {chartConfig.chartType === "table" ? (
-            <ChartConfiguratorTable state={state} />
-          ) : (
-            // Need to use key to force re-render when switching between charts
-            // or adding / removing cubes to fix stale data issues
-            <ChartConfigurator
-              key={`${chartConfig.key}_${chartConfig.cubes.length}`}
-              state={state}
-            />
-          )}
+          {/* Use unified ChartConfigurator for all chart types including table */}
+          {/* The PowerBI interface handles table charts via TableBuildPanel */}
+          <ChartConfigurator
+            key={`${chartConfig.key}_${chartConfig.cubes.length}`}
+            state={state}
+          />
         </PanelBodyWrapper>
         <PanelBodyWrapper
           type="M"

@@ -2,12 +2,56 @@ import { FilterValue, SortingField } from "@/configurator";
 import {
   Component,
   DimensionValue,
+  HierarchyValue,
   isMeasure,
   isNumericalMeasure,
   isTemporalDimension,
 } from "@/domain/data";
 import { bfs } from "@/utils/bfs";
 import { uniqueMapBy } from "@/utils/unique-map-by";
+
+// ============================================================================
+// Hierarchy Cache - Memoize expensive BFS traversal
+// ============================================================================
+
+/**
+ * Cache for BFS traversal results, keyed by hierarchy array reference.
+ * Uses WeakMap so entries are garbage collected when component is no longer referenced.
+ */
+const hierarchyBfsCache = new WeakMap<
+  HierarchyValue[],
+  Map<string, HierarchyValue>
+>();
+
+/**
+ * Gets or computes the hierarchy values map for a component.
+ * Caches the BFS traversal result to avoid repeated traversals.
+ */
+const getHierarchyValuesByValue = (
+  hierarchy: HierarchyValue[] | undefined
+): Map<string, HierarchyValue> => {
+  if (!hierarchy || hierarchy.length === 0) {
+    return new Map();
+  }
+
+  // Check cache first
+  const cached = hierarchyBfsCache.get(hierarchy);
+  if (cached) {
+    return cached;
+  }
+
+  // Compute BFS traversal
+  const allHierarchyValues = bfs(hierarchy, (node) => node);
+  const hierarchyValuesByValue = uniqueMapBy(
+    allHierarchyValues,
+    (dv) => dv.value
+  );
+
+  // Cache the result
+  hierarchyBfsCache.set(hierarchy, hierarchyValuesByValue);
+
+  return hierarchyValuesByValue;
+};
 
 export const maybeInt = (value?: string | number): number | string => {
   if (value === undefined) {
@@ -85,13 +129,10 @@ export const makeDimensionValueSorters = (
     values = values.filter((dv) => filterValues[dv.value]);
   }
 
-  const allHierarchyValues = isMeasure(component)
-    ? []
-    : bfs(component.hierarchy ?? [], (node) => node);
-  const hierarchyValuesByValue = uniqueMapBy(
-    allHierarchyValues,
-    (dv) => dv.value
-  );
+  // Use cached hierarchy values to avoid repeated BFS traversals
+  const hierarchyValuesByValue = isMeasure(component)
+    ? new Map<string, HierarchyValue>()
+    : getHierarchyValuesByValue(component.hierarchy);
   const valuesByValue = uniqueMapBy(values, (dv) => dv.value);
   // Warning: if two values have the same label and have an identifier / position
   // there could be problems as we could select the "wrong" value for the order

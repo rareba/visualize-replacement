@@ -46,6 +46,10 @@ interface RadarDataItem {
  * Universal Radar Chart Adapter
  *
  * Transforms UniversalChartState into ECharts radar configuration.
+ *
+ * Supports two modes:
+ * 1. With getX: Uses categories as indicators, segments as series
+ * 2. Without getX: Uses unique segment values as indicators, single series with values
  */
 export const radarUniversalAdapter = (state: UniversalChartState): EChartsOption => {
   const { observations, fields, colors, categories } = state;
@@ -53,54 +57,111 @@ export const radarUniversalAdapter = (state: UniversalChartState): EChartsOption
 
   const animation = getDefaultAnimation();
 
-  // Create indicators from categories
-  const indicators: RadarIndicator[] = categories.map((cat) => ({
-    name: cat,
-    max: 100, // Will be updated later
-  }));
+  // Mode 1: Full radar with getX (categories as indicators, segments as series)
+  if (getX && getSegment && getY && categories.length > 0) {
+    // Create indicators from categories
+    const indicators: RadarIndicator[] = categories.map((cat) => ({
+      name: cat,
+      max: 100, // Will be updated later
+    }));
 
-  // Track max values per indicator
-  const indicatorMaxValues: number[] = new Array(categories.length).fill(0);
+    // Track max values per indicator
+    const indicatorMaxValues: number[] = new Array(categories.length).fill(0);
 
-  // Group data by segment
-  const groupedData = new Map<string, { name: string; values: number[]; color: string }>();
+    // Group data by segment
+    const groupedData = new Map<string, { name: string; values: number[]; color: string }>();
 
-  observations.forEach((d) => {
-    if (!getSegment || !getY || !getX) return;
+    observations.forEach((d) => {
+      const segment = getSegment(d);
+      const category = getX(d) as string;
+      const value = getY(d) ?? 0;
+      const color = colors.getColor(segment) || SWISS_FEDERAL_COLORS.palette[groupedData.size % SWISS_FEDERAL_COLORS.palette.length];
 
-    const segment = getSegment(d);
-    const category = getX(d) as string;
-    const value = getY(d) ?? 0;
-    const color = colors.getColor(segment) || SWISS_FEDERAL_COLORS.palette[groupedData.size % SWISS_FEDERAL_COLORS.palette.length];
+      if (!groupedData.has(segment)) {
+        groupedData.set(segment, {
+          name: segment,
+          values: new Array(categories.length).fill(0),
+          color,
+        });
+      }
 
-    if (!groupedData.has(segment)) {
-      groupedData.set(segment, {
-        name: segment,
-        values: new Array(categories.length).fill(0),
-        color,
-      });
-    }
+      const categoryIdx = categories.indexOf(category);
+      if (categoryIdx !== -1) {
+        const entry = groupedData.get(segment)!;
+        entry.values[categoryIdx] = value;
+        indicatorMaxValues[categoryIdx] = Math.max(indicatorMaxValues[categoryIdx], value);
+      }
+    });
 
-    const categoryIdx = categories.indexOf(category);
-    if (categoryIdx !== -1) {
-      const entry = groupedData.get(segment)!;
-      entry.values[categoryIdx] = value;
-      indicatorMaxValues[categoryIdx] = Math.max(indicatorMaxValues[categoryIdx], value);
-    }
-  });
+    // Update indicator max values with padding
+    indicators.forEach((indicator, idx) => {
+      indicator.max = indicatorMaxValues[idx] * 1.2 || 100;
+    });
 
-  // Update indicator max values with padding
-  indicators.forEach((indicator, idx) => {
-    indicator.max = indicatorMaxValues[idx] * 1.2 || 100;
-  });
+    return buildRadarOption(indicators, Array.from(groupedData.values()), animation);
+  }
 
-  // Build series data
-  const seriesData: RadarDataItem[] = Array.from(groupedData.values()).map((item) => ({
-    name: item.name,
-    value: item.values,
-    itemStyle: { color: item.color },
-    areaStyle: { opacity: 0.2 },
-  }));
+  // Mode 2: Simple radar without getX (segments as indicators, single series)
+  if (getSegment && getY) {
+    // Collect unique segments and their values
+    const segmentValues = new Map<string, number>();
+    let maxValue = 0;
+
+    observations.forEach((d) => {
+      const segment = getSegment(d);
+      const value = getY(d) ?? 0;
+
+      // Sum values for same segment (in case of duplicates)
+      const currentValue = segmentValues.get(segment) ?? 0;
+      const newValue = currentValue + value;
+      segmentValues.set(segment, newValue);
+      maxValue = Math.max(maxValue, newValue);
+    });
+
+    // Create indicators from unique segments
+    const uniqueSegments = Array.from(segmentValues.keys());
+    const indicators: RadarIndicator[] = uniqueSegments.map((seg) => ({
+      name: seg,
+      max: maxValue * 1.2 || 100,
+    }));
+
+    // Create single series with all values
+    const values = uniqueSegments.map((seg) => segmentValues.get(seg) ?? 0);
+    const seriesData = [{
+      name: fields.yLabel || "Value",
+      values,
+      color: SWISS_FEDERAL_COLORS.palette[0],
+    }];
+
+    return buildRadarOption(indicators, seriesData, animation);
+  }
+
+  // Fallback: return empty chart configuration
+  return buildRadarOption([], [], animation);
+};
+
+/**
+ * Builds the ECharts radar option from indicators and series data.
+ */
+const buildRadarOption = (
+  indicators: RadarIndicator[],
+  seriesDataInput: Array<{ name: string; values: number[]; color: string }>,
+  animation: ReturnType<typeof getDefaultAnimation>
+): EChartsOption => {
+  // ECharts radar requires at least one indicator - provide default if empty
+  const safeIndicators = indicators.length > 0
+    ? indicators
+    : [{ name: "No data", max: 100 }];
+
+  // Build series data for ECharts
+  const seriesData: RadarDataItem[] = seriesDataInput.length > 0
+    ? seriesDataInput.map((item) => ({
+        name: item.name,
+        value: item.values,
+        itemStyle: { color: item.color },
+        areaStyle: { opacity: 0.2 },
+      }))
+    : [{ name: "No data", value: [0], itemStyle: { color: SWISS_FEDERAL_COLORS.palette[0] } }];
 
   return {
     ...getSwissFederalTheme(),
@@ -110,7 +171,7 @@ export const radarUniversalAdapter = (state: UniversalChartState): EChartsOption
     },
     legend: createLegend(),
     radar: {
-      indicator: indicators,
+      indicator: safeIndicators,
       center: ["50%", "55%"],
       radius: "65%",
       axisName: {

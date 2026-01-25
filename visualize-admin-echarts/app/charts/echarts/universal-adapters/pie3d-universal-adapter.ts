@@ -73,7 +73,8 @@ export const pie3dUniversalAdapter = (state: UniversalChartState): EChartsOption
       show: true,
       formatter: (params: unknown) => {
         const p = params as { name: string; percent: number };
-        return `${p.name}\n${p.percent.toFixed(1)}%`;
+        const percent = p.percent ?? 0;
+        return `${p.name}\n${percent.toFixed(1)}%`;
       },
       position: "outside",
     },
@@ -123,10 +124,12 @@ export const pie3dUniversalAdapter = (state: UniversalChartState): EChartsOption
       trigger: "item",
       formatter: (params: unknown) => {
         const p = params as { name: string; value: number; percent: number };
+        const value = p.value ?? 0;
+        const percent = p.percent ?? 0;
         const formattedValue = metadata.formatNumber
-          ? metadata.formatNumber(p.value)
-          : p.value;
-        return `${p.name}<br/>Value: ${formattedValue}<br/>Percent: ${p.percent.toFixed(1)}%`;
+          ? metadata.formatNumber(value)
+          : value;
+        return `${p.name}<br/>Value: ${formattedValue}<br/>Percent: ${percent.toFixed(1)}%`;
       },
     },
     legend: {

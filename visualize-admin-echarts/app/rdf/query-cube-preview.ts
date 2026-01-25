@@ -258,7 +258,13 @@ CONSTRUCT {
     const qsType = pQsDim[ns.rdf.type.value];
     const qScaleType = pQsDim[ns.qudt.scaleType.value]?.[0];
     const scaleType = getScaleType(qScaleType?.object);
-    const dataType = dimMetadataByDimIri[dimIri].dataType;
+    // Guard: Skip dimensions without metadata
+    const dimMetadata = dimMetadataByDimIri[dimIri];
+    if (!dimMetadata) {
+      console.warn(`[query-cube-preview] Missing metadata for dimension: ${dimIri}`);
+      return;
+    }
+    const dataType = dimMetadata.dataType;
     const qUnit = pQsDim[ns.qudt.unit.value]?.[0];
     const qUnitLabel = spQs[qUnit?.object.value]?.[ns.schema.name.value]?.[0];
     const qDataKind = pQsDim[ns.cube("meta/dataKind").value]?.[0];
@@ -290,7 +296,7 @@ CONSTRUCT {
       order: parseNumericalTerm(qOrder?.object),
       isNumerical: false,
       isKeyDimension,
-      values: dimMetadataByDimIri[dimIri].values,
+      values: dimMetadata.values,
       relatedLimitValues: [],
     };
 

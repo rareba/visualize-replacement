@@ -59,17 +59,13 @@ export const LayoutField = ({
     if (isBarConfig(chartConfig)) {
       return chartConfig.fields.x.componentId;
     }
-    // Check if y field exists (most charts have it except sankey, wordcloud, etc.)
+    // Check if y field exists (most charts have it)
     if ("y" in chartConfig.fields && chartConfig.fields.y) {
       return (chartConfig.fields as { y: { componentId: string } }).y.componentId;
     }
-    // For sankey charts, use the value field
+    // For charts with value field
     if ("value" in chartConfig.fields && chartConfig.fields.value) {
       return (chartConfig.fields as { value: { componentId: string } }).value.componentId;
-    }
-    // For polar charts, use the radius field
-    if ("radius" in chartConfig.fields && chartConfig.fields.radius) {
-      return (chartConfig.fields as { radius: { componentId: string } }).radius.componentId;
     }
     // Fallback to first available field
     return "";

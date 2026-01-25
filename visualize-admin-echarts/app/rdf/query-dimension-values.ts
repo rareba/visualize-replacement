@@ -18,7 +18,7 @@ import * as ns from "@/rdf/namespace";
 import { parseDimensionDatatype } from "@/rdf/parse";
 import { dimensionIsVersioned } from "@/rdf/queries";
 import { executeWithCache } from "@/rdf/query-cache";
-import { buildLocalizedSubQuery, iriToNode } from "@/rdf/query-utils";
+import { buildLocalizedSubQuery, escapeSparqlLiteral, iriToNode } from "@/rdf/query-utils";
 
 /**
  * Formats a filter value into the right format, string literal
@@ -29,7 +29,7 @@ const formatFilterValue = (value: string | number, dataType?: Term) => {
   if (!dataType) {
     return iriToNode(value as string);
   } else {
-    return `"${value}"`;
+    return `"${escapeSparqlLiteral(value)}"`;
   }
 };
 

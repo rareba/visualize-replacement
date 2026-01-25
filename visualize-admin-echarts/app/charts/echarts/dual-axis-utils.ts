@@ -4,6 +4,7 @@
  * Utilities for creating dual Y-axis configurations used in combo charts.
  */
 
+import { escapeHtml } from "@/charts/echarts/adapter-utils";
 import { SWISS_FEDERAL_COLORS, SWISS_FEDERAL_FONT } from "@/charts/echarts/theme";
 
 import type { YAXisComponentOption } from "echarts";
@@ -172,47 +173,94 @@ export const createComboGrid = (config: ComboGridConfig) => ({
 // ============================================================================
 
 /**
+ * Validates a tooltip param object has the expected shape.
+ */
+const isValidTooltipParam = (
+  param: unknown
+): param is { seriesName: string; value: unknown; marker: string; dataIndex?: number } => {
+  if (!param || typeof param !== "object") return false;
+  const p = param as Record<string, unknown>;
+  return (
+    typeof p.seriesName === "string" &&
+    typeof p.marker === "string" &&
+    p.value !== undefined
+  );
+};
+
+/**
  * Creates a tooltip formatter for category-based combo charts.
  */
 export const createCategoryComboTooltipFormatter =
   (categories: string[]) => (params: unknown) => {
-    const paramArray = params as Array<{
-      seriesName: string;
-      value: number | null;
-      marker: string;
-      dataIndex: number;
-    }>;
+    // Validate params array
+    if (!Array.isArray(params) || params.length === 0) return "";
 
-    if (!Array.isArray(paramArray) || paramArray.length === 0) return "";
+    // Get first valid param for category lookup
+    const firstParam = params[0];
+    if (!isValidTooltipParam(firstParam)) return "";
 
-    let result = `<strong>${categories[paramArray[0]?.dataIndex ?? 0]}</strong><br/>`;
-    paramArray.forEach((param) => {
-      if (param.value !== null && param.value !== undefined) {
-        result += `${param.marker} ${param.seriesName}: ${param.value}<br/>`;
+    const dataIndex =
+      typeof firstParam.dataIndex === "number" ? firstParam.dataIndex : 0;
+    const categoryLabel = categories[dataIndex] ?? "";
+
+    let result = `<strong>${escapeHtml(categoryLabel)}</strong><br/>`;
+
+    params.forEach((param) => {
+      if (!isValidTooltipParam(param)) return;
+      const value = param.value;
+      if (value !== null && value !== undefined) {
+        // Marker is already HTML from ECharts, seriesName and value need escaping
+        result += `${param.marker} ${escapeHtml(param.seriesName)}: ${escapeHtml(value as string | number)}<br/>`;
       }
     });
+
     return result;
   };
+
+/**
+ * Validates a time tooltip param has the expected shape.
+ */
+const isValidTimeTooltipParam = (
+  param: unknown
+): param is { seriesName: string; value: [number, number | null]; marker: string } => {
+  if (!param || typeof param !== "object") return false;
+  const p = param as Record<string, unknown>;
+  return (
+    typeof p.seriesName === "string" &&
+    typeof p.marker === "string" &&
+    Array.isArray(p.value) &&
+    p.value.length >= 2
+  );
+};
 
 /**
  * Creates a tooltip formatter for time-based combo charts.
  */
 export const createTimeComboTooltipFormatter = () => (params: unknown) => {
-  const paramArray = params as Array<{
-    seriesName: string;
-    value: [number, number | null];
-    marker: string;
-  }>;
+  // Validate params array
+  if (!Array.isArray(params) || params.length === 0) return "";
 
-  if (!Array.isArray(paramArray) || paramArray.length === 0) return "";
+  // Get first valid param for date lookup
+  const firstParam = params[0];
+  if (!isValidTimeTooltipParam(firstParam)) return "";
 
-  const date = new Date(paramArray[0]?.value?.[0] ?? 0);
-  let result = `<strong>${date.toLocaleDateString()}</strong><br/>`;
-  paramArray.forEach((param) => {
-    const value = param.value?.[1];
+  const timestamp = firstParam.value[0];
+  if (typeof timestamp !== "number" || !isFinite(timestamp)) return "";
+
+  const date = new Date(timestamp);
+  // Validate date is valid
+  if (isNaN(date.getTime())) return "";
+
+  let result = `<strong>${escapeHtml(date.toLocaleDateString())}</strong><br/>`;
+
+  params.forEach((param) => {
+    if (!isValidTimeTooltipParam(param)) return;
+    const value = param.value[1];
     if (value !== null && value !== undefined) {
-      result += `${param.marker} ${param.seriesName}: ${value}<br/>`;
+      // Marker is already HTML from ECharts, seriesName and value need escaping
+      result += `${param.marker} ${escapeHtml(param.seriesName)}: ${escapeHtml(value)}<br/>`;
     }
   });
+
   return result;
 };

@@ -116,26 +116,58 @@ const runTest = async ({
 };
 
 /**
- * @todo Test works locally but not on CI
+ * Multi-root hierarchy retrieval tests.
+ * Tests the GraphQL hierarchy query endpoint for cubes with multi-level hierarchies.
+ *
+ * Re-enabled with extended timeout and proper error handling.
+ * If the test fails due to API changes, check the hierarchy fetch implementation.
  */
-const testFn = process.env.CI ? test.skip : test;
+describe("multi root hierarchy retrieval", () => {
+  test("should work for C-1029", async () => {
+    // Extended timeout for network requests
+    test.setTimeout(60_000);
 
-// FIX: currently broken and will be fetched differently form #1244
-// TODO: refactor as part of #1244 changes
-describe.skip("multi root hierarchy retrieval", () => {
-  testFn("should work for C-1029", async () => {
-    await runTest({
-      cubeIri: cubeIris["C-1029"],
-      locale: "en",
-      expected: {
-        root: "Switzerland",
-        children: [
-          "Canton",
-          "Economic region",
-          "Production Region",
-          "Protection forest region",
-        ],
-      },
-    });
+    try {
+      await runTest({
+        cubeIri: cubeIris["C-1029"],
+        locale: "en",
+        expected: {
+          root: "Switzerland",
+          children: [
+            "Canton",
+            "Economic region",
+            "Production Region",
+            "Protection forest region",
+          ],
+        },
+      });
+    } catch (error) {
+      // Log error details for debugging but allow test to proceed
+      console.error("Hierarchy retrieval test error:", error);
+      throw error;
+    }
+  });
+
+  test("should work for C-1029 with German locale", async () => {
+    test.setTimeout(60_000);
+
+    try {
+      await runTest({
+        cubeIri: cubeIris["C-1029"],
+        locale: "de",
+        expected: {
+          root: "Schweiz",
+          children: [
+            "Kanton",
+            "Produktionsregion",
+            "Schutzwaldregion",
+            "Wirtschaftsregion",
+          ],
+        },
+      });
+    } catch (error) {
+      console.error("Hierarchy retrieval test error (de):", error);
+      throw error;
+    }
   });
 });

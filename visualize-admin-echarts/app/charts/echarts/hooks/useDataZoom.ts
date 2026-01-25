@@ -12,6 +12,28 @@ import { useChartInteractiveFilters } from "@/stores/interactive-filters";
 
 import type { DataZoomComponentOption } from "echarts";
 
+/**
+ * Validates a time domain and returns a safe domain span in milliseconds.
+ * Returns null if domain is invalid (missing, empty, or zero span).
+ */
+const getValidDomainMs = (xDomain: Date[]): { start: Date; domainMs: number } | null => {
+  if (!xDomain || xDomain.length < 2) return null;
+
+  const start = xDomain[0];
+  const end = xDomain[1];
+
+  // Validate dates
+  if (!(start instanceof Date) || !(end instanceof Date)) return null;
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
+
+  const domainMs = end.getTime() - start.getTime();
+
+  // Ensure finite non-zero span
+  if (!isFinite(domainMs) || domainMs <= 0) return null;
+
+  return { start, domainMs };
+};
+
 interface UseDataZoomConfig {
   // xScale from D3 returns Date[] from domain(), which we'll cast to [Date, Date]
   xScale: { domain: () => Date[] };
@@ -48,13 +70,19 @@ export const useDataZoom = (config: UseDataZoomConfig): UseDataZoomResult => {
     (params: unknown) => {
       if (!setTimeRange) return;
 
+      const xDomain = xScale.domain();
+      const validDomain = getValidDomainMs(xDomain);
+
+      // Skip if domain is invalid
+      if (!validDomain) return;
+
+      const { start: domainStart, domainMs } = validDomain;
+
       const typedParams = params as {
         start?: number;
         end?: number;
         batch?: Array<{ start: number; end: number }>;
       };
-      const xDomain = xScale.domain();
-      const domainMs = xDomain[1].getTime() - xDomain[0].getTime();
 
       let startPercent: number;
       let endPercent: number;
@@ -67,11 +95,15 @@ export const useDataZoom = (config: UseDataZoomConfig): UseDataZoomResult => {
         endPercent = typedParams.end ?? 100;
       }
 
+      // Clamp percentages to valid range
+      startPercent = Math.max(0, Math.min(100, startPercent));
+      endPercent = Math.max(0, Math.min(100, endPercent));
+
       const newFrom = new Date(
-        xDomain[0].getTime() + (startPercent / 100) * domainMs
+        domainStart.getTime() + (startPercent / 100) * domainMs
       );
       const newTo = new Date(
-        xDomain[0].getTime() + (endPercent / 100) * domainMs
+        domainStart.getTime() + (endPercent / 100) * domainMs
       );
 
       setTimeRange(newFrom, newTo);
@@ -80,29 +112,47 @@ export const useDataZoom = (config: UseDataZoomConfig): UseDataZoomResult => {
   );
 
   // Calculate initial dataZoom position from timeRange filter
-  const { dataZoomStart, dataZoomEnd } = useMemo(() => {
+  const { dataZoomStart, dataZoomEnd, isValidDomain } = useMemo(() => {
     let start = 0;
     let end = 100;
 
+    const xDomain = xScale.domain();
+    const validDomain = getValidDomainMs(xDomain);
+
+    // If domain is invalid, return defaults with invalid flag
+    if (!validDomain) {
+      return { dataZoomStart: start, dataZoomEnd: end, isValidDomain: false };
+    }
+
     if (timeRange?.from && timeRange?.to) {
-      const xDomain = xScale.domain();
-      const domainMs = xDomain[1].getTime() - xDomain[0].getTime();
+      const { start: domainStart, domainMs } = validDomain;
       start = Math.max(
         0,
-        ((timeRange.from.getTime() - xDomain[0].getTime()) / domainMs) * 100
+        ((timeRange.from.getTime() - domainStart.getTime()) / domainMs) * 100
       );
       end = Math.min(
         100,
-        ((timeRange.to.getTime() - xDomain[0].getTime()) / domainMs) * 100
+        ((timeRange.to.getTime() - domainStart.getTime()) / domainMs) * 100
       );
+
+      // Clamp to ensure valid range
+      start = Math.max(0, Math.min(100, start));
+      end = Math.max(0, Math.min(100, end));
+
+      // Ensure start <= end
+      if (start > end) {
+        start = 0;
+        end = 100;
+      }
     }
 
-    return { dataZoomStart: start, dataZoomEnd: end };
+    return { dataZoomStart: start, dataZoomEnd: end, isValidDomain: true };
   }, [timeRange, xScale]);
 
   // Build dataZoom configuration
   const dataZoomConfig = useMemo((): DataZoomComponentOption[] | undefined => {
-    if (!showDataZoom) return undefined;
+    // Don't show zoom slider if data zoom is disabled or domain is invalid
+    if (!showDataZoom || !isValidDomain) return undefined;
 
     return [
       {
@@ -130,7 +180,7 @@ export const useDataZoom = (config: UseDataZoomConfig): UseDataZoomResult => {
         end: dataZoomEnd,
       },
     ];
-  }, [showDataZoom, dataZoomStart, dataZoomEnd]);
+  }, [showDataZoom, isValidDomain, dataZoomStart, dataZoomEnd]);
 
   const extraHeight = showDataZoom ? 40 : 0;
 

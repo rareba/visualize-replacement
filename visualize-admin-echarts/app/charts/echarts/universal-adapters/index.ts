@@ -22,11 +22,6 @@
 // Part of Whole Charts
 import "./pie-universal-adapter";
 import "./donut-universal-adapter";
-import "./funnel-universal-adapter";
-import "./sunburst-universal-adapter";
-
-// Single Value Charts
-import "./gauge-universal-adapter";
 
 // Axis-based Charts
 import "./column-universal-adapter";
@@ -37,19 +32,18 @@ import "./scatterplot-universal-adapter";
 import "./boxplot-universal-adapter";
 import "./waterfall-universal-adapter";
 import "./heatmap-universal-adapter";
+import "./candlestick-universal-adapter";
 
-// Hierarchical Charts
-import "./treemap-universal-adapter";
+// Time Series / Stream Charts
+import "./themeriver-universal-adapter";
 
 // Multi-variable Charts
 import "./radar-universal-adapter";
-import "./polar-universal-adapter";
 
-// Flow Charts
-import "./sankey-universal-adapter";
-
-// Text Charts
-import "./wordcloud-universal-adapter";
+// Combo Charts
+import "./combo-line-single-universal-adapter";
+import "./combo-line-dual-universal-adapter";
+import "./combo-line-column-universal-adapter";
 
 // 3D Charts (ECharts GL)
 import "./bar3d-universal-adapter";
@@ -65,9 +59,6 @@ import "./pie3d-universal-adapter";
 
 export { pieUniversalAdapter } from "./pie-universal-adapter";
 export { donutUniversalAdapter } from "./donut-universal-adapter";
-export { funnelUniversalAdapter } from "./funnel-universal-adapter";
-export { sunburstUniversalAdapter } from "./sunburst-universal-adapter";
-export { gaugeUniversalAdapter } from "./gauge-universal-adapter";
 export { columnUniversalAdapter } from "./column-universal-adapter";
 export { barUniversalAdapter } from "./bar-universal-adapter";
 export { lineUniversalAdapter } from "./line-universal-adapter";
@@ -76,11 +67,14 @@ export { scatterplotUniversalAdapter } from "./scatterplot-universal-adapter";
 export { boxplotUniversalAdapter } from "./boxplot-universal-adapter";
 export { waterfallUniversalAdapter } from "./waterfall-universal-adapter";
 export { heatmapUniversalAdapter } from "./heatmap-universal-adapter";
-export { treemapUniversalAdapter } from "./treemap-universal-adapter";
+export { candlestickUniversalAdapter } from "./candlestick-universal-adapter";
+export { themeriverUniversalAdapter } from "./themeriver-universal-adapter";
 export { radarUniversalAdapter } from "./radar-universal-adapter";
-export { polarUniversalAdapter } from "./polar-universal-adapter";
-export { sankeyUniversalAdapter } from "./sankey-universal-adapter";
-export { wordcloudUniversalAdapter } from "./wordcloud-universal-adapter";
+
+// Combo Charts
+export { comboLineSingleUniversalAdapter } from "./combo-line-single-universal-adapter";
+export { comboLineDualUniversalAdapter } from "./combo-line-dual-universal-adapter";
+export { comboLineColumnUniversalAdapter } from "./combo-line-column-universal-adapter";
 
 // 3D Charts (ECharts GL)
 export { bar3dUniversalAdapter } from "./bar3d-universal-adapter";
@@ -101,9 +95,6 @@ export { pie3dUniversalAdapter } from "./pie3d-universal-adapter";
 export const UNIVERSAL_ADAPTER_CHART_TYPES = [
   "pie",
   "donut",
-  "funnel",
-  "sunburst",
-  "gauge",
   "column",
   "bar",
   "line",
@@ -112,11 +103,13 @@ export const UNIVERSAL_ADAPTER_CHART_TYPES = [
   "boxplot",
   "waterfall",
   "heatmap",
-  "treemap",
+  "candlestick",
+  "themeriver",
   "radar",
-  "polar",
-  "sankey",
-  "wordcloud",
+  // Combo Charts
+  "comboLineSingle",
+  "comboLineDual",
+  "comboLineColumn",
   // 3D Charts (ECharts GL)
   "bar3d",
   "scatter3d",

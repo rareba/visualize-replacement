@@ -2,7 +2,7 @@
  * Simple ECharts State Provider
  *
  * A minimal chart state provider for simple ECharts charts that don't need
- * complex segment handling (like Gauge, Polar, Wordcloud).
+ * complex segment handling.
  */
 
 import { PropsWithChildren, useCallback, useMemo } from "react";

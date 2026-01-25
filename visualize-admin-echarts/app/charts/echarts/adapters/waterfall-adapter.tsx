@@ -15,11 +15,8 @@ import {
   safeGetBounds,
 } from "@/charts/echarts/adapter-utils";
 import { EChartsWrapper } from "@/charts/echarts/EChartsWrapper";
-import {
-  getSwissFederalTheme,
-  SWISS_FEDERAL_COLORS,
-} from "@/charts/echarts/theme";
-import { ColumnsState } from "@/charts/column/columns-state";
+import { getSwissFederalTheme } from "@/charts/echarts/theme";
+import { WaterfallState } from "@/charts/echarts/waterfall-state";
 import { useChartState } from "@/charts/shared/chart-state";
 
 import type { EChartsOption, BarSeriesOption } from "echarts";
@@ -30,10 +27,10 @@ import type { EChartsOption, BarSeriesOption } from "echarts";
 
 /**
  * Waterfall chart adapter - displays cumulative effect of values.
- * Uses the same state as column charts.
+ * Uses WaterfallState for chart configuration.
  */
 export const WaterfallChartAdapter = () => {
-  const state = useChartState() as ColumnsState;
+  const state = useChartState() as WaterfallState;
   const {
     chartData,
     xScale,
@@ -43,6 +40,7 @@ export const WaterfallChartAdapter = () => {
     xAxisLabel,
     yAxisLabel,
     formatXAxisTick,
+    options,
   } = state;
 
   const option = useMemo((): EChartsOption => {
@@ -124,7 +122,7 @@ export const WaterfallChartAdapter = () => {
         stack: "Total",
         data: increaseData,
         itemStyle: {
-          color: SWISS_FEDERAL_COLORS.success,
+          color: options.increaseColor,
         },
         label: {
           show: true,
@@ -142,7 +140,7 @@ export const WaterfallChartAdapter = () => {
         stack: "Total",
         data: decreaseData,
         itemStyle: {
-          color: SWISS_FEDERAL_COLORS.error,
+          color: options.decreaseColor,
         },
         label: {
           show: true,
@@ -160,7 +158,7 @@ export const WaterfallChartAdapter = () => {
         stack: "Total",
         data: totalData,
         itemStyle: {
-          color: SWISS_FEDERAL_COLORS.primary,
+          color: options.totalColor,
         },
         label: {
           show: true,
@@ -202,7 +200,7 @@ export const WaterfallChartAdapter = () => {
       }),
       series,
     };
-  }, [chartData, xScale, getX, getY, bounds, xAxisLabel, yAxisLabel, formatXAxisTick]);
+  }, [chartData, xScale, getX, getY, bounds, xAxisLabel, yAxisLabel, formatXAxisTick, options]);
 
   const dimensions = calculateChartDimensions(bounds);
 

@@ -347,7 +347,7 @@ const useBarsState = (
       ? MOBILE_TOOLTIP_PLACEMENT
       : getCenteredTooltipPlacement({
           chartWidth,
-          xAnchor: yAnchor,
+          xAnchor: xAnchor ?? 0,
           topAnchor: !fields.segment,
         });
 

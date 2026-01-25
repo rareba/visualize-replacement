@@ -17,6 +17,9 @@ type DataSourceStore = {
 
 const PARAM_KEY = "dataSource";
 
+// Track if we've already subscribed to prevent duplicate listeners during HMR
+let routerListenerAttached = false;
+
 const saveToLocalStorage = (value: DataSource) => {
   try {
     localStorage.setItem(PARAM_KEY, sourceToLabel(value));
@@ -109,12 +112,13 @@ const dataSourceStoreMiddleware =
       }
     };
 
-    // No need to unsubscribe, as store is created once and needs to update
-    // URL continuously.
-    router.events.on("routeChangeComplete", callback);
-
-    // Initialize with correct url.
-    router.ready(callback);
+    // Only attach listener once (prevents duplicate listeners during HMR)
+    if (!routerListenerAttached) {
+      routerListenerAttached = true;
+      router.events.on("routeChangeComplete", callback);
+      // Initialize with correct url.
+      router.ready(callback);
+    }
 
     return { ...state, dataSource };
   };

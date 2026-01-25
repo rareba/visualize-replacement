@@ -184,22 +184,6 @@ const fieldLabels = {
     id: "controls.chart.type.radar",
     message: "Radar",
   }),
-  "controls.chart.type.funnel": defineMessage({
-    id: "controls.chart.type.funnel",
-    message: "Funnel",
-  }),
-  "controls.chart.type.gauge": defineMessage({
-    id: "controls.chart.type.gauge",
-    message: "Gauge",
-  }),
-  "controls.chart.type.treemap": defineMessage({
-    id: "controls.chart.type.treemap",
-    message: "Treemap",
-  }),
-  "controls.chart.type.sunburst": defineMessage({
-    id: "controls.chart.type.sunburst",
-    message: "Sunburst",
-  }),
   "controls.chart.type.heatmap": defineMessage({
     id: "controls.chart.type.heatmap",
     message: "Heatmap",
@@ -211,18 +195,6 @@ const fieldLabels = {
   "controls.chart.type.waterfall": defineMessage({
     id: "controls.chart.type.waterfall",
     message: "Waterfall",
-  }),
-  "controls.chart.type.sankey": defineMessage({
-    id: "controls.chart.type.sankey",
-    message: "Sankey",
-  }),
-  "controls.chart.type.polar": defineMessage({
-    id: "controls.chart.type.polar",
-    message: "Polar",
-  }),
-  "controls.chart.type.wordcloud": defineMessage({
-    id: "controls.chart.type.wordcloud",
-    message: "Word Cloud",
   }),
   // Chart category labels for compact selector
   "controls.chart.category.basic": defineMessage({
@@ -482,27 +454,12 @@ export function getFieldLabel(field: string): string {
       return i18n._(fieldLabels["controls.chart.type.donut"]);
     case "radar":
       return i18n._(fieldLabels["controls.chart.type.radar"]);
-    case "funnel":
-      return i18n._(fieldLabels["controls.chart.type.funnel"]);
-    case "gauge":
-      return i18n._(fieldLabels["controls.chart.type.gauge"]);
-    case "treemap":
-      return i18n._(fieldLabels["controls.chart.type.treemap"]);
-    case "sunburst":
-      return i18n._(fieldLabels["controls.chart.type.sunburst"]);
     case "heatmap":
       return i18n._(fieldLabels["controls.chart.type.heatmap"]);
     case "boxplot":
       return i18n._(fieldLabels["controls.chart.type.boxplot"]);
     case "waterfall":
       return i18n._(fieldLabels["controls.chart.type.waterfall"]);
-    case "sankey":
-      return i18n._(fieldLabels["controls.chart.type.sankey"]);
-    case "polar":
-      return i18n._(fieldLabels["controls.chart.type.polar"]);
-    case "wordcloud":
-      return i18n._(fieldLabels["controls.chart.type.wordcloud"]);
-
     // Chart Categories
     case "controls.chart.category.basic":
       return i18n._(fieldLabels["controls.chart.category.basic"]);

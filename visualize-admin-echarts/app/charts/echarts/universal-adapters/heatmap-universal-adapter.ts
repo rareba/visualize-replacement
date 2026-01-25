@@ -9,15 +9,17 @@
 
 import {
   getDefaultAnimation,
+  getHeatmapColorRange,
+  HeatmapColorField,
   safeGetBounds,
 } from "@/charts/echarts/adapter-utils";
 import {
   getSwissFederalTheme,
-  SWISS_FEDERAL_COLORS,
   SWISS_FEDERAL_FONT,
 } from "@/charts/echarts/theme";
 import { registerChartAdapter } from "@/charts/core/chart-adapter-registry";
 import type { UniversalChartState } from "@/charts/core/universal-chart-state";
+import { getColorInterpolator } from "@/palettes";
 
 import type { EChartsOption, HeatmapSeriesOption } from "echarts";
 
@@ -31,8 +33,18 @@ import type { EChartsOption, HeatmapSeriesOption } from "echarts";
  * Transforms UniversalChartState into ECharts heatmap configuration.
  */
 export const heatmapUniversalAdapter = (state: UniversalChartState): EChartsOption => {
-  const { observations, fields, bounds, metadata, categories, segments } = state;
+  const { observations, fields, bounds, metadata, categories, segments, chartConfig } = state;
   const { getX, getSegment, getValue } = fields;
+
+  // Extract heatmap color field from chart config
+  const heatmapColorField = chartConfig?.fields &&
+    "color" in chartConfig.fields &&
+    chartConfig.fields.color &&
+    typeof chartConfig.fields.color === "object" &&
+    "type" in chartConfig.fields.color &&
+    (chartConfig.fields.color.type === "sequential" || chartConfig.fields.color.type === "diverging")
+      ? (chartConfig.fields.color as HeatmapColorField)
+      : undefined;
 
   const animation = getDefaultAnimation();
   const safeBounds = safeGetBounds(bounds);
@@ -100,7 +112,6 @@ export const heatmapUniversalAdapter = (state: UniversalChartState): EChartsOpti
       axisLabel: {
         fontFamily: SWISS_FEDERAL_FONT.family,
         fontSize: 11,
-        color: SWISS_FEDERAL_COLORS.text,
       },
     },
     yAxis: {
@@ -114,7 +125,6 @@ export const heatmapUniversalAdapter = (state: UniversalChartState): EChartsOpti
       axisLabel: {
         fontFamily: SWISS_FEDERAL_FONT.family,
         fontSize: 11,
-        color: SWISS_FEDERAL_COLORS.text,
       },
     },
     visualMap: {
@@ -125,16 +135,11 @@ export const heatmapUniversalAdapter = (state: UniversalChartState): EChartsOpti
       left: "center",
       bottom: 10,
       inRange: {
-        color: [
-          SWISS_FEDERAL_COLORS.palette[14], // Light
-          SWISS_FEDERAL_COLORS.palette[1], // Primary blue
-          SWISS_FEDERAL_COLORS.primary, // Swiss red
-        ],
+        color: getHeatmapColorRange(heatmapColorField, getColorInterpolator),
       },
       textStyle: {
         fontFamily: SWISS_FEDERAL_FONT.family,
         fontSize: 11,
-        color: SWISS_FEDERAL_COLORS.text,
       },
     },
     series: [
@@ -145,7 +150,6 @@ export const heatmapUniversalAdapter = (state: UniversalChartState): EChartsOpti
           show: data.length <= 100, // Only show labels for smaller grids
           fontFamily: SWISS_FEDERAL_FONT.family,
           fontSize: 10,
-          color: SWISS_FEDERAL_COLORS.text,
           formatter: (params: unknown) => {
             const p = params as { data: [number, number, number] };
             const value = p.data[2];

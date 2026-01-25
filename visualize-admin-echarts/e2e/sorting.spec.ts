@@ -177,11 +177,14 @@ test("Segment sorting with hierarchy", async ({
   );
 });
 
-test.skip("Map legend preview table sorting", async ({
+test("Map legend preview table sorting", async ({
   actions,
   selectors,
   replayFromHAR,
+  expect,
 }) => {
+  test.setTimeout(120_000);
+
   await replayFromHAR();
   await actions.chart.createFrom({
     iri: "https://environment.ld.admin.ch/foen/gefahren-waldbrand-warnung/1",
@@ -193,9 +196,37 @@ test.skip("Map legend preview table sorting", async ({
   await actions.editor.changeRegularChartType("Map");
   await selectors.chart.loaded();
 
+  // Switch to table view
   await actions.chart.switchToTableView();
+
+  // Wait for table to be fully loaded
+  const table = await selectors.datasetPreview.table();
+  await expect(table).toBeVisible({ timeout: 10_000 });
+
+  // Sort by danger ratings column
   await actions.datasetPreview.sortBy("Danger ratings");
+
+  // Wait for sort to be applied
+  await selectors.chart.loaded();
+
+  // Get the cells from the sorted column
   const cells = await selectors.datasetPreview.columnCells("Danger ratings");
+  const cellTexts = await cells.allTextContents();
+
+  // Verify we have data and it's sorted
+  expect(cellTexts.length).toBeGreaterThan(0);
+
+  // Verify ascending sort order (values should be in non-decreasing order)
+  const numericValues = cellTexts
+    .map(text => parseInt(text.replace(/\D/g, ''), 10))
+    .filter(v => !isNaN(v));
+
+  if (numericValues.length > 1) {
+    const isSorted = numericValues.every((val, i, arr) =>
+      i === 0 || val >= arr[i - 1]
+    );
+    expect(isSorted).toBe(true);
+  }
 });
 
 test("Sorting with values with same label as other values in the tree", async ({

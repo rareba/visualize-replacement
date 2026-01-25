@@ -323,9 +323,6 @@ export const supportsAnnotations = (chartConfig: ChartConfig) => {
     case "pie":
     case "donut":
     case "scatterplot":
-    case "funnel":
-    case "treemap":
-    case "sunburst":
       return true;
     case "comboLineColumn":
     case "comboLineDual":
@@ -333,13 +330,9 @@ export const supportsAnnotations = (chartConfig: ChartConfig) => {
     case "map":
     case "table":
     case "radar":
-    case "gauge":
     case "heatmap":
     case "boxplot":
     case "waterfall":
-    case "sankey":
-    case "polar":
-    case "wordcloud":
     // 3D Charts (ECharts GL)
     case "bar3d":
     case "scatter3d":
@@ -539,6 +532,7 @@ const LineFields = t.intersection([
   }),
   t.partial({
     segment: LineSegmentField,
+    animation: AnimationField,
   }),
 ]);
 export type LineFields = t.TypeOf<typeof LineFields>;
@@ -584,6 +578,7 @@ const AreaFields = t.intersection([
   }),
   t.partial({
     segment: AreaSegmentField,
+    animation: AnimationField,
   }),
 ]);
 export type AreaFields = t.TypeOf<typeof AreaFields>;
@@ -689,12 +684,17 @@ const DonutConfig = t.intersection([
 export type DonutConfig = t.TypeOf<typeof DonutConfig>;
 
 // Radar Config
-const RadarFields = t.type({
-  indicators: t.array(GenericField), // dimensions to show as radar axes
-  y: GenericField, // measure
-  segment: t.intersection([GenericField, SortingField, ShowTitleFieldExtension]),
-  color: t.union([SegmentColorField, SingleColorField]),
-});
+const RadarFields = t.intersection([
+  t.type({
+    indicators: t.array(GenericField), // dimensions to show as radar axes
+    y: GenericField, // measure
+    segment: t.intersection([GenericField, SortingField, ShowTitleFieldExtension]),
+    color: t.union([SegmentColorField, SingleColorField]),
+  }),
+  t.partial({
+    animation: AnimationField,
+  }),
+]);
 export type RadarFields = t.TypeOf<typeof RadarFields>;
 
 const RadarConfig = t.intersection([
@@ -708,100 +708,6 @@ const RadarConfig = t.intersection([
   ),
 ]);
 export type RadarConfig = t.TypeOf<typeof RadarConfig>;
-
-// Funnel Config
-const FunnelFields = t.intersection([
-  t.type({
-    y: t.intersection([GenericField, ShowValuesFieldExtension]),
-    segment: t.intersection([GenericField, SortingField, ShowTitleFieldExtension]),
-    color: SegmentColorField,
-  }),
-  t.partial({
-    animation: AnimationField,
-  }),
-]);
-export type FunnelFields = t.TypeOf<typeof FunnelFields>;
-
-const FunnelConfig = t.intersection([
-  GenericChartConfig,
-  t.type(
-    {
-      chartType: t.literal("funnel"),
-      fields: FunnelFields,
-    },
-    "FunnelConfig"
-  ),
-]);
-export type FunnelConfig = t.TypeOf<typeof FunnelConfig>;
-
-// Gauge Config (single value display)
-const GaugeFields = t.type({
-  y: GenericField, // the measure to display
-  color: SingleColorField,
-});
-export type GaugeFields = t.TypeOf<typeof GaugeFields>;
-
-const GaugeConfig = t.intersection([
-  GenericChartConfig,
-  t.type(
-    {
-      chartType: t.literal("gauge"),
-      fields: GaugeFields,
-    },
-    "GaugeConfig"
-  ),
-]);
-export type GaugeConfig = t.TypeOf<typeof GaugeConfig>;
-
-// Treemap Config
-const TreemapFields = t.intersection([
-  t.type({
-    y: t.intersection([GenericField, ShowValuesFieldExtension]), // measure for size
-    segment: t.intersection([GenericField, SortingField, ShowTitleFieldExtension]), // dimension for grouping
-    color: t.union([SegmentColorField, SingleColorField]),
-  }),
-  t.partial({
-    hierarchy: GenericField, // optional parent dimension for hierarchy
-  }),
-]);
-export type TreemapFields = t.TypeOf<typeof TreemapFields>;
-
-const TreemapConfig = t.intersection([
-  GenericChartConfig,
-  t.type(
-    {
-      chartType: t.literal("treemap"),
-      fields: TreemapFields,
-    },
-    "TreemapConfig"
-  ),
-]);
-export type TreemapConfig = t.TypeOf<typeof TreemapConfig>;
-
-// Sunburst Config
-const SunburstFields = t.intersection([
-  t.type({
-    y: t.intersection([GenericField, ShowValuesFieldExtension]), // measure for size
-    segment: t.intersection([GenericField, SortingField, ShowTitleFieldExtension]), // dimension for grouping
-    color: SegmentColorField,
-  }),
-  t.partial({
-    hierarchy: GenericField, // optional parent dimension for hierarchy
-  }),
-]);
-export type SunburstFields = t.TypeOf<typeof SunburstFields>;
-
-const SunburstConfig = t.intersection([
-  GenericChartConfig,
-  t.type(
-    {
-      chartType: t.literal("sunburst"),
-      fields: SunburstFields,
-    },
-    "SunburstConfig"
-  ),
-]);
-export type SunburstConfig = t.TypeOf<typeof SunburstConfig>;
 
 // Heatmap Config
 const HeatmapFields = t.type({
@@ -873,66 +779,52 @@ const WaterfallConfig = t.intersection([
 ]);
 export type WaterfallConfig = t.TypeOf<typeof WaterfallConfig>;
 
-// Sankey Config (flow diagram)
-const SankeyFields = t.type({
-  source: GenericField, // source dimension
-  target: GenericField, // target dimension
-  value: GenericField, // measure for link width
-  color: t.union([SegmentColorField, SingleColorField]),
+// Candlestick Config (OHLC financial chart)
+const CandlestickFields = t.type({
+  x: t.intersection([GenericField, SortingField]), // time/category dimension
+  y: GenericField, // primary measure (close price or single value)
+  color: SingleColorField,
 });
-export type SankeyFields = t.TypeOf<typeof SankeyFields>;
+export type CandlestickFields = t.TypeOf<typeof CandlestickFields>;
 
-const SankeyConfig = t.intersection([
+const CandlestickConfig = t.intersection([
   GenericChartConfig,
   t.type(
     {
-      chartType: t.literal("sankey"),
-      fields: SankeyFields,
+      chartType: t.literal("candlestick"),
+      fields: CandlestickFields,
     },
-    "SankeyConfig"
+    "CandlestickConfig"
   ),
 ]);
-export type SankeyConfig = t.TypeOf<typeof SankeyConfig>;
+export type CandlestickConfig = t.TypeOf<typeof CandlestickConfig>;
 
-// Polar Config (radial bar/line)
-const PolarFields = t.type({
-  angle: GenericField, // angular dimension
-  radius: GenericField, // radial measure
+// ThemeRiver Config (stream graph)
+const ThemeriverSegmentField = t.intersection([
+  GenericField,
+  SortingField,
+]);
+export type ThemeriverSegmentField = t.TypeOf<typeof ThemeriverSegmentField>;
+
+const ThemeriverFields = t.type({
+  x: t.intersection([GenericField, SortingField]), // time/category dimension
+  y: GenericField, // measure for stream width
+  segment: ThemeriverSegmentField, // segment/theme dimension
   color: t.union([SegmentColorField, SingleColorField]),
 });
-export type PolarFields = t.TypeOf<typeof PolarFields>;
+export type ThemeriverFields = t.TypeOf<typeof ThemeriverFields>;
 
-const PolarConfig = t.intersection([
+const ThemeriverConfig = t.intersection([
   GenericChartConfig,
   t.type(
     {
-      chartType: t.literal("polar"),
-      fields: PolarFields,
+      chartType: t.literal("themeriver"),
+      fields: ThemeriverFields,
     },
-    "PolarConfig"
+    "ThemeriverConfig"
   ),
 ]);
-export type PolarConfig = t.TypeOf<typeof PolarConfig>;
-
-// Wordcloud Config
-const WordcloudFields = t.type({
-  word: GenericField, // dimension for words
-  size: GenericField, // measure for word size
-  color: t.union([SegmentColorField, SingleColorField]),
-});
-export type WordcloudFields = t.TypeOf<typeof WordcloudFields>;
-
-const WordcloudConfig = t.intersection([
-  GenericChartConfig,
-  t.type(
-    {
-      chartType: t.literal("wordcloud"),
-      fields: WordcloudFields,
-    },
-    "WordcloudConfig"
-  ),
-]);
-export type WordcloudConfig = t.TypeOf<typeof WordcloudConfig>;
+export type ThemeriverConfig = t.TypeOf<typeof ThemeriverConfig>;
 
 // ============================================================================
 // 3D Chart Configs (ECharts GL)
@@ -1517,16 +1409,11 @@ const RegularChartConfig = t.union([
   ScatterPlotConfig,
   TableConfig,
   RadarConfig,
-  FunnelConfig,
-  GaugeConfig,
-  TreemapConfig,
-  SunburstConfig,
   HeatmapConfig,
   BoxplotConfig,
   WaterfallConfig,
-  SankeyConfig,
-  PolarConfig,
-  WordcloudConfig,
+  CandlestickConfig,
+  ThemeriverConfig,
   // 3D Charts (ECharts GL)
   Bar3dConfig,
   Scatter3dConfig,
@@ -1660,30 +1547,6 @@ export const isRadarConfig = (
   return chartConfig.chartType === "radar";
 };
 
-export const isFunnelConfig = (
-  chartConfig: ChartConfig
-): chartConfig is FunnelConfig => {
-  return chartConfig.chartType === "funnel";
-};
-
-export const isGaugeConfig = (
-  chartConfig: ChartConfig
-): chartConfig is GaugeConfig => {
-  return chartConfig.chartType === "gauge";
-};
-
-export const isTreemapConfig = (
-  chartConfig: ChartConfig
-): chartConfig is TreemapConfig => {
-  return chartConfig.chartType === "treemap";
-};
-
-export const isSunburstConfig = (
-  chartConfig: ChartConfig
-): chartConfig is SunburstConfig => {
-  return chartConfig.chartType === "sunburst";
-};
-
 export const isHeatmapConfig = (
   chartConfig: ChartConfig
 ): chartConfig is HeatmapConfig => {
@@ -1726,11 +1589,8 @@ export const isSegmentInConfig = (
   | PieConfig
   | DonutConfig
   | ScatterPlotConfig
-  | RadarConfig
-  | FunnelConfig
-  | TreemapConfig
-  | SunburstConfig => {
-  return ["area", "column", "bar", "line", "pie", "donut", "scatterplot", "radar", "funnel", "treemap", "sunburst"].includes(
+  | RadarConfig => {
+  return ["area", "column", "bar", "line", "pie", "donut", "scatterplot", "radar"].includes(
     chartConfig.chartType
   );
 };
@@ -1755,11 +1615,8 @@ export const isSortingInConfig = (
   | PieConfig
   | DonutConfig
   | RadarConfig
-  | FunnelConfig
-  | TreemapConfig
-  | SunburstConfig
   | HeatmapConfig => {
-  return ["area", "column", "bar", "line", "pie", "donut", "radar", "funnel", "treemap", "sunburst", "heatmap"].includes(
+  return ["area", "column", "bar", "line", "pie", "donut", "radar", "heatmap"].includes(
     chartConfig.chartType
   );
 };
@@ -1769,12 +1626,14 @@ export const isAnimationInConfig = (
 ): chartConfig is
   | ColumnConfig
   | BarConfig
+  | LineConfig
+  | AreaConfig
   | MapConfig
   | PieConfig
   | DonutConfig
   | ScatterPlotConfig
-  | FunnelConfig => {
-  return ["column", "bar", "map", "pie", "donut", "scatterplot", "funnel"].includes(
+  | RadarConfig => {
+  return ["column", "bar", "line", "area", "map", "pie", "donut", "scatterplot", "radar"].includes(
     chartConfig.chartType
   );
 };

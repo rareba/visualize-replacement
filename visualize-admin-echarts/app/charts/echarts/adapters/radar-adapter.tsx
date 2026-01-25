@@ -14,6 +14,7 @@ import {
   safeGetBounds,
 } from "@/charts/echarts/adapter-utils";
 import { EChartsWrapper } from "@/charts/echarts/EChartsWrapper";
+import { RadarState, RadarIndicator } from "@/charts/echarts/radar-state";
 import {
   getSwissFederalTheme,
   SWISS_FEDERAL_COLORS,
@@ -27,26 +28,11 @@ import type { EChartsOption, RadarSeriesOption } from "echarts";
 // Types
 // ============================================================================
 
-interface RadarIndicator {
-  name: string;
-  max?: number;
-}
-
 interface RadarDataItem {
   name: string;
   value: number[];
   itemStyle: { color: string };
   areaStyle?: { opacity: number };
-}
-
-interface RadarState {
-  chartData: unknown[];
-  getSegment: (d: unknown) => string;
-  getSegmentAbbreviationOrLabel: (d: unknown) => string;
-  getY: (d: unknown) => number | null;
-  colors: (segment: string) => string;
-  bounds?: { width?: number; height?: number };
-  dimensions?: { id: string; label: string }[];
 }
 
 // ============================================================================
@@ -65,7 +51,8 @@ export const RadarChartAdapter = () => {
     getY,
     colors,
     bounds,
-    dimensions: chartDimensions,
+    indicators: stateIndicators,
+    options,
   } = state;
 
   const option = useMemo((): EChartsOption => {
@@ -73,22 +60,18 @@ export const RadarChartAdapter = () => {
 
     // Group data by segment
     const groupedData = new Map<string, { name: string; values: number[]; color: string }>();
-    const indicators: RadarIndicator[] = [];
-    const indicatorMaxValues: number[] = [];
 
-    // Create indicators from dimensions or use default
-    const dimensionList = chartDimensions || [
-      { id: "dim1", label: "Dimension 1" },
-      { id: "dim2", label: "Dimension 2" },
-      { id: "dim3", label: "Dimension 3" },
-      { id: "dim4", label: "Dimension 4" },
-      { id: "dim5", label: "Dimension 5" },
-    ];
-
-    dimensionList.forEach((dim, index) => {
-      indicators.push({ name: dim.label || dim.id });
-      indicatorMaxValues[index] = 0;
-    });
+    // Use indicators from state, with fallback
+    const indicators: RadarIndicator[] = stateIndicators.length > 0
+      ? stateIndicators.map((ind) => ({ ...ind }))
+      : [
+          { name: "Dimension 1" },
+          { name: "Dimension 2" },
+          { name: "Dimension 3" },
+          { name: "Dimension 4" },
+          { name: "Dimension 5" },
+        ];
+    const indicatorMaxValues: number[] = indicators.map(() => 0);
 
     // Process chart data
     chartData.forEach((d) => {
@@ -139,6 +122,8 @@ export const RadarChartAdapter = () => {
         indicator: indicators,
         center: ["50%", "55%"],
         radius: "65%",
+        shape: options.shape,
+        splitNumber: options.splitNumber,
         axisName: {
           color: SWISS_FEDERAL_COLORS.text,
           fontFamily: SWISS_FEDERAL_FONT.family,
@@ -169,6 +154,8 @@ export const RadarChartAdapter = () => {
           lineStyle: {
             width: 2,
           },
+          areaStyle: options.areaStyle ? { opacity: 0.2 } : undefined,
+          smooth: options.lineSmooth,
           emphasis: {
             areaStyle: {
               opacity: 0.3,
@@ -182,7 +169,7 @@ export const RadarChartAdapter = () => {
         } as RadarSeriesOption,
       ],
     };
-  }, [chartData, getSegment, getSegmentAbbreviationOrLabel, getY, colors, bounds, chartDimensions]);
+  }, [chartData, getSegment, getSegmentAbbreviationOrLabel, getY, colors, bounds, stateIndicators, options]);
 
   const safeBounds = safeGetBounds(bounds as Partial<ChartBounds>);
   const dimensions = {

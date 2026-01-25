@@ -26,8 +26,6 @@ export type {
   TemporalValueGetter,
   PieChartState,
   AxisChartState,
-  HierarchicalChartState,
-  SankeyChartState,
 } from "./universal-chart-state";
 
 // Field accessor factory

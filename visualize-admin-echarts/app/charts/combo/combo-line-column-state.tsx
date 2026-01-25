@@ -107,7 +107,8 @@ const useComboLineColumnState = (
   });
 
   // x
-  const xTimeUnit = variables.xTimeUnit as TimeUnit;
+  // Guard against undefined time unit - default to Day if not specified
+  const xTimeUnit: TimeUnit = variables.xTimeUnit ?? TimeUnit.Day;
   const interval = getTimeInterval(xTimeUnit);
   const [xMin, xMax] = xScaleTime.domain() as [Date, Date];
   const xDomain = interval.range(xMin, xMax).concat(xMax).map(formatXDate);

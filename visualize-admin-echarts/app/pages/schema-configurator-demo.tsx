@@ -66,7 +66,6 @@ const chartTypes: ChartType[] = [
   "donut",
   "scatterplot",
   "radar",
-  "funnel",
 ];
 
 // ============================================================================
@@ -156,20 +155,6 @@ const generateEChartsOption = (
           {
             type: "radar",
             data: [{ value: seriesData, name: "Data" }],
-          },
-        ],
-      };
-
-    case "funnel":
-      return {
-        tooltip: { trigger: "item" },
-        series: [
-          {
-            type: "funnel",
-            data: categories.map((cat, i) => ({
-              name: String(cat),
-              value: seriesData[i],
-            })),
           },
         ],
       };

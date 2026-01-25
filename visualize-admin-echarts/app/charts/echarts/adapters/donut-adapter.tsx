@@ -67,11 +67,16 @@ const createDonutLabelConfig = (
   fontSize: 11,
   color: SWISS_FEDERAL_COLORS.text,
   formatter: (params: unknown) => {
-    const p = params as { name: string; value: number; percent: number };
+    // Safe type checking for label params
+    const p = params as { name?: string; value?: number; percent?: number } | null;
+    if (!p) return "";
+    const name = p.name ?? "";
+    const value = p.value ?? 0;
+
     const formattedValue = valueLabelFormatter
-      ? valueLabelFormatter(p.value)
-      : p.value;
-    return `{name|${p.name}}\n{value|${formattedValue}}`;
+      ? valueLabelFormatter(value)
+      : value;
+    return `{name|${name}}\n{value|${formattedValue}}`;
   },
   rich: {
     name: {
@@ -112,11 +117,18 @@ const createDonutLabelLineConfig = (
  */
 const createDonutTooltipFormatter =
   (valueLabelFormatter?: (value: number) => string) => (params: unknown) => {
-    const p = params as { name: string; value: number; percent: number };
+    // Safe type checking for tooltip params
+    const p = params as { name?: string; value?: number; percent?: number } | null;
+    if (!p) return "";
+
+    const name = p.name ?? "";
+    const value = p.value ?? 0;
+    const percent = p.percent ?? 0;
+
     const formattedValue = valueLabelFormatter
-      ? valueLabelFormatter(p.value)
-      : p.value;
-    return `${p.name}: ${formattedValue} (${p.percent.toFixed(1)}%)`;
+      ? valueLabelFormatter(value)
+      : value;
+    return `${name}: ${formattedValue} (${percent.toFixed(1)}%)`;
   };
 
 // ============================================================================

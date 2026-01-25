@@ -48,9 +48,8 @@ export const getTimeFilterOptions = ({
 
     if (date) {
       options.push({
-        // By formatting the date, we remove potential timezone.
-        // FIXME: This might lead to issues with SPARQL filtering.
-        value: formatDate(date),
+        // Use the raw value for filtering to avoid timezone/formatting issues
+        value,
         label: timeFormatUnit(date, timeUnit),
         date,
       });

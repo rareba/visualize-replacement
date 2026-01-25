@@ -4,7 +4,7 @@
  * A pure function adapter for boxplot charts.
  * Displays statistical distribution with quartiles.
  *
- * Lines of code: ~120
+ * Lines of code: ~150
  */
 
 import {
@@ -31,8 +31,12 @@ interface BoxplotDataItem {
   itemStyle: { color: string; borderColor: string };
 }
 
+// Minimum number of values needed for a meaningful boxplot
+const MIN_VALUES_FOR_BOXPLOT = 5;
+
 /**
  * Calculates boxplot statistics from a set of values.
+ * Uses proper quartile calculation for accurate statistics.
  */
 const calculateBoxplotStats = (
   values: number[]
@@ -42,6 +46,17 @@ const calculateBoxplotStats = (
   const sorted = [...values].sort((a, b) => a - b);
   const n = sorted.length;
 
+  // For very small samples, return the range with median
+  if (n < MIN_VALUES_FOR_BOXPLOT) {
+    const min = sorted[0];
+    const max = sorted[n - 1];
+    const median = n === 1 ? sorted[0] :
+      n % 2 === 0 ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 : sorted[Math.floor(n / 2)];
+    // For small samples, spread Q1/Q3 slightly for visibility
+    const spread = (max - min) * 0.1;
+    return [min, Math.max(min, median - spread), median, Math.min(max, median + spread), max];
+  }
+
   const min = sorted[0];
   const max = sorted[n - 1];
   const median =
@@ -49,10 +64,17 @@ const calculateBoxplotStats = (
       ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2
       : sorted[Math.floor(n / 2)];
 
-  const q1Index = Math.floor(n / 4);
-  const q3Index = Math.floor((3 * n) / 4);
-  const q1 = sorted[q1Index];
-  const q3 = sorted[q3Index];
+  // Use linear interpolation for quartiles (more accurate)
+  const q1Index = (n - 1) * 0.25;
+  const q3Index = (n - 1) * 0.75;
+
+  const q1Lower = Math.floor(q1Index);
+  const q1Frac = q1Index - q1Lower;
+  const q1 = sorted[q1Lower] + q1Frac * (sorted[Math.ceil(q1Index)] - sorted[q1Lower]);
+
+  const q3Lower = Math.floor(q3Index);
+  const q3Frac = q3Index - q3Lower;
+  const q3 = sorted[q3Lower] + q3Frac * (sorted[Math.ceil(q3Index)] - sorted[q3Lower]);
 
   return [min, q1, median, q3, max];
 };
@@ -135,10 +157,33 @@ export const boxplotUniversalAdapter = (state: UniversalChartState): EChartsOpti
         itemStyle: {
           borderWidth: 2,
         },
+        boxWidth: ["40%", "60%"],
         emphasis: {
           itemStyle: {
             shadowBlur: 10,
             shadowColor: "rgba(0, 0, 0, 0.2)",
+          },
+        },
+      },
+      // Add scatter points to show individual data points
+      {
+        name: "Data Points",
+        type: "scatter",
+        data: categories.flatMap((cat, catIndex) => {
+          const values = categoryValues.get(cat) || [];
+          const color = colors.getColor(cat) || SWISS_FEDERAL_COLORS.palette[catIndex % SWISS_FEDERAL_COLORS.palette.length];
+          return values.map((val) => ({
+            value: [catIndex, val],
+            itemStyle: {
+              color: color,
+              opacity: 0.6,
+            },
+          }));
+        }),
+        symbolSize: 6,
+        emphasis: {
+          itemStyle: {
+            opacity: 1,
           },
         },
       },

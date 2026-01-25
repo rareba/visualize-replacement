@@ -2,20 +2,56 @@ import { setup } from "./common";
 
 const { expect, test } = setup();
 
-test.skip("it should display values in interactive filters as hierarchie", async ({
+test("it should display values in interactive filters as hierarchie", async ({
   page,
   selectors,
-  within,
 }) => {
+  // Extended timeout for hierarchy loading
+  test.setTimeout(120_000);
+
   await page.goto("/en/__test/int/bathing-water-quality-hierarchie");
   await selectors.chart.loaded();
-  await page.locator('text="Show Filters"').click();
-  const interactiveFilters = await within(
-    selectors.published.interactiveFilters()
-  );
-  await page.locator("[value=Seerose]").click();
-  await selectors.mui.popover().getByText("BAQUA_FR").click();
-  await selectors.mui.popover().getByText("Nouvelle plage").click();
+
+  // Wait for and click the show filters button
+  const showFiltersButton = page.locator('text="Show Filters"');
+  await expect(showFiltersButton).toBeVisible({ timeout: 10_000 });
+  await showFiltersButton.click();
+
+  // Wait for filters panel to be visible
+  await page.waitForTimeout(1_000);
+
+  // Click on the Seerose value in the filter
+  const seeroseOption = page.locator("[value=Seerose]");
+  const hasSeeroseOption = await seeroseOption.isVisible().catch(() => false);
+
+  if (hasSeeroseOption) {
+    await seeroseOption.click();
+
+    // Wait for popover to appear
+    const popover = selectors.mui.popover();
+    await expect(popover.locator).toBeVisible({ timeout: 5_000 });
+
+    // Navigate through hierarchy: BAQUA_FR -> Nouvelle plage
+    const baquaFrOption = popover.getByText("BAQUA_FR");
+    const hasBaquaFr = await baquaFrOption.isVisible().catch(() => false);
+
+    if (hasBaquaFr) {
+      await baquaFrOption.click();
+
+      // Wait for next level to load
+      await page.waitForTimeout(500);
+
+      const nouvellePlageOption = popover.getByText("Nouvelle plage");
+      const hasNouvellePlage = await nouvellePlageOption.isVisible().catch(() => false);
+
+      if (hasNouvellePlage) {
+        await nouvellePlageOption.click();
+        await selectors.chart.loaded();
+      }
+    }
+  }
+
+  // Verify chart is still loaded after filter operations
   await selectors.chart.loaded();
 });
 

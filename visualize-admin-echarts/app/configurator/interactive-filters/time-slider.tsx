@@ -102,7 +102,13 @@ export const TimeSlider = (props: TimeSliderProps) => {
 
     if (temporal) {
       const msValues = uniqueValues.map((d) => parseDate(d).getTime());
-      const formatValue = (d: number) => timeFormatUnit(new Date(d), timeUnit!);
+      const formatValue = (d: number) => {
+        const date = new Date(d);
+        // Use timeUnit if available, otherwise fall back to locale date string
+        return timeUnit
+          ? timeFormatUnit(date, timeUnit)
+          : date.toLocaleDateString();
+      };
 
       return {
         type: "interval",

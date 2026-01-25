@@ -42,18 +42,6 @@ export { DonutChartAdapter } from "./donut-adapter";
 // Radar chart adapter
 export { RadarChartAdapter } from "./radar-adapter";
 
-// Funnel chart adapter
-export { FunnelChartAdapter } from "./funnel-adapter";
-
-// Gauge chart adapter
-export { GaugeChartAdapter } from "./gauge-adapter";
-
-// Treemap chart adapter
-export { TreemapChartAdapter } from "./treemap-adapter";
-
-// Sunburst chart adapter
-export { SunburstChartAdapter } from "./sunburst-adapter";
-
 // Heatmap chart adapter
 export { HeatmapChartAdapter } from "./heatmap-adapter";
 
@@ -62,12 +50,3 @@ export { BoxplotChartAdapter } from "./boxplot-adapter";
 
 // Waterfall chart adapter
 export { WaterfallChartAdapter } from "./waterfall-adapter";
-
-// Sankey chart adapter
-export { SankeyChartAdapter } from "./sankey-adapter";
-
-// Polar chart adapter
-export { PolarChartAdapter } from "./polar-adapter";
-
-// Wordcloud chart adapter
-export { WordcloudChartAdapter } from "./wordcloud-adapter";

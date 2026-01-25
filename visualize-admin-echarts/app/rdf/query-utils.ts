@@ -2,6 +2,21 @@ import { locales } from "@/locales/locales";
 
 export const GROUP_SEPARATOR = "|||";
 
+/**
+ * Escapes special characters in SPARQL string literals to prevent injection.
+ * Use this when concatenating user-derived values into SPARQL queries.
+ */
+export const escapeSparqlLiteral = (value: string | number): string => {
+  const str = String(value);
+  return str
+    .replace(/\\/g, "\\\\") // Escape backslashes first
+    .replace(/"/g, '\\"')   // Escape double quotes
+    .replace(/'/g, "\\'")   // Escape single quotes
+    .replace(/\n/g, "\\n")  // Escape newlines
+    .replace(/\r/g, "\\r")  // Escape carriage returns
+    .replace(/\t/g, "\\t"); // Escape tabs
+};
+
 export const iriToNode = (iri: string) => {
   return `<${iri}>`;
 };

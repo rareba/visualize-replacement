@@ -69,17 +69,23 @@ const useComboLineSingleState = (
 
   const yUnits = Array.from(
     new Set(
-      variables.y.lines.map((d) => {
-        return measuresById[d.id].unit;
-      })
+      variables.y.lines
+        .map((d) => measuresById[d.id]?.unit)
+        .filter((unit): unit is string => !!unit)
     )
   );
 
+  // Handle multiple units gracefully with warning instead of throwing
   if (yUnits.length > 1) {
-    throw Error("Multiple units are not supported in ComboLineSingle chart!");
+    console.warn(
+      "[ComboLineSingle] Multiple units detected:",
+      yUnits.join(", "),
+      "- showing without unit label. Consider using ComboLineDual for different units."
+    );
   }
 
-  const yAxisLabel = yUnits[0] ?? "";
+  // Use first unit, or empty string if multiple or no units
+  const yAxisLabel = yUnits.length === 1 ? yUnits[0] : "";
 
   const xKey = fields.x.componentId;
   const {

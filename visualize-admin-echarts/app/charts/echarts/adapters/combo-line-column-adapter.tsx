@@ -63,20 +63,24 @@ export const ComboLineColumnChartAdapter = () => {
     const lineAxisIndex = leftIsLine ? 0 : 1;
     const columnAxisIndex = leftIsLine ? 1 : 0;
 
-    // Build column series data
+    // Pre-index data by formatted category for O(1) lookups
+    // This handles duplicate categories by keeping the last value (aggregation could be added here)
+    const dataByCategory = new Map<string, typeof chartData[number]>();
+    chartData.forEach((d) => {
+      const category = formatXDate(getXAsDate(d));
+      dataByCategory.set(category, d);
+    });
+
+    // Build column series data using pre-indexed map
     const columnData = categories.map((category) => {
-      const observation = chartData.find(
-        (d) => formatXDate(getXAsDate(d)) === category
-      );
+      const observation = dataByCategory.get(category);
       if (!observation) return null;
       return yColumn.getY(observation);
     });
 
-    // Build line series data
+    // Build line series data using pre-indexed map
     const lineData = categories.map((category) => {
-      const observation = chartData.find(
-        (d) => formatXDate(getXAsDate(d)) === category
-      );
+      const observation = dataByCategory.get(category);
       if (!observation) return null;
       return yLine.getY(observation);
     });

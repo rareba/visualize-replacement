@@ -20,19 +20,12 @@ import type {
   ChartConfig,
   ColumnConfig,
   DonutConfig,
-  FunnelConfig,
-  GaugeConfig,
   HeatmapConfig,
   LineConfig,
   PieConfig,
-  PolarConfig,
   RadarConfig,
-  SankeyConfig,
   ScatterPlotConfig,
-  SunburstConfig,
-  TreemapConfig,
   WaterfallConfig,
-  WordcloudConfig,
 } from "@/config-types";
 import type { Dimension, Observation } from "@/domain/data";
 import { isTemporalDimension, isTemporalEntityDimension } from "@/domain/data";
@@ -123,10 +116,11 @@ export const createRenderingKeyGetter = (
 // ============================================================================
 
 /**
- * Extracts field configuration for axis-based charts (column, bar, line, area).
+ * Extracts field configuration for axis-based charts (column, line, area).
+ * Note: Bar charts use getBarChartFields which handles swapped field semantics.
  */
 const getAxisChartFields = (
-  config: ColumnConfig | BarConfig | LineConfig | AreaConfig,
+  config: ColumnConfig | LineConfig | AreaConfig,
   dimensionsById: DimensionsById,
   measuresById: MeasuresById
 ): Partial<FieldAccessors> => {
@@ -165,6 +159,60 @@ const getAxisChartFields = (
 };
 
 /**
+ * Extracts field configuration for bar charts.
+ *
+ * Bar charts have SWAPPED field semantics compared to column charts:
+ * - BarConfig.fields.x = MEASURE (numeric value on horizontal axis)
+ * - BarConfig.fields.y = DIMENSION (category on vertical axis)
+ *
+ * But the universal adapter expects:
+ * - getX = categories (string) for Y-axis
+ * - getY = values (numeric) for X-axis
+ *
+ * So we swap the accessors to match adapter expectations.
+ */
+const getBarChartFields = (
+  config: BarConfig,
+  dimensionsById: DimensionsById,
+  measuresById: MeasuresById
+): Partial<FieldAccessors> => {
+  const { fields } = config;
+  // For bar: fields.y is the dimension (categories), fields.x is the measure (values)
+  const xDimension = dimensionsById[fields.y?.componentId ?? ""];
+  const yMeasure = measuresById[fields.x?.componentId ?? ""];
+  const segmentDimension = fields.segment
+    ? dimensionsById[fields.segment.componentId]
+    : undefined;
+
+  // Swap: getX reads from fields.y (dimension), getY reads from fields.x (measure)
+  const getX = createStringGetter(fields.y?.componentId);
+  const getY = createNumericGetter(fields.x?.componentId);
+  const getSegment = fields.segment
+    ? createStringGetter(fields.segment.componentId)
+    : undefined;
+
+  // For temporal category axis (Y-axis in bar charts)
+  const getXAsDate =
+    xDimension &&
+    (isTemporalDimension(xDimension) || isTemporalEntityDimension(xDimension))
+      ? createTemporalGetter(fields.y?.componentId, xDimension)
+      : undefined;
+
+  return {
+    getX,
+    getY,
+    getXAsDate,
+    getSegment,
+    xLabel: xDimension ? getLabelWithUnit(xDimension) : "",
+    yLabel: yMeasure ? getLabelWithUnit(yMeasure) : "",
+    xDimension,
+    yMeasure,
+    segmentDimension,
+    getRenderingKey: createRenderingKeyGetter(getX, getSegment),
+  };
+};
+
+/**
  * Extracts field configuration for pie/donut charts.
  */
 const getPieChartFields = (
@@ -186,65 +234,6 @@ const getPieChartFields = (
     yMeasure,
     segmentDimension,
     getRenderingKey: createRenderingKeyGetter(undefined, getSegment),
-  };
-};
-
-/**
- * Extracts field configuration for funnel charts.
- */
-const getFunnelChartFields = (
-  config: FunnelConfig,
-  dimensionsById: DimensionsById,
-  measuresById: MeasuresById
-): Partial<FieldAccessors> => {
-  const { fields } = config;
-  const yMeasure = measuresById[fields.y?.componentId ?? ""];
-  const segmentDimension = dimensionsById[fields.segment?.componentId ?? ""];
-
-  return {
-    getY: createNumericGetter(fields.y?.componentId),
-    getSegment: createStringGetter(fields.segment?.componentId),
-    yLabel: yMeasure ? getLabelWithUnit(yMeasure) : "",
-    yMeasure,
-    segmentDimension,
-  };
-};
-
-/**
- * Extracts field configuration for gauge charts.
- */
-const getGaugeChartFields = (
-  config: GaugeConfig,
-  measuresById: MeasuresById
-): Partial<FieldAccessors> => {
-  const { fields } = config;
-  const yMeasure = measuresById[fields.y?.componentId ?? ""];
-
-  return {
-    getY: createNumericGetter(fields.y?.componentId),
-    yLabel: yMeasure ? getLabelWithUnit(yMeasure) : "",
-    yMeasure,
-  };
-};
-
-/**
- * Extracts field configuration for hierarchical charts (treemap, sunburst).
- */
-const getHierarchicalChartFields = (
-  config: TreemapConfig | SunburstConfig,
-  dimensionsById: DimensionsById,
-  measuresById: MeasuresById
-): Partial<FieldAccessors> => {
-  const { fields } = config;
-  const yMeasure = measuresById[fields.y?.componentId ?? ""];
-  const segmentDimension = dimensionsById[fields.segment?.componentId ?? ""];
-
-  return {
-    getY: createNumericGetter(fields.y?.componentId),
-    getSegment: createStringGetter(fields.segment?.componentId),
-    yLabel: yMeasure ? getLabelWithUnit(yMeasure) : "",
-    yMeasure,
-    segmentDimension,
   };
 };
 
@@ -317,67 +306,6 @@ const getWaterfallChartFields = (
 };
 
 /**
- * Extracts field configuration for Sankey charts.
- */
-const getSankeyChartFields = (
-  config: SankeyConfig,
-  dimensionsById: DimensionsById,
-  _measuresById: MeasuresById
-): Partial<FieldAccessors> => {
-  const { fields } = config;
-  const sourceDimension = dimensionsById[fields.source?.componentId ?? ""];
-  const targetDimension = dimensionsById[fields.target?.componentId ?? ""];
-
-  return {
-    getSource: createStringGetter(fields.source?.componentId),
-    getTarget: createStringGetter(fields.target?.componentId),
-    getValue: createNumericGetter(fields.value?.componentId),
-    xDimension: sourceDimension,
-    segmentDimension: targetDimension,
-  };
-};
-
-/**
- * Extracts field configuration for polar charts.
- */
-const getPolarChartFields = (
-  config: PolarConfig,
-  dimensionsById: DimensionsById,
-  measuresById: MeasuresById
-): Partial<FieldAccessors> => {
-  const { fields } = config;
-  const angleDimension = dimensionsById[fields.angle?.componentId ?? ""];
-  const radiusMeasure = measuresById[fields.radius?.componentId ?? ""];
-
-  return {
-    getAngle: createStringGetter(fields.angle?.componentId),
-    getRadius: createNumericGetter(fields.radius?.componentId),
-    xDimension: angleDimension,
-    yMeasure: radiusMeasure,
-  };
-};
-
-/**
- * Extracts field configuration for wordcloud charts.
- */
-const getWordcloudChartFields = (
-  config: WordcloudConfig,
-  dimensionsById: DimensionsById,
-  measuresById: MeasuresById
-): Partial<FieldAccessors> => {
-  const { fields } = config;
-  const wordDimension = dimensionsById[fields.word?.componentId ?? ""];
-  const sizeMeasure = measuresById[fields.size?.componentId ?? ""];
-
-  return {
-    getWord: createStringGetter(fields.word?.componentId),
-    getSize: createNumericGetter(fields.size?.componentId),
-    xDimension: wordDimension,
-    yMeasure: sizeMeasure,
-  };
-};
-
-/**
  * Extracts field configuration for radar charts.
  */
 const getRadarChartFields = (
@@ -442,40 +370,29 @@ export const createFieldAccessors = (
 ): FieldAccessors => {
   switch (chartConfig.chartType) {
     case "column":
-    case "bar":
     case "line":
     case "area":
+    case "bar3d":
+    case "line3d":
       return getAxisChartFields(
-        chartConfig as ColumnConfig | BarConfig | LineConfig | AreaConfig,
+        chartConfig as ColumnConfig | LineConfig | AreaConfig,
+        dimensionsById,
+        measuresById
+      ) as FieldAccessors;
+
+    case "bar":
+      return getBarChartFields(
+        chartConfig as BarConfig,
         dimensionsById,
         measuresById
       ) as FieldAccessors;
 
     case "pie":
     case "donut":
+    case "pie3d":
+    case "globe":
       return getPieChartFields(
         chartConfig as PieConfig | DonutConfig,
-        dimensionsById,
-        measuresById
-      ) as FieldAccessors;
-
-    case "funnel":
-      return getFunnelChartFields(
-        chartConfig as FunnelConfig,
-        dimensionsById,
-        measuresById
-      ) as FieldAccessors;
-
-    case "gauge":
-      return getGaugeChartFields(
-        chartConfig as GaugeConfig,
-        measuresById
-      ) as FieldAccessors;
-
-    case "treemap":
-    case "sunburst":
-      return getHierarchicalChartFields(
-        chartConfig as TreemapConfig | SunburstConfig,
         dimensionsById,
         measuresById
       ) as FieldAccessors;
@@ -501,27 +418,6 @@ export const createFieldAccessors = (
         measuresById
       ) as FieldAccessors;
 
-    case "sankey":
-      return getSankeyChartFields(
-        chartConfig as SankeyConfig,
-        dimensionsById,
-        measuresById
-      ) as FieldAccessors;
-
-    case "polar":
-      return getPolarChartFields(
-        chartConfig as PolarConfig,
-        dimensionsById,
-        measuresById
-      ) as FieldAccessors;
-
-    case "wordcloud":
-      return getWordcloudChartFields(
-        chartConfig as WordcloudConfig,
-        dimensionsById,
-        measuresById
-      ) as FieldAccessors;
-
     case "radar":
       return getRadarChartFields(
         chartConfig as RadarConfig,
@@ -530,6 +426,8 @@ export const createFieldAccessors = (
       ) as FieldAccessors;
 
     case "scatterplot":
+    case "scatter3d":
+    case "surface":
       return getScatterplotChartFields(
         chartConfig as ScatterPlotConfig,
         dimensionsById,

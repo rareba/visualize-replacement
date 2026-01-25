@@ -40,6 +40,11 @@ export const FLAGS = [
     description: "Enables unit conversion functionality.",
     type: "boolean" as FlagType,
   },
+  {
+    name: "schema-configurator" as const,
+    description: "Enables schema-based chart configurator (JSON Schema forms).",
+    type: "boolean" as FlagType,
+  },
 ].sort(
   (a, b) =>
     (b.priority ?? 0) - (a.priority ?? 0) ||

@@ -15,10 +15,11 @@ import {
   buildSeriesDataFromMap,
   calculateChartDimensions,
   createAxisTooltip,
-  createXCategoryAxis,
-  createYValueAxis,
   createGridConfig,
   createLegend,
+  createNoDataGraphic,
+  createXCategoryAxis,
+  createYValueAxis,
   groupDataBySegment,
   renderVerticalErrorWhisker,
   safeGetBounds,
@@ -66,13 +67,40 @@ export const ColumnChartAdapter = () => {
     const categories = xScale.domain();
     const yDomain = safeGetNumericDomain(yScale);
 
+    // Check if we have valid data to display
+    const hasData = chartData && chartData.length > 0 && categories.length > 0;
+
+    // If no data, show empty chart with message
+    if (!hasData) {
+      return {
+        ...getSwissFederalTheme(),
+        grid: createGridConfig(safeBounds),
+        graphic: createNoDataGraphic(),
+        xAxis: createXCategoryAxis({
+          categories: [],
+          name: xAxisLabel || "Category",
+        }),
+        yAxis: createYValueAxis({
+          name: yAxisLabel || "Value",
+          min: 0,
+          max: 100,
+        }),
+        series: [],
+      };
+    }
+
+    // Pre-seed color scale with all keys to ensure consistent color assignment
+    const allKeys = chartData.map((d) => getRenderingKey(d));
+    const colorScale = colors.copy();
+    allKeys.forEach((key) => colorScale(key)); // Pre-seed the domain
+
     // Build series data using utility
     const seriesData = buildCategorySeriesData({
       categories,
       chartData,
       getCategory: getX,
       getValue: getY,
-      getColor: (d) => colors.copy()(getRenderingKey(d)),
+      getColor: (d) => colorScale(getRenderingKey(d)),
     });
 
     // Build error whisker data using utility

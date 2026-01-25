@@ -9,14 +9,43 @@
  */
 
 import ReactECharts from "echarts-for-react";
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from "react";
-
-// Import echarts-gl only on client side (uses WebGL which requires browser)
-if (typeof window !== "undefined") {
-  import("echarts-gl");
-}
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 
 import { mergeWithTheme, SWISS_FEDERAL_ANIMATION } from "./theme";
+
+// WebGL module loading state (global to avoid reloading across component instances)
+let webGLModuleLoaded = false;
+let webGLModuleError: Error | null = null;
+let webGLLoadPromise: Promise<void> | null = null;
+
+/**
+ * Load echarts-gl module (WebGL) on client side only.
+ * Returns a promise that resolves when the module is ready.
+ */
+const loadWebGLModule = (): Promise<void> => {
+  if (typeof window === "undefined") {
+    return Promise.resolve();
+  }
+  if (webGLModuleLoaded) {
+    return Promise.resolve();
+  }
+  if (webGLModuleError) {
+    return Promise.reject(webGLModuleError);
+  }
+  if (webGLLoadPromise) {
+    return webGLLoadPromise;
+  }
+  webGLLoadPromise = import("echarts-gl")
+    .then(() => {
+      webGLModuleLoaded = true;
+    })
+    .catch((err) => {
+      webGLModuleError = err;
+      throw err;
+    });
+  return webGLLoadPromise;
+};
 
 import type { ECharts, EChartsOption } from "echarts";
 
@@ -81,7 +110,7 @@ export const EChartsWrapper = forwardRef<EChartsWrapperRef, EChartsWrapperProps>
       loading = false,
       showLoading = false,
       onEvents,
-      notMerge = false,
+      notMerge = true,
       lazyUpdate = false,
       theme,
       opts = { renderer: "svg" },
@@ -103,6 +132,19 @@ export const EChartsWrapper = forwardRef<EChartsWrapperRef, EChartsWrapperProps>
     // Key changes when renderer type changes, forcing re-mount with new renderer
     const rendererKey = is3DChart ? "canvas-3d" : "svg-2d";
     const chartRef = useRef<ReactECharts>(null);
+
+    // Track WebGL module loading state for 3D charts
+    const [webGLReady, setWebGLReady] = useState(webGLModuleLoaded);
+    const [webGLError, setWebGLError] = useState<Error | null>(webGLModuleError);
+
+    // Load WebGL module when 3D chart is needed
+    useEffect(() => {
+      if (is3DChart && !webGLReady && !webGLError) {
+        loadWebGLModule()
+          .then(() => setWebGLReady(true))
+          .catch((err) => setWebGLError(err));
+      }
+    }, [is3DChart, webGLReady, webGLError]);
 
     // Apply theme and animation settings
     const themedOption = useCallback((): EChartsOption => {
@@ -129,15 +171,47 @@ export const EChartsWrapper = forwardRef<EChartsWrapperRef, EChartsWrapperProps>
       resize: () => chartRef.current?.getEchartsInstance()?.resize(),
     }));
 
-    // Handle window resize
+    // Handle window resize with debouncing to prevent performance issues
+    const handleResize = useDebouncedCallback(() => {
+      chartRef.current?.getEchartsInstance()?.resize();
+    }, 150);
+
     useEffect(() => {
-      const handleResize = () => {
-        chartRef.current?.getEchartsInstance()?.resize();
+      window.addEventListener("resize", handleResize);
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        handleResize.cancel();
+      };
+    }, [handleResize]);
+
+    // Show loading/error state for 3D charts while WebGL loads
+    if (is3DChart && !webGLReady) {
+      const containerStyle = {
+        width: typeof width === "number" ? `${width}px` : width,
+        height: typeof height === "number" ? `${height}px` : height,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#f5f5f5",
+        color: "#666",
+        fontSize: "14px",
+        ...style,
       };
 
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }, []);
+      if (webGLError) {
+        return (
+          <div style={containerStyle} className={className}>
+            <span>3D chart unavailable: WebGL failed to load</span>
+          </div>
+        );
+      }
+
+      return (
+        <div style={containerStyle} className={className}>
+          <span>Loading 3D chart...</span>
+        </div>
+      );
+    }
 
     return (
       <ReactECharts

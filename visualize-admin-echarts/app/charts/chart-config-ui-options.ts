@@ -39,7 +39,6 @@ import {
   ComponentType,
   DonutConfig,
   fieldHasComponentId,
-  FunnelConfig,
   GenericField,
   getAnimationField,
   isSortingInConfig,
@@ -362,16 +361,9 @@ type ChartSpecs = {
   scatterplot: ChartSpec<ScatterPlotConfig>;
   table: ChartSpec<TableConfig>;
   radar: ChartSpec<PieConfig>;
-  funnel: ChartSpec<PieConfig>;
-  gauge: ChartSpec<PieConfig>;
-  treemap: ChartSpec<PieConfig>;
-  sunburst: ChartSpec<PieConfig>;
   heatmap: ChartSpec<PieConfig>;
   boxplot: ChartSpec<ColumnConfig>;
   waterfall: ChartSpec<ColumnConfig>;
-  sankey: ChartSpec<PieConfig>;
-  polar: ChartSpec<PieConfig>;
-  wordcloud: ChartSpec<PieConfig>;
   comboLineSingle: ChartSpec<ComboLineSingleConfig>;
   comboLineDual: ChartSpec<ComboLineDualConfig>;
   comboLineColumn: ChartSpec<ComboLineColumnConfig>;
@@ -433,7 +425,7 @@ export const PIE_SEGMENT_SORTING: EncodingSortingOption<PieConfig>[] = [
 ];
 
 export const ANIMATION_FIELD_SPEC: EncodingSpec<
-  ColumnConfig | BarConfig | MapConfig | ScatterPlotConfig | PieConfig | DonutConfig | FunnelConfig
+  ColumnConfig | BarConfig | MapConfig | ScatterPlotConfig | PieConfig | DonutConfig
 > = {
   field: "animation",
   optional: true,
@@ -1410,142 +1402,6 @@ const chartConfigOptionsUISpec: ChartSpecs = {
     ],
     interactiveFilters: ["legend"],
   },
-  funnel: {
-    chartType: "funnel",
-    encodings: [
-      {
-        idAttributes: ["componentId"],
-        field: "y",
-        optional: false,
-        componentTypes: ["NumericalMeasure"],
-        filters: false,
-        options: {
-          showValues: {},
-          convertUnit: {},
-        },
-      },
-      {
-        idAttributes: ["componentId"],
-        field: "segment",
-        optional: false,
-        componentTypes: SEGMENT_ENABLED_COMPONENTS,
-        filters: true,
-        sorting: PIE_SEGMENT_SORTING,
-        onChange: defaultSegmentOnChange,
-        options: {
-          colorPalette: {
-            type: "single",
-            paletteId: "category10",
-            color: schemeCategory10[0],
-          },
-          useAbbreviations: {},
-        },
-      },
-      ANIMATION_FIELD_SPEC,
-    ],
-    interactiveFilters: ["legend", "animation"],
-  },
-  gauge: {
-    chartType: "gauge",
-    encodings: [
-      {
-        idAttributes: ["componentId"],
-        field: "y",
-        optional: false,
-        componentTypes: ["NumericalMeasure"],
-        filters: false,
-        options: {
-          convertUnit: {},
-        },
-      },
-      {
-        idAttributes: ["componentId"],
-        field: "segment",
-        optional: false,
-        componentTypes: SEGMENT_ENABLED_COMPONENTS,
-        filters: true,
-        onChange: defaultSegmentOnChange,
-        options: {
-          colorPalette: {
-            type: "single",
-            paletteId: "category10",
-            color: schemeCategory10[0],
-          },
-        },
-      },
-    ],
-    interactiveFilters: [],
-  },
-  treemap: {
-    chartType: "treemap",
-    encodings: [
-      {
-        idAttributes: ["componentId"],
-        field: "y",
-        optional: false,
-        componentTypes: ["NumericalMeasure"],
-        filters: false,
-        options: {
-          showValues: {},
-          convertUnit: {},
-        },
-      },
-      {
-        idAttributes: ["componentId"],
-        field: "segment",
-        optional: false,
-        componentTypes: SEGMENT_ENABLED_COMPONENTS,
-        filters: true,
-        sorting: PIE_SEGMENT_SORTING,
-        onChange: defaultSegmentOnChange,
-        options: {
-          colorPalette: {
-            type: "single",
-            paletteId: "category10",
-            color: schemeCategory10[0],
-          },
-          useAbbreviations: {},
-        },
-      },
-      ANIMATION_FIELD_SPEC,
-    ],
-    interactiveFilters: ["legend", "animation"],
-  },
-  sunburst: {
-    chartType: "sunburst",
-    encodings: [
-      {
-        idAttributes: ["componentId"],
-        field: "y",
-        optional: false,
-        componentTypes: ["NumericalMeasure"],
-        filters: false,
-        options: {
-          showValues: {},
-          convertUnit: {},
-        },
-      },
-      {
-        idAttributes: ["componentId"],
-        field: "segment",
-        optional: false,
-        componentTypes: SEGMENT_ENABLED_COMPONENTS,
-        filters: true,
-        sorting: PIE_SEGMENT_SORTING,
-        onChange: defaultSegmentOnChange,
-        options: {
-          colorPalette: {
-            type: "single",
-            paletteId: "category10",
-            color: schemeCategory10[0],
-          },
-          useAbbreviations: {},
-        },
-      },
-      ANIMATION_FIELD_SPEC,
-    ],
-    interactiveFilters: ["legend", "animation"],
-  },
   heatmap: {
     chartType: "heatmap",
     encodings: [
@@ -1631,104 +1487,6 @@ const chartConfigOptionsUISpec: ChartSpecs = {
       },
     ],
     interactiveFilters: [],
-  },
-  sankey: {
-    chartType: "sankey",
-    encodings: [
-      {
-        idAttributes: ["componentId"],
-        field: "y",
-        optional: false,
-        componentTypes: ["NumericalMeasure"],
-        filters: false,
-        options: {
-          convertUnit: {},
-        },
-      },
-      {
-        idAttributes: ["componentId"],
-        field: "segment",
-        optional: false,
-        componentTypes: SEGMENT_ENABLED_COMPONENTS,
-        filters: true,
-        onChange: defaultSegmentOnChange,
-        options: {
-          colorPalette: {
-            type: "single",
-            paletteId: "category10",
-            color: schemeCategory10[0],
-          },
-          useAbbreviations: {},
-        },
-      },
-    ],
-    interactiveFilters: [],
-  },
-  polar: {
-    chartType: "polar",
-    encodings: [
-      {
-        idAttributes: ["componentId"],
-        field: "y",
-        optional: false,
-        componentTypes: ["NumericalMeasure"],
-        filters: false,
-        options: {
-          convertUnit: {},
-        },
-      },
-      {
-        idAttributes: ["componentId"],
-        field: "segment",
-        optional: false,
-        componentTypes: SEGMENT_ENABLED_COMPONENTS,
-        filters: true,
-        sorting: PIE_SEGMENT_SORTING,
-        onChange: defaultSegmentOnChange,
-        options: {
-          colorPalette: {
-            type: "single",
-            paletteId: "category10",
-            color: schemeCategory10[0],
-          },
-          useAbbreviations: {},
-        },
-      },
-      ANIMATION_FIELD_SPEC,
-    ],
-    interactiveFilters: ["legend", "animation"],
-  },
-  wordcloud: {
-    chartType: "wordcloud",
-    encodings: [
-      {
-        idAttributes: ["componentId"],
-        field: "y",
-        optional: false,
-        componentTypes: ["NumericalMeasure"],
-        filters: false,
-        options: {
-          convertUnit: {},
-        },
-      },
-      {
-        idAttributes: ["componentId"],
-        field: "segment",
-        optional: false,
-        componentTypes: SEGMENT_ENABLED_COMPONENTS,
-        filters: true,
-        onChange: defaultSegmentOnChange,
-        options: {
-          colorPalette: {
-            type: "single",
-            paletteId: "category10",
-            color: schemeCategory10[0],
-          },
-          useAbbreviations: {},
-        },
-      },
-    ],
-    interactiveFilters: ["legend"],
   },
   scatterplot: {
     chartType: "scatterplot",

@@ -71,11 +71,13 @@ module.exports = withPreconstruct(
               `font-src 'self'`,
               `form-action 'self'`,
 
-              // * to allow WMS / WMTS endpoints
-              `connect-src 'self' *`,
+              // Allow connections to Swiss government services, map providers, and HTTPS resources
+              // Note: https: is used instead of * to ensure encrypted connections for WMS/WMTS endpoints
+              `connect-src 'self' https://*.admin.ch https://*.ch https://api.mapbox.com https://api.maptiler.com https://*.tile.openstreetmap.org https://*.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https:`,
 
-              // * to allow loading legend images from custom WMS / WMTS endpoints and data: to allow downloading images
-              `img-src 'self' * data: blob:`,
+              // Allow images from Swiss government services, map providers, and HTTPS resources
+              // Note: https: is used instead of * to ensure encrypted connections for WMS/WMTS legend images
+              `img-src 'self' https://*.admin.ch https://*.ch https://api.mapbox.com https://api.maptiler.com https://*.tile.openstreetmap.org data: blob: https:`,
               `script-src-elem 'self' 'unsafe-inline' https://*.admin.ch https://visualize.admin.ch https://*.visualize.admin.ch https://vercel.live https://vercel.com https://*.vercel.app https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://api.mapbox.com https://cdn.jsdelivr.net`,
               `worker-src 'self' blob: https://*.admin.ch https://*.vercel.app`,
             ].join("; "),

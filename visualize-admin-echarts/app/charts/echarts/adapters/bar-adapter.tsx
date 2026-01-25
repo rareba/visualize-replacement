@@ -14,10 +14,11 @@ import {
   buildSeriesDataFromMap,
   calculateChartDimensions,
   createAxisTooltip,
-  createYCategoryAxis,
-  createXValueAxis,
   createGridConfig,
   createLegend,
+  createNoDataGraphic,
+  createXValueAxis,
+  createYCategoryAxis,
   getDefaultAnimation,
   groupDataBySegment,
   renderHorizontalErrorWhisker,
@@ -62,6 +63,33 @@ export const BarChartAdapter = () => {
     const categories = yScale.domain();
     const xDomain = safeGetNumericDomain(xScale);
 
+    // Check if we have valid data to display
+    const hasData = chartData && chartData.length > 0 && categories.length > 0;
+
+    // If no data, show empty chart with message
+    if (!hasData) {
+      return {
+        ...getSwissFederalTheme(),
+        grid: createGridConfig(safeBounds),
+        graphic: createNoDataGraphic(),
+        yAxis: createYCategoryAxis({
+          categories: [],
+          name: yAxisLabel || "Category",
+        }),
+        xAxis: createXValueAxis({
+          name: xAxisLabel || "Value",
+          min: 0,
+          max: 100,
+        }),
+        series: [],
+      };
+    }
+
+    // Pre-seed color scale with all keys to ensure consistent color assignment
+    const allKeys = chartData.map((d) => getRenderingKey(d));
+    const colorScale = colors.copy();
+    allKeys.forEach((key) => colorScale(key)); // Pre-seed the domain
+
     // Build series data
     const seriesData = categories.map((category) => {
       const observation = chartData.find((d) => getY(d) === category);
@@ -71,7 +99,7 @@ export const BarChartAdapter = () => {
       return {
         value: value ?? null,
         itemStyle: {
-          color: colors.copy()(key),
+          color: colorScale(key),
         },
       };
     });

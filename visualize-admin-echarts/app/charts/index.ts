@@ -104,16 +104,11 @@ const chartTypes: ChartType[] = [
   "table",
   "map",
   "radar",
-  "funnel",
-  "gauge",
-  "treemap",
-  "sunburst",
   "heatmap",
   "boxplot",
   "waterfall",
-  "sankey",
-  "polar",
-  "wordcloud",
+  "candlestick",
+  "themeriver",
   // 3D Charts (ECharts GL)
   "bar3d",
   "scatter3d",
@@ -138,16 +133,11 @@ export const regularChartTypes: RegularChartType[] = [
   "table",
   "map",
   "radar",
-  "funnel",
-  "gauge",
-  "treemap",
-  "sunburst",
   "heatmap",
   "boxplot",
   "waterfall",
-  "sankey",
-  "polar",
-  "wordcloud",
+  "candlestick",
+  "themeriver",
   // 3D Charts (ECharts GL)
   "bar3d",
   "scatter3d",
@@ -176,8 +166,9 @@ export const comboChartTypes: ComboChartType[] = [
 export type ChartCategory =
   | "basic"
   | "partOfWhole"
-  | "hierarchical"
   | "statistical"
+  | "financial"
+  | "stream"
   | "flow"
   | "specialized"
   | "comparison";
@@ -197,12 +188,7 @@ export const chartTypeCategories: ChartCategoryConfig[] = [
   {
     id: "partOfWhole",
     labelKey: "controls.chart.category.partOfWhole",
-    chartTypes: ["pie", "donut", "funnel", "waterfall"],
-  },
-  {
-    id: "hierarchical",
-    labelKey: "controls.chart.category.hierarchical",
-    chartTypes: ["treemap", "sunburst"],
+    chartTypes: ["pie", "donut", "waterfall"],
   },
   {
     id: "statistical",
@@ -210,14 +196,19 @@ export const chartTypeCategories: ChartCategoryConfig[] = [
     chartTypes: ["boxplot", "heatmap"],
   },
   {
-    id: "flow",
-    labelKey: "controls.chart.category.flow",
-    chartTypes: ["sankey"],
+    id: "financial",
+    labelKey: "controls.chart.category.financial",
+    chartTypes: ["candlestick"],
+  },
+  {
+    id: "stream",
+    labelKey: "controls.chart.category.stream",
+    chartTypes: ["themeriver"],
   },
   {
     id: "specialized",
     labelKey: "controls.chart.category.specialized",
-    chartTypes: ["radar", "gauge", "polar", "wordcloud", "map", "table"],
+    chartTypes: ["radar", "map", "table"],
   },
   {
     id: "comparison",
@@ -240,26 +231,21 @@ function getChartTypeOrder({ cubeCount }: { cubeCount: number }): ChartOrder {
     map: 7,
     table: 8,
     radar: 9,
-    funnel: 10,
-    gauge: 11,
-    treemap: 12,
-    sunburst: 13,
-    heatmap: 14,
-    boxplot: 15,
-    waterfall: 16,
-    sankey: 17,
-    polar: 18,
-    wordcloud: 19,
-    comboLineSingle: 20 + multiCubeBoost,
-    comboLineDual: 21 + multiCubeBoost,
-    comboLineColumn: 22 + multiCubeBoost,
+    heatmap: 10,
+    boxplot: 13,
+    waterfall: 14,
+    candlestick: 15,
+    themeriver: 16,
+    comboLineSingle: 17 + multiCubeBoost,
+    comboLineDual: 18 + multiCubeBoost,
+    comboLineColumn: 19 + multiCubeBoost,
     // 3D Charts
-    bar3d: 23,
-    scatter3d: 24,
-    line3d: 25,
-    surface: 26,
-    globe: 27,
-    pie3d: 28,
+    bar3d: 20,
+    scatter3d: 21,
+    line3d: 22,
+    surface: 23,
+    globe: 24,
+    pie3d: 25,
   };
 }
 
@@ -733,94 +719,6 @@ export const getInitialConfig = (
           },
         },
       };
-    case "funnel":
-      const funnelSegmentComponent =
-        getCategoricalDimensions(dimensions)[0] ??
-        getGeoDimensions(dimensions)[0];
-      const funnelPalette = getDefaultCategoricalPaletteId(funnelSegmentComponent);
-
-      return {
-        ...getGenericConfig(),
-        chartType,
-        fields: {
-          y: { componentId: numericalMeasures[0].id },
-          segment: {
-            componentId: funnelSegmentComponent.id,
-            sorting: { sortingType: "byMeasure", sortingOrder: "desc" },
-          },
-          color: {
-            type: "segment",
-            paletteId: funnelPalette,
-            colorMapping: mapValueIrisToColor({
-              paletteId: funnelPalette,
-              dimensionValues: funnelSegmentComponent.values,
-            }),
-          },
-        },
-      };
-    case "gauge":
-      return {
-        ...getGenericConfig(),
-        chartType,
-        fields: {
-          y: { componentId: numericalMeasures[0].id },
-          color: {
-            type: "single",
-            paletteId: DEFAULT_CATEGORICAL_PALETTE_ID,
-            color: theme.palette.primary.main,
-          },
-        },
-      };
-    case "treemap":
-      const treemapSegmentComponent =
-        getCategoricalDimensions(dimensions)[0] ??
-        getGeoDimensions(dimensions)[0];
-      const treemapPalette = getDefaultCategoricalPaletteId(treemapSegmentComponent);
-
-      return {
-        ...getGenericConfig(),
-        chartType,
-        fields: {
-          y: { componentId: numericalMeasures[0].id },
-          segment: {
-            componentId: treemapSegmentComponent.id,
-            sorting: { sortingType: "byMeasure", sortingOrder: "desc" },
-          },
-          color: {
-            type: "segment",
-            paletteId: treemapPalette,
-            colorMapping: mapValueIrisToColor({
-              paletteId: treemapPalette,
-              dimensionValues: treemapSegmentComponent.values,
-            }),
-          },
-        },
-      };
-    case "sunburst":
-      const sunburstSegmentComponent =
-        getCategoricalDimensions(dimensions)[0] ??
-        getGeoDimensions(dimensions)[0];
-      const sunburstPalette = getDefaultCategoricalPaletteId(sunburstSegmentComponent);
-
-      return {
-        ...getGenericConfig(),
-        chartType,
-        fields: {
-          y: { componentId: numericalMeasures[0].id },
-          segment: {
-            componentId: sunburstSegmentComponent.id,
-            sorting: { sortingType: "byMeasure", sortingOrder: "desc" },
-          },
-          color: {
-            type: "segment",
-            paletteId: sunburstPalette,
-            colorMapping: mapValueIrisToColor({
-              paletteId: sunburstPalette,
-              dimensionValues: sunburstSegmentComponent.values,
-            }),
-          },
-        },
-      };
     case "heatmap":
       return {
         ...getGenericConfig(),
@@ -1087,75 +985,6 @@ export const getInitialConfig = (
             type: "single",
             paletteId: DEFAULT_CATEGORICAL_PALETTE_ID,
             color: theme.palette.primary.main,
-          },
-        },
-      };
-    }
-
-    case "sankey": {
-      const categoricalDims = getCategoricalDimensions(dimensions);
-      const sourceComponent = categoricalDims[0];
-      const targetComponent = categoricalDims[1] ?? categoricalDims[0];
-
-      return {
-        ...getGenericConfig(),
-        chartType: "sankey",
-        fields: {
-          source: { componentId: sourceComponent.id },
-          target: { componentId: targetComponent.id },
-          value: { componentId: numericalMeasures[0].id },
-          color: {
-            type: "single",
-            paletteId: DEFAULT_CATEGORICAL_PALETTE_ID,
-            color: theme.palette.primary.main,
-          },
-        },
-      };
-    }
-
-    case "polar": {
-      const polarSegmentComponent =
-        getCategoricalDimensions(dimensions)[0] ??
-        getGeoDimensions(dimensions)[0];
-      const polarPalette = getDefaultCategoricalPaletteId(polarSegmentComponent);
-
-      return {
-        ...getGenericConfig(),
-        chartType: "polar",
-        fields: {
-          angle: { componentId: polarSegmentComponent.id },
-          radius: { componentId: numericalMeasures[0].id },
-          color: {
-            type: "segment",
-            paletteId: polarPalette,
-            colorMapping: mapValueIrisToColor({
-              paletteId: polarPalette,
-              dimensionValues: polarSegmentComponent.values,
-            }),
-          },
-        },
-      };
-    }
-
-    case "wordcloud": {
-      const wordcloudSegmentComponent =
-        getCategoricalDimensions(dimensions)[0] ??
-        getGeoDimensions(dimensions)[0];
-      const wordcloudPalette = getDefaultCategoricalPaletteId(wordcloudSegmentComponent);
-
-      return {
-        ...getGenericConfig(),
-        chartType: "wordcloud",
-        fields: {
-          word: { componentId: wordcloudSegmentComponent.id },
-          size: { componentId: numericalMeasures[0].id },
-          color: {
-            type: "segment",
-            paletteId: wordcloudPalette,
-            colorMapping: mapValueIrisToColor({
-              paletteId: wordcloudPalette,
-              dimensionValues: wordcloudSegmentComponent.values,
-            }),
           },
         },
       };
@@ -2505,298 +2334,6 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
     },
     interactiveFiltersConfig: interactiveFiltersAdjusters,
   },
-  funnel: {
-    cubes: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.cubes = oldValue;
-      });
-    },
-    annotations: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.annotations = oldValue;
-      });
-    },
-    limits: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.limits = mapValues(oldValue, (limits) =>
-          limits.map(({ symbolType, ...rest }) => rest)
-        );
-      });
-    },
-    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.conversionUnitsByComponentId = oldValue;
-      });
-    },
-    fields: {
-      y: {
-        componentId: ({ oldValue, newChartConfig }) => {
-          return produce(newChartConfig, (draft) => {
-            draft.fields.y.componentId = oldValue;
-          });
-        },
-        showValues: ({ oldValue, newChartConfig }) => {
-          return produce(newChartConfig, (draft) => {
-            draft.fields.y.showValues = oldValue;
-          });
-        },
-      },
-      color: ({ oldValue, newChartConfig }) => {
-        return produce(newChartConfig, (draft) => {
-          if (oldValue.type === "segment") {
-            draft.fields.color = oldValue;
-          }
-        });
-      },
-      segment: ({ oldValue, oldChartConfig, newChartConfig, dimensions, measures }) => {
-        if (oldChartConfig.chartType === "table") {
-          const maybeSegmentAndColorFields = convertTableFieldsToSegmentAndColorFields({
-            fields: oldValue as TableFields,
-            dimensions,
-            measures,
-          });
-
-          if (maybeSegmentAndColorFields) {
-            const segmentDimension = dimensions.find((d) => d.id === maybeSegmentAndColorFields.segment.componentId);
-            return produce(newChartConfig, (draft) => {
-              draft.fields.segment = {
-                ...maybeSegmentAndColorFields.segment,
-                sorting: { sortingType: "byMeasure", sortingOrder: "desc" },
-              };
-              // Funnel only accepts segment color type
-              draft.fields.color = getSegmentColorField({ oldColorField: maybeSegmentAndColorFields.color, segmentDimension });
-            });
-          }
-        } else {
-          const oldSegment = oldValue as Exclude<typeof oldValue, TableFields>;
-          const oldColor = getCompatibleColorField(oldChartConfig);
-          const segmentDimension = dimensions.find((d) => d.id === oldSegment.componentId);
-
-          return produce(newChartConfig, (draft) => {
-            draft.fields.segment = {
-              componentId: oldSegment.componentId,
-              sorting: { sortingType: "byMeasure", sortingOrder: "desc" },
-            };
-            draft.fields.color = getSegmentColorField({ oldColorField: oldColor, segmentDimension });
-          });
-        }
-        return newChartConfig;
-      },
-      animation: ({ oldValue, newChartConfig }) => {
-        return produce(newChartConfig, (draft) => {
-          draft.fields.animation = oldValue;
-        });
-      },
-    },
-    interactiveFiltersConfig: interactiveFiltersAdjusters,
-  },
-  gauge: {
-    cubes: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.cubes = oldValue;
-      });
-    },
-    annotations: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.annotations = oldValue;
-      });
-    },
-    limits: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.limits = mapValues(oldValue, (limits) =>
-          limits.map(({ symbolType, ...rest }) => rest)
-        );
-      });
-    },
-    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.conversionUnitsByComponentId = oldValue;
-      });
-    },
-    fields: {
-      y: {
-        componentId: ({ oldValue, newChartConfig }) => {
-          return produce(newChartConfig, (draft) => {
-            draft.fields.y.componentId = oldValue;
-          });
-        },
-      },
-      color: ({ oldValue, newChartConfig }) => {
-        return produce(newChartConfig, (draft) => {
-          if (oldValue.type === "single") {
-            draft.fields.color = oldValue;
-          }
-        });
-      },
-      segment: ({ newChartConfig }) => {
-        // Gauge doesn't use segment, return unchanged
-        return newChartConfig;
-      },
-    },
-    interactiveFiltersConfig: interactiveFiltersAdjusters,
-  },
-  treemap: {
-    cubes: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.cubes = oldValue;
-      });
-    },
-    annotations: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.annotations = oldValue;
-      });
-    },
-    limits: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.limits = mapValues(oldValue, (limits) =>
-          limits.map(({ symbolType, ...rest }) => rest)
-        );
-      });
-    },
-    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.conversionUnitsByComponentId = oldValue;
-      });
-    },
-    fields: {
-      y: {
-        componentId: ({ oldValue, newChartConfig }) => {
-          return produce(newChartConfig, (draft) => {
-            draft.fields.y.componentId = oldValue;
-          });
-        },
-        showValues: ({ oldValue, newChartConfig }) => {
-          return produce(newChartConfig, (draft) => {
-            draft.fields.y.showValues = oldValue;
-          });
-        },
-      },
-      color: ({ oldValue, newChartConfig }) => {
-        return produce(newChartConfig, (draft) => {
-          if (oldValue.type === "segment") {
-            draft.fields.color = oldValue;
-          }
-        });
-      },
-      segment: ({ oldValue, oldChartConfig, newChartConfig, dimensions, measures }) => {
-        if (oldChartConfig.chartType === "table") {
-          const maybeSegmentAndColorFields = convertTableFieldsToSegmentAndColorFields({
-            fields: oldValue as TableFields,
-            dimensions,
-            measures,
-          });
-
-          if (maybeSegmentAndColorFields) {
-            const segmentDimension = dimensions.find((d) => d.id === maybeSegmentAndColorFields.segment.componentId);
-            return produce(newChartConfig, (draft) => {
-              draft.fields.segment = {
-                ...maybeSegmentAndColorFields.segment,
-                sorting: { sortingType: "byMeasure", sortingOrder: "desc" },
-              };
-              // Treemap only accepts segment | single, not measures
-              draft.fields.color = maybeSegmentAndColorFields.color.type === "segment"
-                ? maybeSegmentAndColorFields.color
-                : getSegmentColorField({ oldColorField: maybeSegmentAndColorFields.color, segmentDimension });
-            });
-          }
-        } else {
-          const oldSegment = oldValue as Exclude<typeof oldValue, TableFields>;
-          const oldColor = getCompatibleColorField(oldChartConfig);
-          const segmentDimension = dimensions.find((d) => d.id === oldSegment.componentId);
-
-          return produce(newChartConfig, (draft) => {
-            draft.fields.segment = {
-              componentId: oldSegment.componentId,
-              sorting: { sortingType: "byMeasure", sortingOrder: "desc" },
-            };
-            draft.fields.color = getSegmentColorField({ oldColorField: oldColor, segmentDimension });
-          });
-        }
-        return newChartConfig;
-      },
-    },
-    interactiveFiltersConfig: interactiveFiltersAdjusters,
-  },
-  sunburst: {
-    cubes: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.cubes = oldValue;
-      });
-    },
-    annotations: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.annotations = oldValue;
-      });
-    },
-    limits: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.limits = mapValues(oldValue, (limits) =>
-          limits.map(({ symbolType, ...rest }) => rest)
-        );
-      });
-    },
-    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.conversionUnitsByComponentId = oldValue;
-      });
-    },
-    fields: {
-      y: {
-        componentId: ({ oldValue, newChartConfig }) => {
-          return produce(newChartConfig, (draft) => {
-            draft.fields.y.componentId = oldValue;
-          });
-        },
-        showValues: ({ oldValue, newChartConfig }) => {
-          return produce(newChartConfig, (draft) => {
-            draft.fields.y.showValues = oldValue;
-          });
-        },
-      },
-      color: ({ oldValue, newChartConfig }) => {
-        return produce(newChartConfig, (draft) => {
-          if (oldValue.type === "segment") {
-            draft.fields.color = oldValue;
-          }
-        });
-      },
-      segment: ({ oldValue, oldChartConfig, newChartConfig, dimensions, measures }) => {
-        if (oldChartConfig.chartType === "table") {
-          const maybeSegmentAndColorFields = convertTableFieldsToSegmentAndColorFields({
-            fields: oldValue as TableFields,
-            dimensions,
-            measures,
-          });
-
-          if (maybeSegmentAndColorFields) {
-            const segmentDimension = dimensions.find((d) => d.id === maybeSegmentAndColorFields.segment.componentId);
-            return produce(newChartConfig, (draft) => {
-              draft.fields.segment = {
-                ...maybeSegmentAndColorFields.segment,
-                sorting: { sortingType: "byMeasure", sortingOrder: "desc" },
-              };
-              // Sunburst only accepts segment color type
-              draft.fields.color = getSegmentColorField({ oldColorField: maybeSegmentAndColorFields.color, segmentDimension });
-            });
-          }
-        } else {
-          const oldSegment = oldValue as Exclude<typeof oldValue, TableFields>;
-          const oldColor = getCompatibleColorField(oldChartConfig);
-          const segmentDimension = dimensions.find((d) => d.id === oldSegment.componentId);
-
-          return produce(newChartConfig, (draft) => {
-            draft.fields.segment = {
-              componentId: oldSegment.componentId,
-              sorting: { sortingType: "byMeasure", sortingOrder: "desc" },
-            };
-            draft.fields.color = getSegmentColorField({ oldColorField: oldColor, segmentDimension });
-          });
-        }
-        return newChartConfig;
-      },
-    },
-    interactiveFiltersConfig: interactiveFiltersAdjusters,
-  },
   heatmap: {
     cubes: ({ oldValue, newChartConfig }) => {
       return produce(newChartConfig, (draft) => {
@@ -3128,19 +2665,12 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
           case "pie":
           case "donut":
           case "radar":
-          case "funnel":
-          case "treemap":
-          case "sunburst":
           case "scatterplot": {
             leftMeasure = getLeftMeasure(oldChartConfig.fields.y.componentId);
             break;
           }
-          case "gauge":
           case "heatmap": {
-            // Gauge uses y.componentId for measure, heatmap uses value.componentId
-            const measureId = oldChartConfig.chartType === "gauge"
-              ? oldChartConfig.fields.y.componentId
-              : oldChartConfig.fields.value.componentId;
+            const measureId = oldChartConfig.fields.value.componentId;
             leftMeasure = getLeftMeasure(measureId);
             break;
           }
@@ -3163,9 +2693,6 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
           case "table":
           case "boxplot":
           case "waterfall":
-          case "sankey":
-          case "polar":
-          case "wordcloud":
           case "bar3d":
           case "scatter3d":
           case "surface":
@@ -3277,18 +2804,12 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
           case "pie":
           case "donut":
           case "radar":
-          case "funnel":
-          case "treemap":
-          case "sunburst":
           case "scatterplot": {
             leftMeasure = getMeasure(oldChartConfig.fields.y.componentId);
             break;
           }
-          case "gauge":
           case "heatmap": {
-            const measureId = oldChartConfig.chartType === "gauge"
-              ? oldChartConfig.fields.y.componentId
-              : oldChartConfig.fields.value.componentId;
+            const measureId = oldChartConfig.fields.value.componentId;
             leftMeasure = getMeasure(measureId);
             break;
           }
@@ -3311,9 +2832,6 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
           case "table":
           case "boxplot":
           case "waterfall":
-          case "sankey":
-          case "polar":
-          case "wordcloud":
           // 3D Charts (ECharts GL)
           case "bar3d":
           case "scatter3d":
@@ -3447,160 +2965,6 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
           if (measures.find((m) => m.id === oldValue)) {
             return produce(newChartConfig, (draft) => {
               (draft.fields as $IntentionalAny).y.componentId = oldValue;
-            });
-          }
-          return newChartConfig;
-        },
-      },
-      color: ({ newChartConfig }) => newChartConfig,
-    },
-    interactiveFiltersConfig: interactiveFiltersAdjusters,
-  },
-  sankey: {
-    cubes: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.cubes = oldValue;
-      });
-    },
-    annotations: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.annotations = oldValue;
-      });
-    },
-    limits: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.limits = mapValues(oldValue, (limits) =>
-          limits.map(({ symbolType, ...rest }) => rest)
-        );
-      });
-    },
-    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.conversionUnitsByComponentId = oldValue;
-      });
-    },
-    fields: {
-      source: {
-        componentId: ({ oldValue, newChartConfig, dimensions }) => {
-          if (dimensions.find((d) => d.id === oldValue)) {
-            return produce(newChartConfig, (draft) => {
-              (draft.fields as $IntentionalAny).source.componentId = oldValue;
-            });
-          }
-          return newChartConfig;
-        },
-      },
-      target: {
-        componentId: ({ oldValue, newChartConfig, dimensions }) => {
-          if (dimensions.find((d) => d.id === oldValue)) {
-            return produce(newChartConfig, (draft) => {
-              (draft.fields as $IntentionalAny).target.componentId = oldValue;
-            });
-          }
-          return newChartConfig;
-        },
-      },
-      value: {
-        componentId: ({ oldValue, newChartConfig, measures }) => {
-          if (measures.find((m) => m.id === oldValue)) {
-            return produce(newChartConfig, (draft) => {
-              (draft.fields as $IntentionalAny).value.componentId = oldValue;
-            });
-          }
-          return newChartConfig;
-        },
-      },
-      color: ({ newChartConfig }) => newChartConfig,
-    },
-    interactiveFiltersConfig: interactiveFiltersAdjusters,
-  },
-  polar: {
-    cubes: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.cubes = oldValue;
-      });
-    },
-    annotations: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.annotations = oldValue;
-      });
-    },
-    limits: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.limits = mapValues(oldValue, (limits) =>
-          limits.map(({ symbolType, ...rest }) => rest)
-        );
-      });
-    },
-    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.conversionUnitsByComponentId = oldValue;
-      });
-    },
-    fields: {
-      angle: {
-        componentId: ({ oldValue, newChartConfig, dimensions }) => {
-          if (dimensions.find((d) => d.id === oldValue)) {
-            return produce(newChartConfig, (draft) => {
-              (draft.fields as $IntentionalAny).angle.componentId = oldValue;
-            });
-          }
-          return newChartConfig;
-        },
-      },
-      radius: {
-        componentId: ({ oldValue, newChartConfig, measures }) => {
-          if (measures.find((m) => m.id === oldValue)) {
-            return produce(newChartConfig, (draft) => {
-              (draft.fields as $IntentionalAny).radius.componentId = oldValue;
-            });
-          }
-          return newChartConfig;
-        },
-      },
-      color: ({ newChartConfig }) => newChartConfig,
-    },
-    interactiveFiltersConfig: interactiveFiltersAdjusters,
-  },
-  wordcloud: {
-    cubes: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.cubes = oldValue;
-      });
-    },
-    annotations: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.annotations = oldValue;
-      });
-    },
-    limits: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.limits = mapValues(oldValue, (limits) =>
-          limits.map(({ symbolType, ...rest }) => rest)
-        );
-      });
-    },
-    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
-      return produce(newChartConfig, (draft) => {
-        draft.conversionUnitsByComponentId = oldValue;
-      });
-    },
-    fields: {
-      text: {
-        componentId: ({ oldValue, newChartConfig, dimensions }) => {
-          if (dimensions.find((d) => d.id === oldValue)) {
-            return produce(newChartConfig, (draft) => {
-              (draft.fields as $IntentionalAny).text.componentId = oldValue;
-            });
-          }
-          return newChartConfig;
-        },
-      },
-      value: {
-        componentId: ({ oldValue, newChartConfig, measures }) => {
-          if (measures.find((m) => m.id === oldValue)) {
-            return produce(newChartConfig, (draft) => {
-              (draft.fields as $IntentionalAny).value.componentId = oldValue;
             });
           }
           return newChartConfig;
@@ -4341,27 +3705,6 @@ const chartConfigsPathOverrides: {
   radar: {
     // Radar has unique indicators field, minimal overlap with other charts
   },
-  funnel: {
-    pie: {
-      // Funnel is similar to pie with segment-based data
-    },
-  },
-  gauge: {
-    // Gauge is a simple measure display, minimal field overlap
-  },
-  treemap: {
-    pie: {
-      // Treemap is similar to pie with segment-based hierarchical data
-    },
-  },
-  sunburst: {
-    pie: {
-      // Sunburst is similar to pie with segment-based hierarchical data
-    },
-    treemap: {
-      // Treemap and sunburst have similar structure
-    },
-  },
   heatmap: {
     scatterplot: {
       // Both have x/y axes
@@ -4379,19 +3722,6 @@ const chartConfigsPathOverrides: {
   waterfall: {
     column: {
       // Waterfall has similar x/y structure to column
-    },
-  },
-  sankey: {
-    // Sankey has unique source/target/value structure
-  },
-  polar: {
-    pie: {
-      // Polar is radial like pie
-    },
-  },
-  wordcloud: {
-    pie: {
-      // Wordcloud uses categorical data like pie
     },
   },
   // 3D Charts (ECharts GL)
@@ -4453,15 +3783,9 @@ const categoricalEnabledChartTypes: RegularChartType[] = [
   "bar",
   "pie",
   "donut",
-  "funnel",
-  "treemap",
-  "sunburst",
   "radar",
-  "gauge",
   "boxplot",
   "waterfall",
-  "polar",
-  "wordcloud",
   // 3D Charts
   "bar3d",
   "scatter3d",
@@ -4477,11 +3801,6 @@ const geoEnabledChartTypes: RegularChartType[] = [
   "map",
   "pie",
   "globe", // 3D globe visualization
-];
-
-// Charts that require two categorical dimensions for flow visualization
-const flowEnabledChartTypes: RegularChartType[] = [
-  "sankey",
 ];
 
 // Charts that require at least two numerical measures
@@ -4672,18 +3991,6 @@ export const getEnabledChartTypes = ({
       );
     }
 
-    // Sankey requires at least two categorical dimensions for source/target flow
-    if (categoricalDimensions.length >= 2) {
-      enableChartTypes(flowEnabledChartTypes);
-    } else {
-      maybeDisableChartTypes(
-        flowEnabledChartTypes,
-        t({
-          id: "controls.chart.disabled.flow",
-          message: "At least two categorical dimensions are required for flow charts.",
-        })
-      );
-    }
   } else {
     maybeDisableChartTypes(
       chartTypes.filter((d) => d !== "table"),
@@ -4859,16 +4166,11 @@ export const getChartSymbol = (
     case "comboLineColumn":
     case "pie":
     case "donut":
-    case "funnel":
-    case "treemap":
-    case "sunburst":
     case "heatmap":
     case "map":
     case "table":
     case "boxplot":
     case "waterfall":
-    case "sankey":
-    case "wordcloud":
     case "bar3d":
     case "pie3d":
     case "surface":
@@ -4880,8 +4182,6 @@ export const getChartSymbol = (
     case "line3d":
       return "line";
     case "scatterplot":
-    case "gauge":
-    case "polar":
     case "scatter3d":
     case "globe":
       return "circle";

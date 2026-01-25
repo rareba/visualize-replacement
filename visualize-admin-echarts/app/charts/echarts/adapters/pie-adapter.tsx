@@ -11,6 +11,7 @@ import {
   calculateChartDimensions,
   createItemTooltip,
   createLegend,
+  createNoDataGraphic,
   getDefaultAnimation,
 } from "@/charts/echarts/adapter-utils";
 import { EChartsWrapper } from "@/charts/echarts/EChartsWrapper";
@@ -36,6 +37,7 @@ interface PieDataItem {
 
 /**
  * Builds pie data from chart state.
+ * Filters out invalid values (null, NaN, negative, zero) for pie charts.
  */
 const buildPieData = <T,>(
   chartData: T[],
@@ -44,15 +46,43 @@ const buildPieData = <T,>(
   getY: (d: T) => number | null,
   colors: (segment: string) => string
 ): PieDataItem[] => {
-  return chartData
-    .map((d) => ({
+  const result: PieDataItem[] = [];
+  let hasNegatives = false;
+
+  chartData.forEach((d) => {
+    const rawValue = getY(d);
+
+    // Skip null, undefined, NaN values
+    if (rawValue === null || rawValue === undefined || !Number.isFinite(rawValue)) {
+      return;
+    }
+
+    // Track negative values but don't include them
+    if (rawValue < 0) {
+      hasNegatives = true;
+      return;
+    }
+
+    // Skip zero values
+    if (rawValue === 0) {
+      return;
+    }
+
+    result.push({
       name: getSegmentAbbreviationOrLabel(d),
-      value: getY(d) ?? 0,
+      value: rawValue,
       itemStyle: {
         color: colors(getSegment(d)),
       },
-    }))
-    .filter((d) => d.value > 0);
+    });
+  });
+
+  // Log warning if negative values were encountered
+  if (hasNegatives) {
+    console.warn("[PieChart] Negative values were found and excluded from the pie chart.");
+  }
+
+  return result;
 };
 
 /**
@@ -69,16 +99,22 @@ const createPieLabelConfig = (
   fontSize: 11,
   color: showLabelsOutside ? SWISS_FEDERAL_COLORS.text : "#fff",
   formatter: (params: unknown) => {
-    const p = params as { name: string; value: number; percent: number };
+    // Safe type checking for tooltip params
+    const p = params as { name?: string; value?: number; percent?: number } | null;
+    if (!p) return "";
+    const name = p.name ?? "";
+    const value = p.value ?? 0;
+    const percent = p.percent ?? 0;
+
     if (!showLabelsOutside) {
       // Inside label - just show percentage for larger slices
-      return p.percent >= 5 ? `${p.percent.toFixed(0)}%` : "";
+      return percent >= 5 ? `${percent.toFixed(0)}%` : "";
     }
     // Outside label - show name and value
     const formattedValue = valueLabelFormatter
-      ? valueLabelFormatter(p.value)
-      : p.value;
-    return `{name|${p.name}}\n{value|${formattedValue}}`;
+      ? valueLabelFormatter(value)
+      : value;
+    return `{name|${name}}\n{value|${formattedValue}}`;
   },
   rich: {
     name: {
@@ -157,6 +193,15 @@ export const PieChartAdapter = () => {
       getY,
       colors
     );
+
+    // If no valid data, show empty chart with message
+    if (filteredData.length === 0) {
+      return {
+        ...getSwissFederalTheme(),
+        graphic: createNoDataGraphic(),
+        series: [],
+      };
+    }
 
     // Determine if we need to show labels outside (for many slices)
     const showLabelsOutside = filteredData.length > 4;

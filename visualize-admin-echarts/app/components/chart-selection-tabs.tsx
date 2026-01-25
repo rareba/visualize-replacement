@@ -43,7 +43,7 @@ import {
   useConfiguratorState,
 } from "@/configurator";
 import { useSearchDatasetPanelStore } from "@/configurator/components/add-new-dataset-panel";
-import { ChartTypeSelector } from "@/configurator/components/chart-type-selector";
+import { PowerBIChartTypePicker } from "@/configurator/components/powerbi";
 import { getIconName } from "@/configurator/components/ui-helpers";
 import { Icon, IconName } from "@/icons";
 import { useLocale } from "@/locales";
@@ -221,13 +221,11 @@ const TabsEditable = (props: TabsEditableProps) => {
                   Add chart based on the same dataset
                 </Trans>
               </Typography>
-              <ChartTypeSelector
+              <PowerBIChartTypePicker
                 state={state}
                 type="add"
-                showHelp={false}
-                showComparisonCharts={false}
+                showSearch={false}
                 chartKey={tabsState.activeChartKey ?? chartConfig.key}
-                sx={{ pb: 3 }}
               />
             </Stack>
             <Stack direction="column" gap="0.5rem" mx="1.5rem" my="1rem">

@@ -67,8 +67,6 @@ import { default as FontSize } from "./IcFontSize";
 import { default as Formatting } from "./IcFormatting";
 import { default as Forward } from "./IcForward";
 import { default as FreeCanvas } from "./IcFreeCanvas";
-import { default as FunnelChart } from "./IcFunnelChart";
-import { default as GaugeChart } from "./IcGaugeChart";
 import { default as HeatmapChart } from "./IcHeatmapChart";
 import { default as Hide } from "./IcHide";
 import { default as Home } from "./IcHome";
@@ -140,7 +138,6 @@ import { default as SortDescending } from "./IcSortDescending";
 import { default as Star } from "./IcStar";
 import { default as StarFilled } from "./IcStarFilled";
 import { default as Sum } from "./IcSum";
-import { default as SunburstChart } from "./IcSunburstChart";
 import { default as Swatch } from "./IcSwatch";
 import { default as TableChart } from "./IcTableChart";
 import { default as TableColumnCategorical } from "./IcTableColumnCategorical";
@@ -155,7 +152,6 @@ import { default as Tablet } from "./IcTablet";
 import { default as Target } from "./IcTarget";
 import { default as Text } from "./IcText";
 import { default as Trash } from "./IcTrash";
-import { default as TreemapChart } from "./IcTreemapChart";
 import { default as Twitter } from "./IcTwitter";
 import { default as Underlined } from "./IcUnderlined";
 import { default as Unfold } from "./IcUnfold";
@@ -278,8 +274,6 @@ export const Icons = {
   formatting: Formatting,
   forward: Forward,
   freeCanvas: FreeCanvas,
-  funnelChart: FunnelChart,
-  gaugeChart: GaugeChart,
   heatmapChart: HeatmapChart,
   hide: Hide,
   image: Image,
@@ -324,7 +318,6 @@ export const Icons = {
   sortAscending: SortAscending,
   sortDescending: SortDescending,
   sum: Sum,
-  sunburstChart: SunburstChart,
   swatch: Swatch,
   tableChart: TableChart,
   tableColumnCategorical: TableColumnCategorical,
@@ -337,7 +330,6 @@ export const Icons = {
   tableColumnTimeHidden: TableColumnTimeHidden,
   target: Target,
   text: Text,
-  treemapChart: TreemapChart,
   underlined: Underlined,
   unfold: Unfold,
   unpublish: Unpublish,

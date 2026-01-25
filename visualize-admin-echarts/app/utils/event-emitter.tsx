@@ -1,6 +1,6 @@
 // @ts-ignore We use StrictEventEmitter to type EventEmitter
 import EventEmitter from "microee";
-import { createContext, PropsWithChildren, useContext, useEffect } from "react";
+import { createContext, PropsWithChildren, useContext, useEffect, useRef } from "react";
 import StrictEventEmitter from "strict-event-emitter-types";
 
 /**
@@ -38,16 +38,37 @@ export const useEventEmitter = <T extends keyof Events>(
 ) => {
   const eventEmitterCtx = useContext(EventEmitterContext);
   const eventEmitter = eventEmitterCtx;
+  // Use ref to store the callback to avoid dependency issues
+  const callbackRef = useRef(callback);
+  // Track whether listener was registered to prevent cleanup race conditions
+  const isRegisteredRef = useRef(false);
+
+  // Keep callback ref up to date
   useEffect(() => {
-    if (!eventEmitter || !event || !callback) {
+    callbackRef.current = callback;
+  }, [callback]);
+
+  useEffect(() => {
+    if (!eventEmitter || !event || !callbackRef.current) {
       return;
     }
-    eventEmitter.on(event as unknown as keyof Events, callback);
-    // eslint-disable-next-line consistent-return
-    return () => {
-      eventEmitter.removeListener(event, callback);
+
+    // Wrapper to use the latest callback
+    const handler: EventEmitterHandler<T> = (ev) => {
+      callbackRef.current?.(ev);
     };
-  }, [eventEmitter, event, callback]);
+
+    eventEmitter.on(event as unknown as keyof Events, handler);
+    isRegisteredRef.current = true;
+
+    return () => {
+      // Only remove if we successfully registered
+      if (isRegisteredRef.current) {
+        eventEmitter.removeListener(event, handler);
+        isRegisteredRef.current = false;
+      }
+    };
+  }, [eventEmitter, event]);
 
   return eventEmitter;
 };

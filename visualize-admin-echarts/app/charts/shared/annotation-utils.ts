@@ -172,10 +172,7 @@ export const getAnnotationTargetsFromObservation = (
     }
     case "pie":
     case "donut":
-    case "radar":
-    case "funnel":
-    case "treemap":
-    case "sunburst": {
+    case "radar": {
       const segmentComponentId = chartConfig.fields.segment?.componentId;
       if (segmentComponentId && segment) {
         const value =
@@ -191,15 +188,11 @@ export const getAnnotationTargetsFromObservation = (
     case "comboLineColumn":
     case "comboLineDual":
     case "comboLineSingle":
-    case "gauge":
     case "heatmap":
     case "map":
     case "table":
     case "boxplot":
     case "waterfall":
-    case "sankey":
-    case "polar":
-    case "wordcloud":
       break;
     default:
       const _exhaustiveCheck: never = chartConfig;

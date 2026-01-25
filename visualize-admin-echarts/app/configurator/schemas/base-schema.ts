@@ -381,6 +381,144 @@ export const scatterplotFieldsSchema: RJSFSchema = {
   required: ["x", "y", "color"],
 };
 
+/**
+ * Radar chart fields schema
+ */
+export const radarFieldsSchema: RJSFSchema = {
+  type: "object",
+  title: "Radar Chart Fields",
+  properties: {
+    y: {
+      type: "object",
+      title: "Values (Measures)",
+      description: "Select the measure to display on radar axes",
+      properties: {
+        ...genericFieldSchema.properties,
+      },
+      required: ["componentId"],
+    },
+    segment: {
+      type: "object",
+      title: "Dimensions (Axes)",
+      description: "Each dimension value becomes a radar axis",
+      properties: {
+        ...genericFieldSchema.properties,
+        ...sortingFieldSchema.properties,
+      },
+      required: ["componentId"],
+    },
+    color: colorFieldSchema,
+  },
+  required: ["y", "segment", "color"],
+};
+
+/**
+ * Heatmap chart fields schema
+ */
+export const heatmapFieldsSchema: RJSFSchema = {
+  type: "object",
+  title: "Heatmap Fields",
+  properties: {
+    x: {
+      type: "object",
+      title: "X-Axis (Columns)",
+      properties: {
+        ...genericFieldSchema.properties,
+      },
+      required: ["componentId"],
+    },
+    y: {
+      type: "object",
+      title: "Y-Axis (Rows)",
+      properties: {
+        ...genericFieldSchema.properties,
+      },
+      required: ["componentId"],
+    },
+    color: {
+      type: "object",
+      title: "Color (Values)",
+      description: "The measure that determines cell color intensity",
+      properties: {
+        ...genericFieldSchema.properties,
+        colorScale: {
+          type: "string",
+          title: "Color Scale",
+          oneOf: [
+            { const: "sequential", title: "Sequential" },
+            { const: "diverging", title: "Diverging" },
+          ],
+          default: "sequential",
+        },
+      },
+      required: ["componentId"],
+    },
+  },
+  required: ["x", "y", "color"],
+};
+
+/**
+ * Boxplot fields schema
+ */
+export const boxplotFieldsSchema: RJSFSchema = {
+  type: "object",
+  title: "Box Plot Fields",
+  properties: {
+    x: {
+      type: "object",
+      title: "Categories",
+      properties: {
+        ...genericFieldSchema.properties,
+        ...sortingFieldSchema.properties,
+      },
+      required: ["componentId"],
+    },
+    y: {
+      type: "object",
+      title: "Values",
+      description: "Measure for box plot distribution",
+      properties: {
+        ...genericFieldSchema.properties,
+        ...customScaleDomainSchema.properties,
+      },
+      required: ["componentId"],
+    },
+    color: colorFieldSchema,
+  },
+  required: ["x", "y", "color"],
+};
+
+/**
+ * Waterfall chart fields schema
+ */
+export const waterfallFieldsSchema: RJSFSchema = {
+  type: "object",
+  title: "Waterfall Chart Fields",
+  properties: {
+    x: {
+      type: "object",
+      title: "Categories (Steps)",
+      properties: {
+        ...genericFieldSchema.properties,
+        ...sortingFieldSchema.properties,
+      },
+      required: ["componentId"],
+    },
+    y: {
+      type: "object",
+      title: "Values (Changes)",
+      properties: {
+        ...genericFieldSchema.properties,
+        ...showValuesFieldSchema.properties,
+        ...customScaleDomainSchema.properties,
+      },
+      required: ["componentId"],
+    },
+    color: colorFieldSchema,
+  },
+  required: ["x", "y", "color"],
+};
+
 // ============================================================================
 // UI Schemas
 // ============================================================================
@@ -489,16 +627,9 @@ export type ChartType =
   | "donut"
   | "scatterplot"
   | "radar"
-  | "funnel"
-  | "gauge"
-  | "treemap"
-  | "sunburst"
   | "heatmap"
   | "boxplot"
   | "waterfall"
-  | "sankey"
-  | "polar"
-  | "wordcloud"
   | "bar3d"
   | "scatter3d"
   | "surface"
@@ -515,24 +646,24 @@ export interface ChartSchemaConfig {
  * Registry mapping chart types to their schemas
  */
 export const chartSchemaRegistry: Record<ChartType, ChartSchemaConfig> = {
+  // Axis-based charts
   column: { schema: columnFieldsSchema, uiSchema: columnUiSchema },
   bar: { schema: barFieldsSchema, uiSchema: columnUiSchema },
   line: { schema: lineFieldsSchema, uiSchema: lineUiSchema },
-  area: { schema: lineFieldsSchema, uiSchema: lineUiSchema }, // Area uses same as line
-  pie: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
-  donut: { schema: pieFieldsSchema, uiSchema: pieUiSchema }, // Donut uses same as pie
+  area: { schema: lineFieldsSchema, uiSchema: lineUiSchema },
   scatterplot: { schema: scatterplotFieldsSchema, uiSchema: columnUiSchema },
-  radar: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
-  funnel: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
-  gauge: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
-  treemap: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
-  sunburst: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
-  heatmap: { schema: scatterplotFieldsSchema, uiSchema: columnUiSchema },
-  boxplot: { schema: columnFieldsSchema, uiSchema: columnUiSchema },
-  waterfall: { schema: columnFieldsSchema, uiSchema: columnUiSchema },
-  sankey: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
-  polar: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
-  wordcloud: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
+  boxplot: { schema: boxplotFieldsSchema, uiSchema: columnUiSchema },
+  waterfall: { schema: waterfallFieldsSchema, uiSchema: columnUiSchema },
+  heatmap: { schema: heatmapFieldsSchema, uiSchema: columnUiSchema },
+
+  // Pie-family charts (no axes)
+  pie: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
+  donut: { schema: pieFieldsSchema, uiSchema: pieUiSchema },
+
+  // Specialized charts (no axes)
+  radar: { schema: radarFieldsSchema, uiSchema: pieUiSchema },
+
+  // 3D charts
   bar3d: { schema: columnFieldsSchema, uiSchema: columnUiSchema },
   scatter3d: { schema: scatterplotFieldsSchema, uiSchema: columnUiSchema },
   surface: { schema: scatterplotFieldsSchema, uiSchema: columnUiSchema },

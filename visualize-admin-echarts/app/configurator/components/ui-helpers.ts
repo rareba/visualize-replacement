@@ -216,14 +216,6 @@ export const getIconName = (name: string): IconName => {
       return "donutChart";
     case "radar":
       return "radarChart";
-    case "funnel":
-      return "funnelChart";
-    case "gauge":
-      return "gaugeChart";
-    case "treemap":
-      return "treemapChart";
-    case "sunburst":
-      return "sunburstChart";
     case "heatmap":
       return "heatmapChart";
     case "map":

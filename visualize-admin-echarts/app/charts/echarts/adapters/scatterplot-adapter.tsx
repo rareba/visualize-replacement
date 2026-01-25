@@ -134,11 +134,14 @@ export const ScatterplotChartAdapter = () => {
         tooltip: {
           ...createItemTooltip(),
           formatter: (params: unknown) => {
-            const typedParams = params as { value: unknown; seriesName: string };
+            // Safe type checking for tooltip params
+            const typedParams = params as { value?: unknown; seriesName?: string } | null;
+            if (!typedParams) return "";
+            const seriesName = typedParams.seriesName ?? "";
             const value = typedParams.value;
-            const xVal = Array.isArray(value) ? value[0] : "N/A";
-            const yVal = Array.isArray(value) ? value[1] : "N/A";
-            return `${typedParams.seriesName}<br/>X: ${xVal}<br/>Y: ${yVal}`;
+            const xVal = Array.isArray(value) && value.length > 0 ? value[0] : "N/A";
+            const yVal = Array.isArray(value) && value.length > 1 ? value[1] : "N/A";
+            return `${seriesName}<br/>X: ${xVal}<br/>Y: ${yVal}`;
           },
         },
         legend: {
@@ -169,10 +172,12 @@ export const ScatterplotChartAdapter = () => {
         tooltip: {
           ...createItemTooltip(),
           formatter: (params: unknown) => {
-            const typedParams = params as { value: unknown };
+            // Safe type checking for tooltip params
+            const typedParams = params as { value?: unknown } | null;
+            if (!typedParams) return "";
             const value = typedParams.value;
-            const xVal = Array.isArray(value) ? value[0] : "N/A";
-            const yVal = Array.isArray(value) ? value[1] : "N/A";
+            const xVal = Array.isArray(value) && value.length > 0 ? value[0] : "N/A";
+            const yVal = Array.isArray(value) && value.length > 1 ? value[1] : "N/A";
             return `X: ${xVal}<br/>Y: ${yVal}`;
           },
         },

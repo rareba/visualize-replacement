@@ -303,18 +303,11 @@ export const getAxisDimension = ({
     case "pie":
     case "donut":
     case "radar":
-    case "funnel":
-    case "gauge":
-    case "treemap":
-    case "sunburst":
     case "heatmap":
     case "scatterplot":
     case "table":
     case "boxplot":
     case "waterfall":
-    case "sankey":
-    case "polar":
-    case "wordcloud":
       return;
     default:
       const _exhaustiveCheck: never = chartConfig;
@@ -346,18 +339,11 @@ const getLimitMeasure = ({
     case "pie":
     case "donut":
     case "radar":
-    case "funnel":
-    case "gauge":
-    case "treemap":
-    case "sunburst":
     case "heatmap":
     case "scatterplot":
     case "table":
     case "boxplot":
     case "waterfall":
-    case "sankey":
-    case "polar":
-    case "wordcloud":
       return;
     default:
       const _exhaustiveCheck: never = chartConfig;

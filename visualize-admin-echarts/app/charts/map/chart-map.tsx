@@ -1,13 +1,19 @@
 import { Box } from "@mui/material";
+import dynamic from "next/dynamic";
 import { memo, useCallback, useMemo } from "react";
 
 import { ChartDataWrapper } from "@/charts/chart-data-wrapper";
 import { shouldRenderMap } from "@/charts/map/helpers";
-import { MapComponent } from "@/charts/map/map";
 import { MapCustomLayersLegend } from "@/charts/map/map-custom-layers-legend";
 import { MapLegend } from "@/charts/map/map-legend";
 import { MapChart } from "@/charts/map/map-state";
 import { MapTooltip } from "@/charts/map/map-tooltip";
+
+// Dynamic import to avoid SSR issues with maplibre-gl which requires browser APIs
+const MapComponent = dynamic(
+  () => import("@/charts/map/map").then((mod) => mod.MapComponent),
+  { ssr: false }
+);
 import {
   ChartContainer,
   ChartControlsContainer,

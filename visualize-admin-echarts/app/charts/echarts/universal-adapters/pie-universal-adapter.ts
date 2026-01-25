@@ -53,7 +53,7 @@ const buildPieData = (state: UniversalChartState): PieDataItem[] => {
   });
 
   // Build pie data in segment order
-  return segments
+  const pieData = segments
     .map((segment, index) => ({
       name: segment,
       value: segmentValues.get(segment) ?? 0,
@@ -63,6 +63,8 @@ const buildPieData = (state: UniversalChartState): PieDataItem[] => {
       },
     }))
     .filter((d) => d.value > 0);
+
+  return pieData;
 };
 
 // ============================================================================
@@ -83,12 +85,13 @@ const createPieLabelConfig = (
   color: showLabelsOutside ? SWISS_FEDERAL_COLORS.text : "#fff",
   formatter: (params: unknown) => {
     const p = params as { name: string; value: number; percent: number };
+    const percent = p.percent ?? 0;
     if (!showLabelsOutside) {
       // Inside label - just show percentage for larger slices
-      return p.percent >= 5 ? `${p.percent.toFixed(0)}%` : "";
+      return percent >= 5 ? `${percent.toFixed(0)}%` : "";
     }
     // Outside label - show name and percentage
-    return `{name|${p.name}}\n{value|${p.percent.toFixed(1)}%}`;
+    return `{name|${p.name}}\n{value|${percent.toFixed(1)}%}`;
   },
   rich: {
     name: {
@@ -152,7 +155,9 @@ export const pieUniversalAdapter = (state: UniversalChartState): EChartsOption =
       ...createItemTooltip(),
       formatter: (params: unknown) => {
         const p = params as { name: string; value: number; percent: number };
-        return `${p.name}: ${p.value.toLocaleString()} (${p.percent.toFixed(1)}%)`;
+        const value = p.value ?? 0;
+        const percent = p.percent ?? 0;
+        return `${p.name}: ${value.toLocaleString()} (${percent.toFixed(1)}%)`;
       },
     },
     legend: createLegend(),

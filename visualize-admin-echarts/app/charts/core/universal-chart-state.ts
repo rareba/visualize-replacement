@@ -54,12 +54,7 @@ export interface FieldAccessors {
 
   // Additional fields for specific chart types
   getSize?: NumericalValueGetter;     // For bubble charts
-  getSource?: StringValueGetter;      // For Sankey
-  getTarget?: StringValueGetter;      // For Sankey
-  getValue?: NumericalValueGetter;    // For Heatmap, Sankey
-  getWord?: StringValueGetter;        // For Wordcloud
-  getAngle?: StringValueGetter;       // For Polar
-  getRadius?: NumericalValueGetter;   // For Polar
+  getValue?: NumericalValueGetter;    // For Heatmap
 
   // Rendering key (for consistent identification)
   getRenderingKey?: (d: Observation, segment?: string) => string;
@@ -230,24 +225,3 @@ export interface AxisChartState extends UniversalChartState {
   };
 }
 
-/**
- * State subset for hierarchical charts (treemap, sunburst)
- */
-export interface HierarchicalChartState extends UniversalChartState {
-  chartType: "treemap" | "sunburst";
-  fields: FieldAccessors & {
-    getHierarchy?: StringValueGetter;
-  };
-}
-
-/**
- * State subset for Sankey charts
- */
-export interface SankeyChartState extends UniversalChartState {
-  chartType: "sankey";
-  fields: FieldAccessors & {
-    getSource: StringValueGetter;
-    getTarget: StringValueGetter;
-    getValue: NumericalValueGetter;
-  };
-}

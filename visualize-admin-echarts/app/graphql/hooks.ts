@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { LRUCache } from "typescript-lru-cache";
 import { Client, useClient } from "urql";
 
 import {
@@ -36,7 +37,8 @@ import {
   DataCubeObservationsQueryVariables,
 } from "./query-hooks";
 
-const queryResultsCache = new Map<string, any>();
+// Use LRU cache to prevent unbounded memory growth in long-running sessions
+const queryResultsCache = new LRUCache<string, unknown>({ maxSize: 100 });
 
 const useQueryKey = (options: object) => {
   return useMemo(() => {
@@ -202,6 +204,13 @@ const executeDataCubesMetadataQuery = async (
   const error = queries.find((q) => q.error)?.error;
   const fetching = !error && queries.some((q) => !q.data);
 
+  if (error) {
+    console.error("[GraphQL] DataCubesMetadata query failed:", {
+      error: error.message,
+      cubeFilters: cubeFilters.map((f) => f.iri),
+    });
+  }
+
   return {
     data:
       error || fetching
@@ -237,6 +246,21 @@ export const executeDataCubesComponentsQuery = async (
   onFetching?: () => void
 ) => {
   const { locale, sourceType, sourceUrl, cubeFilters } = variables;
+
+  // Guard: Return empty data if no cube filters provided
+  if (!cubeFilters || cubeFilters.length === 0) {
+    return {
+      data: {
+        dataCubesComponents: {
+          dimensions: [],
+          measures: [],
+        },
+      },
+      error: undefined,
+      fetching: false,
+    };
+  }
+
   const joinBy = Object.fromEntries(
     cubeFilters
       .map((x) => {
@@ -276,8 +300,19 @@ export const executeDataCubesComponentsQuery = async (
   const error = queries.find((q) => q.error)?.error;
   const fetching = !error && queries.some((q) => !q.data);
 
-  if (error || fetching) {
-    console.log("Error or fetching", { error, fetching });
+  if (error) {
+    console.error("[GraphQL] DataCubesComponents query failed:", {
+      error: error.message,
+      cubeFilters: cubeFilters.map((f) => f.iri),
+    });
+    return {
+      data: undefined,
+      error,
+      fetching,
+    };
+  }
+
+  if (fetching) {
     return {
       data: undefined,
       error,
@@ -458,6 +493,20 @@ export const executeDataCubesObservationsQuery = async (
 ) => {
   const { locale, sourceType, sourceUrl, cubeFilters } = variables;
 
+  // Guard: Return empty data if no cube filters provided
+  if (!cubeFilters || cubeFilters.length === 0) {
+    return {
+      data: {
+        dataCubesObservations: {
+          data: [],
+          sparqlEditorUrls: [],
+        },
+      },
+      error: undefined,
+      fetching: false,
+    };
+  }
+
   const queries = await Promise.all(
     cubeFilters.map((cubeFilter) => {
       const cubeVariables = { locale, sourceType, sourceUrl, cubeFilter };
@@ -486,7 +535,19 @@ export const executeDataCubesObservationsQuery = async (
   const error = queries.find((q) => q.error)?.error;
   const fetching = !error && queries.some((q) => !q.data);
 
-  if (error || fetching) {
+  if (error) {
+    console.error("[GraphQL] DataCubesObservations query failed:", {
+      error: error.message,
+      cubeFilters: cubeFilters.map((f) => f.iri),
+    });
+    return {
+      data: undefined,
+      error,
+      fetching,
+    };
+  }
+
+  if (fetching) {
     return {
       data: undefined,
       error,

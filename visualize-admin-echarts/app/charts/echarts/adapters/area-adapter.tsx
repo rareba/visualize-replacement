@@ -11,6 +11,7 @@ import { AreasState } from "@/charts/area/areas-state";
 import {
   calculateChartDimensions,
   createAxisTooltip,
+  createNoDataGraphic,
   createXCategoryAxis,
   createYValueAxis,
   createGridConfig,
@@ -60,6 +61,26 @@ export const AreaChartAdapter = () => {
   const option = useMemo((): EChartsOption => {
     const safeBounds = safeGetBounds(bounds);
     const yDomain = safeGetNumericDomain(yScale);
+
+    // Guard: Handle empty data gracefully
+    if (!chartData || chartData.length === 0) {
+      return {
+        ...getSwissFederalTheme(),
+        grid: createGridConfig(safeBounds, extraHeight),
+        graphic: createNoDataGraphic(),
+        xAxis: createXCategoryAxis({
+          categories: [],
+          name: xAxisLabel || "Time",
+          boundaryGap: false,
+        }),
+        yAxis: createYValueAxis({
+          name: yAxisLabel || "Value",
+          min: 0,
+          max: 100,
+        }),
+        series: [],
+      };
+    }
 
     // Group time series data
     const { xValues, xLabels, segmentDataMap } = groupTimeSeriesData(

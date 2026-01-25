@@ -53,7 +53,7 @@ import {
 } from "@/graphql/query-hooks";
 import { Icon } from "@/icons";
 import { useConfiguratorState, useLocale } from "@/src";
-import { softJSONParse } from "@/utils/soft-json-parse";
+import { parseAndValidateBrowseParams } from "@/utils/soft-json-parse";
 import { useResizeObserver } from "@/utils/use-resize-observer";
 
 export const SelectDatasetStep = (
@@ -116,7 +116,7 @@ const SelectDatasetStepInner = ({
   );
   const [ref] = useResizeObserver<HTMLDivElement>(handleHeightChange);
   const backLink = useMemo(() => {
-    const backParameters = softJSONParse(router.query.previous as string);
+    const backParameters = parseAndValidateBrowseParams(router.query.previous as string);
 
     if (!backParameters) {
       return "/browse";

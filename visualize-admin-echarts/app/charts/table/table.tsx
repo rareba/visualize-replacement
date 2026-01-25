@@ -103,6 +103,26 @@ export const Table = () => {
   } = useChartState() as TableChartState;
   const classes = useStyles();
 
+  // Guard: Handle empty data gracefully
+  if (!chartData || chartData.length === 0 || !tableColumns || tableColumns.length === 0) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+          minHeight: 200,
+          color: "grey.600",
+        }}
+      >
+        <Typography variant="body1">
+          <Trans id="chart.table.no.data">No data available</Trans>
+        </Typography>
+      </Box>
+    );
+  }
+
   const [compactMobileViewEnabled, setCompactMobileView] = useState(false);
 
   const showCompactMobileView = shouldShowCompactMobileView(bounds.width);

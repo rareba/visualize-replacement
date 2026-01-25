@@ -8,22 +8,34 @@ import { setup, sleep } from "./common";
 
 const { test } = setup();
 
-// This is a special test that will take a screenshot of every chart in the
-// PROD database (up to 1000 charts) and save it to the screenshots folder.
+/**
+ * Visual Regression Test - All Charts Baseline Screenshot
+ *
+ * This test takes screenshots of every chart in the PROD database (up to 1000 charts)
+ * for visual regression comparison.
+ *
+ * Usage:
+ * 1. Enable with environment variable: E2E_VISUAL_REGRESSION=true
+ * 2. Set IS_BASELINE below based on your workflow:
+ *    - true: Generate baseline screenshots (checkout baseline branch first)
+ *    - false: Generate comparison screenshots (checkout comparison branch)
+ *
+ * Commands:
+ *   # Generate baseline screenshots
+ *   E2E_VISUAL_REGRESSION=true IS_BASELINE=true yarn e2e:dev --project=visual-regression --headed
+ *
+ *   # Generate comparison screenshots
+ *   E2E_VISUAL_REGRESSION=true IS_BASELINE=false yarn e2e:dev --project=visual-regression --headed
+ *
+ *   # Compare screenshots after both runs
+ *   yarn compare-screenshots
+ */
+const IS_BASELINE = process.env.IS_BASELINE !== "false";
 
-// To run this test, remove the .skip from the test function below and checkout
-// to the baseline branch. Afterwards, run `yarn run e2e:dev e2e/all-charts.spec.ts --headed`
-// to generate the baseline screenshots.
+// Skip unless E2E_VISUAL_REGRESSION environment variable is set
+const runTest = process.env.E2E_VISUAL_REGRESSION === "true" ? test : test.skip;
 
-// After the baseline screenshots have been generated, checkout to the comparison
-// branch and run `yarn run e2e:dev e2e/all-charts.spec.ts --headed` to generate the
-// comparison screenshots. Make sure to change the IS_BASELINE variable to false.
-
-// After the comparison screenshots have been generated, run `yarn compare-screenshots`
-// to compare the screenshots.
-const IS_BASELINE = true;
-
-test.skip("all charts", async ({ page }) => {
+runTest("all charts", async ({ page }) => {
   await page.goto(`/en/preview`);
 
   const configs = await fetch(

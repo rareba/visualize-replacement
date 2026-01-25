@@ -12,7 +12,7 @@ import {
   SectionTitle,
 } from "@/configurator/components/chart-controls/section";
 import { ShowFilterAreaOpen } from "@/configurator/components/chart-controls/show-filter-area-open";
-import { ChartTypeSelector } from "@/configurator/components/chart-type-selector";
+import { PowerBIChartTypePicker } from "@/configurator/components/powerbi";
 import { DatasetsControlSection } from "@/configurator/components/dataset-control-section";
 import {
   ChartAnnotatorTabField,
@@ -86,8 +86,8 @@ export const ChartConfiguratorTable = ({
           <Trans id="controls.select.chart.type">Chart Type</Trans>
         </SectionTitle>
         <ControlSectionContent gap="none">
-          <ChartTypeSelector
-            showHelp={false}
+          <PowerBIChartTypePicker
+            showSearch={false}
             state={state}
             chartKey={chartConfig.key}
           />

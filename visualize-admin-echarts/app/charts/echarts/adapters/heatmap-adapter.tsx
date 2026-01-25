@@ -9,29 +9,19 @@ import { useMemo } from "react";
 import {
   ChartBounds,
   getDefaultAnimation,
+  getHeatmapColorRange,
   safeGetBounds,
 } from "@/charts/echarts/adapter-utils";
 import { EChartsWrapper } from "@/charts/echarts/EChartsWrapper";
+import { HeatmapState } from "@/charts/echarts/heatmap-state";
 import {
   getSwissFederalTheme,
-  SWISS_FEDERAL_COLORS,
   SWISS_FEDERAL_FONT,
 } from "@/charts/echarts/theme";
-import { PieState } from "@/charts/pie/pie-state";
 import { useChartState } from "@/charts/shared/chart-state";
+import { getColorInterpolator } from "@/palettes";
 
 import type { EChartsOption, HeatmapSeriesOption } from "echarts";
-
-// ============================================================================
-// Types
-// ============================================================================
-
-interface HeatmapState extends Omit<PieState, "getX"> {
-  getX?: (d: unknown) => string;
-  getValue?: (d: unknown) => number | null;
-  xScale?: { domain: () => string[] };
-  yScale?: { domain: () => string[] };
-}
 
 // ============================================================================
 // Heatmap Chart Adapter
@@ -56,6 +46,7 @@ export const HeatmapChartAdapter = () => {
   const getX = (state as HeatmapState).getX || getSegment;
   const getValue = (state as HeatmapState).getValue || getY;
   const yScale = (state as HeatmapState).yScale;
+  const colorField = (state as HeatmapState).colorField;
 
   const option = useMemo((): EChartsOption => {
     const animation = getDefaultAnimation();
@@ -121,7 +112,6 @@ export const HeatmapChartAdapter = () => {
         axisLabel: {
           fontFamily: SWISS_FEDERAL_FONT.family,
           fontSize: 11,
-          color: SWISS_FEDERAL_COLORS.text,
         },
       },
       yAxis: {
@@ -133,7 +123,6 @@ export const HeatmapChartAdapter = () => {
         axisLabel: {
           fontFamily: SWISS_FEDERAL_FONT.family,
           fontSize: 11,
-          color: SWISS_FEDERAL_COLORS.text,
         },
       },
       visualMap: {
@@ -144,16 +133,11 @@ export const HeatmapChartAdapter = () => {
         left: "center",
         bottom: 10,
         inRange: {
-          color: [
-            SWISS_FEDERAL_COLORS.palette[14], // Light
-            SWISS_FEDERAL_COLORS.palette[1], // Primary blue
-            SWISS_FEDERAL_COLORS.primary, // Swiss red
-          ],
+          color: getHeatmapColorRange(colorField, getColorInterpolator),
         },
         textStyle: {
           fontFamily: SWISS_FEDERAL_FONT.family,
           fontSize: 11,
-          color: SWISS_FEDERAL_COLORS.text,
         },
       },
       series: [
@@ -164,7 +148,6 @@ export const HeatmapChartAdapter = () => {
             show: data.length <= 100, // Only show labels for smaller grids
             fontFamily: SWISS_FEDERAL_FONT.family,
             fontSize: 10,
-            color: SWISS_FEDERAL_COLORS.text,
             formatter: (params: unknown) => {
               const p = params as { data: [number, number, number] };
               const value = p.data[2];
@@ -189,7 +172,7 @@ export const HeatmapChartAdapter = () => {
         } as HeatmapSeriesOption,
       ],
     };
-  }, [chartData, getX, getSegmentAbbreviationOrLabel, getValue, bounds, xScale, yScale, valueLabelFormatter]);
+  }, [chartData, getX, getSegmentAbbreviationOrLabel, getValue, bounds, xScale, yScale, valueLabelFormatter, colorField]);
 
   const safeBounds = safeGetBounds(bounds as Partial<ChartBounds>);
   const dimensions = {

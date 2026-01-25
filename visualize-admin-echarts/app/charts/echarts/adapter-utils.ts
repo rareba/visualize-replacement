@@ -21,6 +21,67 @@ import type {
 export type { XAXisComponentOption, YAXisComponentOption };
 
 // ============================================================================
+// Centralized Chart Defaults
+// ============================================================================
+
+/**
+ * Centralized defaults for ECharts adapters.
+ * Use these instead of hardcoding values in individual adapters.
+ */
+export const CHART_DEFAULTS = {
+  /** Empty data fallback axis range */
+  emptyAxisRange: { min: 0, max: 100 },
+
+  /** Scatter/marker symbol sizes */
+  symbolSize: {
+    small: 6,
+    medium: 10,
+    large: 14,
+  },
+
+  /** Line widths */
+  lineWidth: {
+    thin: 1,
+    default: 2,
+    thick: 3,
+  },
+
+  /** Font sizes for different contexts */
+  fontSize: {
+    small: 10,
+    label: 11,
+    default: 12,
+    emphasis: 14,
+    title: 16,
+    large: 24,
+  },
+
+  /** Axis configuration */
+  axis: {
+    nameGapX: 35,
+    nameGapY: 50,
+  },
+
+  /** Animation settings */
+  animation: {
+    duration: 500,
+    easing: "cubicOut" as const,
+  },
+
+  /** Padding ratios */
+  padding: {
+    domain: 0.1,  // 10% padding for domain calculations
+  },
+
+  /** Default dimensions */
+  dimensions: {
+    width: 500,
+    chartHeight: 300,
+    margins: { left: 60, right: 40, top: 40, bottom: 60 },
+  },
+} as const;
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -58,24 +119,28 @@ export interface CategoryAxisConfig extends AxisLabelConfig {
 /**
  * Safely retrieves domain from a D3 scale with fallback values.
  * Handles undefined scales, NaN values, and invalid domains.
+ * Optimized for hot-path performance.
  */
 export const safeGetDomain = <T = number>(
   scale: { domain: () => T[] } | undefined,
   fallback: [T, T]
 ): [T, T] => {
-  if (!scale || typeof scale.domain !== "function") {
+  // Early return for invalid scale (single check)
+  if (!scale?.domain || typeof scale.domain !== "function") {
     return fallback;
   }
   const domain = scale.domain();
-  if (!Array.isArray(domain) || domain.length < 2) {
+  // D3 scales always return arrays, but check length for safety
+  if (domain.length < 2) {
     return fallback;
   }
   const [min, max] = domain;
-  // For numeric domains, check for NaN
-  if (typeof min === "number" && typeof max === "number") {
-    const safeMin = Number.isFinite(min) ? min : (fallback[0] as number);
-    const safeMax = Number.isFinite(max) ? max : (fallback[1] as number);
-    return [safeMin as T, safeMax as T];
+  // For numeric domains, validate finite values
+  if (typeof min === "number") {
+    return [
+      (Number.isFinite(min) ? min : fallback[0]) as T,
+      (Number.isFinite(max as number) ? max : fallback[1]) as T,
+    ];
   }
   return [min, max];
 };
@@ -83,21 +148,25 @@ export const safeGetDomain = <T = number>(
 /**
  * Safely retrieves numeric domain with default 0-100 fallback.
  * Works with D3 scales that return number[] from domain().
+ * Optimized for hot-path performance.
  */
 export const safeGetNumericDomain = (
   scale: { domain: () => number[] } | undefined
 ): [number, number] => {
-  if (!scale || typeof scale.domain !== "function") {
-    return [0, 100];
+  // Early return for invalid scale (single check using optional chaining)
+  if (!scale?.domain) {
+    return [CHART_DEFAULTS.emptyAxisRange.min, CHART_DEFAULTS.emptyAxisRange.max];
   }
   const domain = scale.domain();
-  if (!Array.isArray(domain) || domain.length < 2) {
-    return [0, 100];
+  // D3 scales always return arrays, but check length for safety
+  if (domain.length < 2) {
+    return [CHART_DEFAULTS.emptyAxisRange.min, CHART_DEFAULTS.emptyAxisRange.max];
   }
   const [min, max] = domain;
-  const safeMin = Number.isFinite(min) ? min : 0;
-  const safeMax = Number.isFinite(max) ? max : 100;
-  return [safeMin, safeMax];
+  return [
+    Number.isFinite(min) ? min : CHART_DEFAULTS.emptyAxisRange.min,
+    Number.isFinite(max) ? max : CHART_DEFAULTS.emptyAxisRange.max,
+  ];
 };
 
 /**
@@ -106,9 +175,9 @@ export const safeGetNumericDomain = (
 export const safeGetBounds = (
   bounds: Partial<ChartBounds> | undefined
 ): ChartBounds => ({
-  width: bounds?.width ?? 500,
-  chartHeight: bounds?.chartHeight ?? 300,
-  margins: bounds?.margins ?? { left: 60, right: 40, top: 40, bottom: 60 },
+  width: bounds?.width ?? CHART_DEFAULTS.dimensions.width,
+  chartHeight: bounds?.chartHeight ?? CHART_DEFAULTS.dimensions.chartHeight,
+  margins: bounds?.margins ?? { ...CHART_DEFAULTS.dimensions.margins },
 });
 
 // ============================================================================
@@ -120,7 +189,7 @@ export const safeGetBounds = (
  */
 const getBaseAxisLabelStyle = () => ({
   fontFamily: SWISS_FEDERAL_FONT.family,
-  fontSize: 12,
+  fontSize: CHART_DEFAULTS.fontSize.default,
   color: SWISS_FEDERAL_COLORS.text,
 });
 
@@ -268,7 +337,7 @@ export const createLegend = (show = false) => ({
   show,
   textStyle: {
     fontFamily: SWISS_FEDERAL_FONT.family,
-    fontSize: 12,
+    fontSize: CHART_DEFAULTS.fontSize.default,
   },
 });
 
@@ -456,8 +525,8 @@ export const buildSeriesDataFromMap = <K extends string | number>(
  * Default animation settings for smooth transitions.
  */
 export const getDefaultAnimation = () => ({
-  animationDuration: 500,
-  animationEasing: "cubicOut" as const,
+  animationDuration: CHART_DEFAULTS.animation.duration,
+  animationEasing: CHART_DEFAULTS.animation.easing,
 });
 
 /**
@@ -469,7 +538,7 @@ export const createNoDataGraphic = () => ({
   top: "middle" as const,
   style: {
     text: "No data available",
-    fontSize: 14,
+    fontSize: CHART_DEFAULTS.fontSize.emphasis,
     fontFamily: SWISS_FEDERAL_FONT.family,
     fill: SWISS_FEDERAL_COLORS.text,
   },
@@ -491,4 +560,73 @@ export const calculateChartDimensions = (
     width: safeBounds.width,
     height: safeBounds.chartHeight + safeBounds.margins.top + safeBounds.margins.bottom + extraHeight,
   };
+};
+
+// ============================================================================
+// Heatmap Color Helpers
+// ============================================================================
+
+/**
+ * Heatmap color field type from config-types.
+ * Supports sequential (single color gradient) or diverging (two-color gradient) palettes.
+ */
+export interface HeatmapColorField {
+  type: "sequential" | "diverging";
+  paletteId: string;
+}
+
+/**
+ * Gets the color range for a heatmap visualMap from the color field configuration.
+ * Returns an array of colors for the gradient.
+ *
+ * @param colorField - The heatmap color field from config
+ * @param getColorInterpolator - Function to get the color interpolator for a palette
+ * @returns Array of colors for the visualMap inRange
+ */
+export const getHeatmapColorRange = (
+  colorField: HeatmapColorField | undefined,
+  getColorInterpolator: (paletteId: string) => (t: number) => string
+): string[] => {
+  if (!colorField) {
+    // Default to blues sequential palette
+    const interpolator = getColorInterpolator("blues");
+    return [interpolator(0.2), interpolator(0.5), interpolator(0.8)];
+  }
+
+  const interpolator = getColorInterpolator(colorField.paletteId);
+
+  if (colorField.type === "diverging") {
+    // Diverging: low -> mid -> high
+    return [
+      interpolator(0),
+      interpolator(0.5),
+      interpolator(1),
+    ];
+  } else {
+    // Sequential: light -> medium -> dark
+    return [
+      interpolator(0.2),
+      interpolator(0.5),
+      interpolator(0.8),
+    ];
+  }
+};
+
+// ============================================================================
+// Security Helpers
+// ============================================================================
+
+/**
+ * Escapes HTML special characters to prevent XSS attacks in tooltips.
+ * All user-provided strings rendered in tooltips should be escaped.
+ */
+export const escapeHtml = (str: string | number | undefined | null): string => {
+  if (str === null || str === undefined) return "";
+  const s = String(str);
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 };

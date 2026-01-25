@@ -187,23 +187,16 @@ describe("enabled chart types", () => {
       "boxplot",
       "column",
       "donut",
-      "funnel",
-      "gauge",
       "heatmap",
       "line",
       "line3d",
       "pie",
       "pie3d",
-      "polar",
       "radar",
-      "sankey",
       "scatter3d",
-      "sunburst",
       "surface",
       "table",
-      "treemap",
       "waterfall",
-      "wordcloud",
     ];
     const { enabledChartTypes, possibleChartTypesDict } = getEnabledChartTypes({
       dimensions: bathingWaterData.data.dataCubeByIri

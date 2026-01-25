@@ -81,7 +81,8 @@ const createDonutLabelConfig = (showValues: boolean): PieSeriesOption["label"] =
   color: SWISS_FEDERAL_COLORS.text,
   formatter: (params: unknown) => {
     const p = params as { name: string; value: number; percent: number };
-    return `{name|${p.name}}\n{value|${p.percent.toFixed(1)}%}`;
+    const percent = p.percent ?? 0;
+    return `{name|${p.name}}\n{value|${percent.toFixed(1)}%}`;
   },
   rich: {
     name: {
@@ -149,7 +150,9 @@ export const donutUniversalAdapter = (state: UniversalChartState): EChartsOption
       ...createItemTooltip(),
       formatter: (params: unknown) => {
         const p = params as { name: string; value: number; percent: number };
-        return `${p.name}: ${p.value.toLocaleString()} (${p.percent.toFixed(1)}%)`;
+        const value = p.value ?? 0;
+        const percent = p.percent ?? 0;
+        return `${p.name}: ${value.toLocaleString()} (${percent.toFixed(1)}%)`;
       },
     },
     legend: createLegend(),

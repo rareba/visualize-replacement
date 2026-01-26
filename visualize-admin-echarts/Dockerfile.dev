@@ -19,9 +19,6 @@ ENV PORT=3000
 # Copy application code
 COPY . .
 
-# Generate Prisma client
-RUN yarn prisma generate
-
 # Run database migrations and start dev server
 CMD ["sh", "-c", "yarn db:migrate:dev && yarn dev"]
 

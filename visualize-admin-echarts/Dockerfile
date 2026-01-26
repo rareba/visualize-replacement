@@ -49,7 +49,6 @@ ENV NEXTAUTH_URL=$NEXTAUTH_URL
 
 COPY ./ ./
 
-RUN yarn prisma generate
 RUN yarn build
 
 # Install only prod dependencies and start app

@@ -13,6 +13,7 @@
   "private": true,
   "scripts": {
     "dev": "preconstruct dev && NODE_OPTIONS=\"--inspect --openssl-legacy-provider \" next --webpack ./app",
+    "dev:win": "node -e \"const fs=require('fs');fs.mkdirSync('app/dist',{recursive:true});fs.writeFileSync('app/dist/interactivethings-visualize-app.esm.js','export * from \\\"../src/index\\\";');fs.writeFileSync('app/dist/interactivethings-visualize-app.cjs.js','module.exports=require(\\\"../src/index\\\");');\" && cross-env NODE_OPTIONS=\"--inspect --openssl-legacy-provider\" next --webpack ./app",
     "dev:ssl": "preconstruct dev && NODE_OPTIONS=\"--inspect --openssl-legacy-provider \" next dev --webpack --experimental-https ./app",
     "dev:mitmproxy": "preconstruct dev && cross-env HTTP_PROXY=http://localhost:8080 NODE_EXTRA_CA_CERTS=~/.mitmproxy/mitmproxy-ca-cert.pem GLOBAL_AGENT_ENVIRONMENT_VARIABLE_NAMESPACE= NO_PROXY=localhost,127.0.0.1 next --webpack ./app",
     "dev:rollup": "rollup -c rollup.config.js --watch",
@@ -124,5 +125,6 @@
   "bugs": {
     "url": "https://github.com/visualize-admin/visualization-tool/issues"
   },
-  "homepage": "https://github.com/visualize-admin/visualization-tool#readme"
+  "homepage": "https://github.com/visualize-admin/visualization-tool#readme",
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

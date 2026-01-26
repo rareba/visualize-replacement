@@ -1,0 +1,57 @@
+# Complete stack for running the app with Docker
+# Usage: docker-compose -f docker-compose.full.yml up --build
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PREVENT_SEARCH_BOTS: ${PREVENT_SEARCH_BOTS:-false}
+        COMMIT: ${COMMIT:-local}
+        VECTOR_TILE_URL: ${VECTOR_TILE_URL:-}
+        MAPTILER_STYLE_KEY: ${NEXT_PUBLIC_MAPTILER_STYLE_KEY:-}
+        ADFS_ID: ${ADFS_ID:-}
+        ADFS_ISSUER: ${ADFS_ISSUER:-}
+        ADFS_PROFILE_URL: ${ADFS_PROFILE_URL:-}
+        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-secret-change-in-production}
+        NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/visualization_tool
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  db:
+    image: postgres:16
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    command: postgres -c hba_file=/etc/postgresql/pg_hba.conf
+    environment:
+      POSTGRES_DB: visualization_tool
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d visualization_tool"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

@@ -88,7 +88,7 @@ export const extractCategories = (
   observations: Observation[],
   getX: StringValueGetter | undefined,
   xDimension?: Dimension,
-  chartConfig?: ChartConfig
+  _chartConfig?: ChartConfig
 ): string[] => {
   if (!getX) {
     return [];
@@ -104,7 +104,7 @@ export const extractCategories = (
       const sortIndexMap = new Map<string, number>();
       xDimension.values.forEach((v, idx) => {
         // Map both value and label to same index for flexible matching
-        sortIndexMap.set(v.value, idx);
+        sortIndexMap.set(String(v.value), idx);
         sortIndexMap.set(v.label, idx);
       });
 

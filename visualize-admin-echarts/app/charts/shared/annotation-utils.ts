@@ -193,6 +193,14 @@ export const getAnnotationTargetsFromObservation = (
     case "table":
     case "boxplot":
     case "waterfall":
+    case "candlestick":
+    case "themeriver":
+    case "bar3d":
+    case "scatter3d":
+    case "surface":
+    case "line3d":
+    case "globe":
+    case "pie3d":
       break;
     default:
       const _exhaustiveCheck: never = chartConfig;

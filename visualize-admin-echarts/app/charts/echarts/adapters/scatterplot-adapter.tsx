@@ -1,5 +1,11 @@
 /**
- * Scatterplot Chart Adapter
+ * Scatterplot Chart Adapter (LEGACY)
+ *
+ * @deprecated Use `scatterplotUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/scatterplot-universal-adapter.ts for the recommended approach.
  *
  * Transforms data from the existing ChartContext state to ECharts format.
  *

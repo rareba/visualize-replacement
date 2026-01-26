@@ -1,5 +1,11 @@
 /**
- * Area Chart Adapter
+ * Area Chart Adapter (LEGACY)
+ *
+ * @deprecated Use `areaUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/area-universal-adapter.ts for the recommended approach.
  *
  * Transforms data from the existing ChartContext state to ECharts format.
  * Supports time series with interactive filtering via dataZoom.

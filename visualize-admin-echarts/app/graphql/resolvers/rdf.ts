@@ -460,8 +460,8 @@ export const dataCubeObservations: NonNullable<
     sparqlEditorUrl: getSparqlEditorUrl({
       query,
       dataSource: {
-        type: info.variableValues.sourceType,
-        url: info.variableValues.sourceUrl,
+        type: info.variableValues.sourceType as "sql" | "sparql",
+        url: info.variableValues.sourceUrl as string,
       },
     }),
   };

@@ -132,7 +132,7 @@ export const makeDimensionValueSorters = (
   // Use cached hierarchy values to avoid repeated BFS traversals
   const hierarchyValuesByValue = isMeasure(component)
     ? new Map<string, HierarchyValue>()
-    : getHierarchyValuesByValue(component.hierarchy);
+    : getHierarchyValuesByValue(component.hierarchy ?? undefined);
   const valuesByValue = uniqueMapBy(values, (dv) => dv.value);
   // Warning: if two values have the same label and have an identifier / position
   // there could be problems as we could select the "wrong" value for the order

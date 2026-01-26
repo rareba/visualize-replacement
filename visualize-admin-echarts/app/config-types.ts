@@ -1,5 +1,5 @@
 /* eslint-disable no-redeclare */
-import { PALETTE_TYPE } from "@prisma/client";
+import { PaletteType as PALETTE_TYPE } from "@/db/schema";
 import { fold } from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
@@ -333,6 +333,8 @@ export const supportsAnnotations = (chartConfig: ChartConfig) => {
     case "heatmap":
     case "boxplot":
     case "waterfall":
+    case "candlestick":
+    case "themeriver":
     // 3D Charts (ECharts GL)
     case "bar3d":
     case "scatter3d":
@@ -379,17 +381,38 @@ const ConversionUnit = t.type({
 });
 export type ConversionUnit = t.TypeOf<typeof ConversionUnit>;
 
-const GenericChartConfig = t.type({
-  key: t.string,
-  version: t.string,
-  meta: Meta,
-  cubes: t.array(Cube),
-  interactiveFiltersConfig: InteractiveFiltersConfig,
-  annotations: t.array(Annotation),
-  limits: t.record(t.string, t.array(Limit)),
-  conversionUnitsByComponentId: t.record(t.string, ConversionUnit),
-  activeField: t.union([t.string, t.undefined]),
+// Formatting configuration for visual appearance options
+const FormattingConfig = t.partial({
+  showXAxis: t.boolean,
+  showXAxisLabels: t.boolean,
+  showYAxis: t.boolean,
+  showGridlines: t.boolean,
+  showLegend: t.boolean,
+  showTitle: t.boolean,
+  showDataValues: t.boolean,
+  showTooltip: t.boolean,
+  enableAnimation: t.boolean,
+  enableZoom: t.boolean,
+  transparentBg: t.boolean,
 });
+export type FormattingConfig = t.TypeOf<typeof FormattingConfig>;
+
+const GenericChartConfig = t.intersection([
+  t.type({
+    key: t.string,
+    version: t.string,
+    meta: Meta,
+    cubes: t.array(Cube),
+    interactiveFiltersConfig: InteractiveFiltersConfig,
+    annotations: t.array(Annotation),
+    limits: t.record(t.string, t.array(Limit)),
+    conversionUnitsByComponentId: t.record(t.string, ConversionUnit),
+    activeField: t.union([t.string, t.undefined]),
+  }),
+  t.partial({
+    formatting: FormattingConfig,
+  }),
+]);
 
 export type GenericChartConfig = t.TypeOf<typeof GenericChartConfig>;
 

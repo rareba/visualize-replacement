@@ -18,7 +18,6 @@ export const getTimeFilterOptions = ({
 }) => {
   const { timeFormat, timeUnit } = dimension;
   const parseDate = getMaybeTimezoneDateParser({ formatLocale, timeFormat });
-  const formatDate = formatLocale.format(timeFormat);
   const options: {
     value: ObservationValue;
     label: string;

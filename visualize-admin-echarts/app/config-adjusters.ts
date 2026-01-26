@@ -3,10 +3,12 @@ import {
   AreaConfig,
   AreaFields,
   AreaSegmentField,
+  Bar3dConfig,
   BarConfig,
   BarFields,
   BarSegmentField,
   BoxplotConfig,
+  CandlestickConfig,
   ChartConfig,
   ColorField,
   ColumnConfig,
@@ -20,25 +22,31 @@ import {
   ComboLineSingleFields,
   DonutConfig,
   GenericChartConfig,
+  GlobeConfig,
   HeatmapConfig,
   InteractiveFiltersCalculation,
   InteractiveFiltersConfig,
   InteractiveFiltersDataConfig,
   InteractiveFiltersLegend,
+  Line3dConfig,
   LineConfig,
   LineFields,
   LineSegmentField,
   MapConfig,
   MapFields,
+  Pie3dConfig,
   PieConfig,
   PieFields,
   PieSegmentField,
   RadarConfig,
+  Scatter3dConfig,
   ScatterPlotConfig,
   ScatterPlotFields,
   ScatterPlotSegmentField,
+  SurfaceConfig,
   TableConfig,
   TableFields,
+  ThemeriverConfig,
   WaterfallConfig,
 } from "@/config-types";
 import { Dimension, Measure } from "@/domain/data";
@@ -373,6 +381,81 @@ type ComboLineColumnAdjusters = BaseAdjusters<ComboLineColumnConfig> & {
   };
 };
 
+// ============================================================================
+// 3D and Specialized Chart Adjusters
+// ============================================================================
+
+type CandlestickAdjusters = BaseAdjusters<CandlestickConfig> & {
+  fields: {
+    x: { componentId: FieldAdjuster<CandlestickConfig, ComponentId> };
+    y: { componentId: FieldAdjuster<CandlestickConfig, ComponentId> };
+    color: FieldAdjuster<CandlestickConfig, ColorField>;
+  };
+};
+
+type ThemeriverAdjusters = BaseAdjusters<ThemeriverConfig> & {
+  fields: {
+    x: { componentId: FieldAdjuster<ThemeriverConfig, ComponentId> };
+    y: { componentId: FieldAdjuster<ThemeriverConfig, ComponentId> };
+    segment: { componentId: FieldAdjuster<ThemeriverConfig, ComponentId> };
+    color: FieldAdjuster<ThemeriverConfig, ColorField>;
+  };
+};
+
+// 3D chart adjusters use permissive types due to additional fields (z, geo)
+// that may exist at runtime but aren't fully typed in config-types
+type Bar3dAdjusters = BaseAdjusters<Bar3dConfig> & {
+  fields: {
+    x: { componentId: FieldAdjuster<Bar3dConfig, ComponentId> };
+    y: { componentId: FieldAdjuster<Bar3dConfig, ComponentId> };
+    z?: { componentId: FieldAdjuster<Bar3dConfig, ComponentId> };
+    color: FieldAdjuster<Bar3dConfig, ColorField>;
+  };
+};
+
+type Scatter3dAdjusters = BaseAdjusters<Scatter3dConfig> & {
+  fields: {
+    x: { componentId: FieldAdjuster<Scatter3dConfig, ComponentId> };
+    y: { componentId: FieldAdjuster<Scatter3dConfig, ComponentId> };
+    z?: { componentId: FieldAdjuster<Scatter3dConfig, ComponentId> };
+    color: FieldAdjuster<Scatter3dConfig, ColorField>;
+  };
+};
+
+type SurfaceAdjusters = BaseAdjusters<SurfaceConfig> & {
+  fields: {
+    x: { componentId: FieldAdjuster<SurfaceConfig, ComponentId> };
+    y: { componentId: FieldAdjuster<SurfaceConfig, ComponentId> };
+    z?: { componentId: FieldAdjuster<SurfaceConfig, ComponentId> };
+    color: FieldAdjuster<SurfaceConfig, ColorField>;
+  };
+};
+
+type Line3dAdjusters = BaseAdjusters<Line3dConfig> & {
+  fields: {
+    x: { componentId: FieldAdjuster<Line3dConfig, ComponentId> };
+    y: { componentId: FieldAdjuster<Line3dConfig, ComponentId> };
+    z?: { componentId: FieldAdjuster<Line3dConfig, ComponentId> };
+    color: FieldAdjuster<Line3dConfig, ColorField>;
+  };
+};
+
+type GlobeAdjusters = BaseAdjusters<GlobeConfig> & {
+  fields: {
+    x: { componentId: FieldAdjuster<GlobeConfig, ComponentId> };
+    y: { componentId: FieldAdjuster<GlobeConfig, ComponentId> };
+    geo?: { componentId: FieldAdjuster<GlobeConfig, ComponentId> };
+    color: FieldAdjuster<GlobeConfig, ColorField>;
+  };
+};
+
+type Pie3dAdjusters = BaseAdjusters<Pie3dConfig> & {
+  fields: {
+    y: { componentId: FieldAdjuster<Pie3dConfig, ComponentId> };
+    color: FieldAdjuster<Pie3dConfig, ColorField>;
+  };
+};
+
 export type ChartConfigsAdjusters = {
   column: ColumnAdjusters;
   bar: BarAdjusters;
@@ -390,4 +473,13 @@ export type ChartConfigsAdjusters = {
   comboLineSingle: ComboLineSingleAdjusters;
   comboLineDual: ComboLineDualAdjusters;
   comboLineColumn: ComboLineColumnAdjusters;
+  // 3D and specialized chart types
+  candlestick: CandlestickAdjusters;
+  themeriver: ThemeriverAdjusters;
+  bar3d: Bar3dAdjusters;
+  scatter3d: Scatter3dAdjusters;
+  surface: SurfaceAdjusters;
+  line3d: Line3dAdjusters;
+  globe: GlobeAdjusters;
+  pie3d: Pie3dAdjusters;
 };

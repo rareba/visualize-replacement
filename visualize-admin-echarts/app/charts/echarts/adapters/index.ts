@@ -1,8 +1,21 @@
 /**
- * ECharts Adapters
+ * ECharts Adapters (LEGACY)
  *
- * These adapters transform data from the existing ChartContext state
- * to ECharts format, enabling a drop-in replacement for D3 rendering.
+ * @deprecated These component-based adapters are deprecated in favor of the
+ * universal adapters in `@/charts/echarts/universal-adapters/`.
+ *
+ * Universal adapters provide:
+ * - Simpler pure-function architecture
+ * - No dependency on D3 scales
+ * - Single unified state provider (UniversalChartProvider)
+ * - Easier testing and maintenance
+ *
+ * For new chart development, use:
+ * - `UniversalEChartsChart` component
+ * - `registerChartAdapter()` to add new adapters
+ *
+ * These legacy adapters are maintained for backward compatibility
+ * and will be removed in a future major version.
  */
 
 // Column chart adapters

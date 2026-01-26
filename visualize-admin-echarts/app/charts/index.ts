@@ -1,5 +1,4 @@
-import { t } from "@lingui/macro";
-import { ascending, descending, group, rollup, rollups } from "d3-array";
+import { ascending, descending, group, rollups } from "d3-array";
 import { schemeCategory10 } from "d3-scale-chromatic";
 import produce from "immer";
 import get from "lodash/get";
@@ -13,6 +12,32 @@ import {
   EncodingFieldType,
   PIE_SEGMENT_SORTING,
 } from "@/charts/chart-config-ui-options";
+// Re-export from registry for backward compatibility
+export {
+  regularChartTypes,
+  comboChartTypes,
+  comboDifferentUnitChartTypes,
+  comboSameUnitChartTypes,
+  chartTypes,
+  getChartTypeOrder,
+  type ChartCategory,
+  type ChartCategoryConfig,
+  chartTypeCategories,
+  getChartCategory,
+  getChartTypesForCategory,
+} from "@/charts/registry";
+
+// Re-export field utilities for backward compatibility
+export {
+  getFieldComponentIds,
+  getGroupedFieldIds,
+  getHiddenFieldIds,
+  getFieldComponentId,
+  getChartSymbol,
+} from "@/charts/field-utils";
+
+// Re-export validation utilities for backward compatibility
+export { getEnabledChartTypes } from "@/charts/validation";
 import {
   DEFAULT_FIXED_COLOR_FIELD,
   getDefaultCategoricalColorField,
@@ -31,14 +56,12 @@ import {
   ChartType,
   ColorField,
   ColumnSegmentField,
-  ComboChartType,
   ComboLineColumnFields,
   ComboLineSingleFields,
   Cube,
   Filters,
   GenericChartConfig,
   GenericField,
-  GenericFields,
   InteractiveFiltersConfig,
   isColorInConfig,
   isSegmentInConfig,
@@ -49,7 +72,6 @@ import {
   MeasuresColorField,
   Meta,
   PieSegmentField,
-  RegularChartType,
   ScatterPlotSegmentField,
   SegmentColorField,
   ShowValuesSegmentFieldExtension,
@@ -74,7 +96,6 @@ import {
   isGeoDimension,
   isGeoShapesDimension,
   isNumericalMeasure,
-  isOrdinalMeasure,
   isTemporalDimension,
   isTemporalEntityDimension,
   Measure,
@@ -92,162 +113,6 @@ import { CHART_CONFIG_VERSION } from "@/utils/chart-config/constants";
 import { createId } from "@/utils/create-id";
 import { isMultiHierarchyNode } from "@/utils/hierarchy";
 import { unreachableError } from "@/utils/unreachable";
-
-const chartTypes: ChartType[] = [
-  "column",
-  "bar",
-  "line",
-  "area",
-  "scatterplot",
-  "pie",
-  "donut",
-  "table",
-  "map",
-  "radar",
-  "heatmap",
-  "boxplot",
-  "waterfall",
-  "candlestick",
-  "themeriver",
-  // 3D Charts (ECharts GL)
-  "bar3d",
-  "scatter3d",
-  "surface",
-  "line3d",
-  "globe",
-  "pie3d",
-  // Combo charts
-  "comboLineSingle",
-  "comboLineDual",
-  "comboLineColumn",
-];
-
-export const regularChartTypes: RegularChartType[] = [
-  "column",
-  "bar",
-  "line",
-  "area",
-  "scatterplot",
-  "pie",
-  "donut",
-  "table",
-  "map",
-  "radar",
-  "heatmap",
-  "boxplot",
-  "waterfall",
-  "candlestick",
-  "themeriver",
-  // 3D Charts (ECharts GL)
-  "bar3d",
-  "scatter3d",
-  "surface",
-  "line3d",
-  "globe",
-  "pie3d",
-];
-
-const comboDifferentUnitChartTypes: ComboChartType[] = [
-  "comboLineDual",
-  "comboLineColumn",
-];
-
-const comboSameUnitChartTypes: ComboChartType[] = ["comboLineSingle"];
-
-export const comboChartTypes: ComboChartType[] = [
-  ...comboSameUnitChartTypes,
-  ...comboDifferentUnitChartTypes,
-];
-
-/**
- * Chart type categories for compact chart selector.
- * Groups chart types by their primary visualization purpose.
- */
-export type ChartCategory =
-  | "basic"
-  | "partOfWhole"
-  | "statistical"
-  | "financial"
-  | "stream"
-  | "flow"
-  | "specialized"
-  | "comparison";
-
-export interface ChartCategoryConfig {
-  id: ChartCategory;
-  labelKey: string;
-  chartTypes: ChartType[];
-}
-
-export const chartTypeCategories: ChartCategoryConfig[] = [
-  {
-    id: "basic",
-    labelKey: "controls.chart.category.basic",
-    chartTypes: ["column", "bar", "line", "area", "scatterplot", "bar3d", "scatter3d", "line3d", "surface", "globe", "pie3d"],
-  },
-  {
-    id: "partOfWhole",
-    labelKey: "controls.chart.category.partOfWhole",
-    chartTypes: ["pie", "donut", "waterfall"],
-  },
-  {
-    id: "statistical",
-    labelKey: "controls.chart.category.statistical",
-    chartTypes: ["boxplot", "heatmap"],
-  },
-  {
-    id: "financial",
-    labelKey: "controls.chart.category.financial",
-    chartTypes: ["candlestick"],
-  },
-  {
-    id: "stream",
-    labelKey: "controls.chart.category.stream",
-    chartTypes: ["themeriver"],
-  },
-  {
-    id: "specialized",
-    labelKey: "controls.chart.category.specialized",
-    chartTypes: ["radar", "map", "table"],
-  },
-  {
-    id: "comparison",
-    labelKey: "controls.chart.category.comparison",
-    chartTypes: ["comboLineSingle", "comboLineDual", "comboLineColumn"],
-  },
-];
-
-type ChartOrder = { [k in ChartType]: number };
-function getChartTypeOrder({ cubeCount }: { cubeCount: number }): ChartOrder {
-  const multiCubeBoost = cubeCount > 1 ? -100 : 0;
-  return {
-    column: 0,
-    bar: 1,
-    line: 2,
-    area: 3,
-    scatterplot: 4,
-    pie: 5,
-    donut: 6,
-    map: 7,
-    table: 8,
-    radar: 9,
-    heatmap: 10,
-    boxplot: 13,
-    waterfall: 14,
-    candlestick: 15,
-    themeriver: 16,
-    comboLineSingle: 17 + multiCubeBoost,
-    comboLineDual: 18 + multiCubeBoost,
-    comboLineColumn: 19 + multiCubeBoost,
-    // 3D Charts
-    bar3d: 20,
-    scatter3d: 21,
-    line3d: 22,
-    surface: 23,
-    globe: 24,
-    pie3d: 25,
-  };
-}
 
 /**
  * Finds the "best" dimension based on a preferred type (e.g. TemporalDimension) and Key Dimension
@@ -1087,6 +952,7 @@ export const getInitialConfig = (
           segment: {
             componentId: pie3dSegment.id,
             sorting: DEFAULT_SORTING,
+            showValuesMapping: {},
           },
           color: {
             type: "segment",
@@ -1094,6 +960,49 @@ export const getInitialConfig = (
             colorMapping: mapValueIrisToColor({
               paletteId: pie3dPalette,
               dimensionValues: pie3dSegment.values,
+            }),
+          },
+        },
+      };
+    }
+
+    case "candlestick": {
+      const candlestickX = temporalDimensions[0] ?? getCategoricalDimensions(dimensions)[0];
+      return {
+        ...getGenericConfig(),
+        chartType: "candlestick",
+        fields: {
+          x: { componentId: candlestickX.id, sorting: DEFAULT_SORTING },
+          y: { componentId: numericalMeasures[0].id },
+          color: {
+            type: "single",
+            paletteId: "category10",
+            color: schemeCategory10[0],
+          },
+        },
+      };
+    }
+
+    case "themeriver": {
+      const themeriverX = temporalDimensions[0] ?? getCategoricalDimensions(dimensions)[0];
+      const themeriverSegment = getCategoricalDimensions(dimensions)[0] ?? getGeoDimensions(dimensions)[0];
+      const themeriverPalette = getDefaultCategoricalPaletteId(themeriverSegment);
+      return {
+        ...getGenericConfig(),
+        chartType: "themeriver",
+        fields: {
+          x: { componentId: themeriverX.id, sorting: DEFAULT_SORTING },
+          y: { componentId: numericalMeasures[0].id },
+          segment: {
+            componentId: themeriverSegment.id,
+            sorting: DEFAULT_SORTING,
+          },
+          color: {
+            type: "segment",
+            paletteId: themeriverPalette,
+            colorMapping: mapValueIrisToColor({
+              paletteId: themeriverPalette,
+              dimensionValues: themeriverSegment.values,
             }),
           },
         },
@@ -2699,6 +2608,8 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
           case "line3d":
           case "globe":
           case "pie3d":
+          case "candlestick":
+          case "themeriver":
             break;
           default:
             const _exhaustiveCheck: never = oldChartConfig;
@@ -2839,6 +2750,8 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
           case "line3d":
           case "globe":
           case "pie3d":
+          case "candlestick":
+          case "themeriver":
             break;
           default:
             const _exhaustiveCheck: never = oldChartConfig;
@@ -3211,21 +3124,21 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
       });
     },
     fields: {
-      geo: {
+      x: {
         componentId: ({ oldValue, newChartConfig, dimensions }) => {
           if (dimensions.find((d) => d.id === oldValue)) {
             return produce(newChartConfig, (draft) => {
-              (draft.fields as $IntentionalAny).geo.componentId = oldValue;
+              (draft.fields as $IntentionalAny).x.componentId = oldValue;
             });
           }
           return newChartConfig;
         },
       },
-      value: {
+      y: {
         componentId: ({ oldValue, newChartConfig, measures }) => {
           if (measures.find((m) => m.id === oldValue)) {
             return produce(newChartConfig, (draft) => {
-              (draft.fields as $IntentionalAny).value.componentId = oldValue;
+              (draft.fields as $IntentionalAny).y.componentId = oldValue;
             });
           }
           return newChartConfig;
@@ -3284,6 +3197,112 @@ const chartConfigsAdjusters: ChartConfigsAdjusters = {
           }
         });
       },
+    },
+    interactiveFiltersConfig: interactiveFiltersAdjusters,
+  },
+  candlestick: {
+    cubes: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.cubes = oldValue;
+      });
+    },
+    annotations: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.annotations = oldValue;
+      });
+    },
+    limits: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.limits = mapValues(oldValue, (limits) =>
+          limits.map(({ symbolType, ...rest }) => rest)
+        );
+      });
+    },
+    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.conversionUnitsByComponentId = oldValue;
+      });
+    },
+    fields: {
+      x: {
+        componentId: ({ oldValue, newChartConfig, dimensions }) => {
+          if (dimensions.find((d) => d.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).x.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      y: {
+        componentId: ({ oldValue, newChartConfig, measures }) => {
+          if (measures.find((m) => m.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).y.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      color: ({ newChartConfig }) => newChartConfig,
+    },
+    interactiveFiltersConfig: interactiveFiltersAdjusters,
+  },
+  themeriver: {
+    cubes: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.cubes = oldValue;
+      });
+    },
+    annotations: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.annotations = oldValue;
+      });
+    },
+    limits: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.limits = mapValues(oldValue, (limits) =>
+          limits.map(({ symbolType, ...rest }) => rest)
+        );
+      });
+    },
+    conversionUnitsByComponentId: ({ oldValue, newChartConfig }) => {
+      return produce(newChartConfig, (draft) => {
+        draft.conversionUnitsByComponentId = oldValue;
+      });
+    },
+    fields: {
+      x: {
+        componentId: ({ oldValue, newChartConfig, dimensions }) => {
+          if (dimensions.find((d) => d.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).x.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      y: {
+        componentId: ({ oldValue, newChartConfig, measures }) => {
+          if (measures.find((m) => m.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).y.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      segment: {
+        componentId: ({ oldValue, newChartConfig, dimensions }) => {
+          if (dimensions.find((d) => d.id === oldValue)) {
+            return produce(newChartConfig, (draft) => {
+              (draft.fields as $IntentionalAny).segment.componentId = oldValue;
+            });
+          }
+          return newChartConfig;
+        },
+      },
+      color: ({ newChartConfig }) => newChartConfig,
     },
     interactiveFiltersConfig: interactiveFiltersAdjusters,
   },
@@ -3753,6 +3772,16 @@ const chartConfigsPathOverrides: {
       // Pie3d has same structure as pie
     },
   },
+  candlestick: {
+    line: {
+      // Candlestick can map from line chart
+    },
+  },
+  themeriver: {
+    area: {
+      // Themeriver can map from area chart
+    },
+  },
 };
 type ChartConfigPathOverrides =
   (typeof chartConfigsPathOverrides)[ChartType][ChartType];
@@ -3777,281 +3806,7 @@ const adjustSegmentSorting = ({
   return newSorting;
 };
 
-// Charts that require at least one categorical dimension + numerical measure
-const categoricalEnabledChartTypes: RegularChartType[] = [
-  "column",
-  "bar",
-  "pie",
-  "donut",
-  "radar",
-  "boxplot",
-  "waterfall",
-  // 3D Charts
-  "bar3d",
-  "scatter3d",
-  "surface",
-  "line3d",
-  "pie3d",
-];
 
-// Charts that require at least one geographical dimension
-const geoEnabledChartTypes: RegularChartType[] = [
-  "column",
-  "bar",
-  "map",
-  "pie",
-  "globe", // 3D globe visualization
-];
-
-// Charts that require at least two numerical measures
-const multipleNumericalMeasuresEnabledChartTypes: RegularChartType[] = [
-  "scatterplot",
-  "radar",
-];
-
-// Charts that require at least one temporal dimension
-const timeEnabledChartTypes: RegularChartType[] = [
-  "area",
-  "column",
-  "bar",
-  "line",
-];
-
-// Charts that require both categorical and temporal dimensions (for matrix display)
-const matrixEnabledChartTypes: RegularChartType[] = [
-  "heatmap",
-];
-
-export const getEnabledChartTypes = ({
-  dimensions,
-  measures,
-  cubeCount,
-}: {
-  dimensions: Dimension[];
-  measures: Measure[];
-  cubeCount: number;
-}) => {
-  const numericalMeasures = measures.filter(isNumericalMeasure);
-  const ordinalMeasures = measures.filter(isOrdinalMeasure);
-  const categoricalDimensions = getCategoricalDimensions(dimensions);
-  const geoDimensions = getGeoDimensions(dimensions);
-  const temporalDimensions = dimensions.filter(
-    (d) => isTemporalDimension(d) || isTemporalEntityDimension(d)
-  );
-
-  const possibleChartTypesDict = Object.fromEntries(
-    chartTypes.map((chartType) => [
-      chartType,
-      {
-        enabled: chartType === "table",
-        message: undefined,
-      },
-    ])
-  ) as Record<
-    ChartType,
-    {
-      enabled: boolean;
-      message: string | undefined;
-    }
-  >;
-  const enableChartType = (chartType: ChartType) => {
-    possibleChartTypesDict[chartType] = {
-      enabled: true,
-      message: undefined,
-    };
-  };
-  const enableChartTypes = (chartTypes: ChartType[]) => {
-    for (const chartType of chartTypes) {
-      enableChartType(chartType);
-    }
-  };
-  const maybeDisableChartType = (chartType: ChartType, message: string) => {
-    if (
-      !possibleChartTypesDict[chartType].enabled &&
-      !possibleChartTypesDict[chartType].message
-    ) {
-      possibleChartTypesDict[chartType] = {
-        enabled: false,
-        message,
-      };
-    }
-  };
-  const maybeDisableChartTypes = (chartTypes: ChartType[], message: string) => {
-    for (const chartType of chartTypes) {
-      maybeDisableChartType(chartType, message);
-    }
-  };
-
-  if (numericalMeasures.length > 0) {
-    if (categoricalDimensions.length > 0) {
-      enableChartTypes(categoricalEnabledChartTypes);
-    } else {
-      maybeDisableChartTypes(
-        categoricalEnabledChartTypes,
-        t({
-          id: "controls.chart.disabled.categorical",
-          message: "At least one categorical dimension is required.",
-        })
-      );
-    }
-
-    if (geoDimensions.length > 0) {
-      enableChartTypes(geoEnabledChartTypes);
-    } else {
-      maybeDisableChartTypes(
-        geoEnabledChartTypes,
-        t({
-          id: "controls.chart.disabled.geographical",
-          message: "At least one geographical dimension is required.",
-        })
-      );
-    }
-
-    if (numericalMeasures.length > 1) {
-      enableChartTypes(multipleNumericalMeasuresEnabledChartTypes);
-
-      if (temporalDimensions.length > 0) {
-        const measuresWithUnit = numericalMeasures.filter((d) => d.unit);
-        const uniqueUnits = Array.from(
-          new Set(measuresWithUnit.map((d) => d.unit))
-        );
-
-        if (uniqueUnits.length > 1) {
-          enableChartTypes(comboDifferentUnitChartTypes);
-        } else {
-          maybeDisableChartTypes(
-            comboDifferentUnitChartTypes,
-            t({
-              id: "controls.chart.disabled.different-unit",
-              message:
-                "At least two numerical measures with different units are required.",
-            })
-          );
-        }
-
-        const unitCounts = rollup(
-          measuresWithUnit,
-          (v) => v.length,
-          (d) => d.unit
-        );
-
-        if (Array.from(unitCounts.values()).some((d) => d > 1)) {
-          enableChartTypes(comboSameUnitChartTypes);
-        } else {
-          maybeDisableChartTypes(
-            comboSameUnitChartTypes,
-            t({
-              id: "controls.chart.disabled.same-unit",
-              message:
-                "At least two numerical measures with the same unit are required.",
-            })
-          );
-        }
-      } else {
-        maybeDisableChartTypes(
-          comboChartTypes,
-          t({
-            id: "controls.chart.disabled.temporal",
-            message: "At least one temporal dimension is required.",
-          })
-        );
-      }
-    } else {
-      maybeDisableChartTypes(
-        [...multipleNumericalMeasuresEnabledChartTypes, ...comboChartTypes],
-        t({
-          id: "controls.chart.disabled.multiple-measures",
-          message: "At least two numerical measures are required.",
-        })
-      );
-    }
-
-    if (temporalDimensions.length > 0) {
-      enableChartTypes(timeEnabledChartTypes);
-    } else {
-      maybeDisableChartTypes(
-        timeEnabledChartTypes,
-        t({
-          id: "controls.chart.disabled.temporal",
-          message: "At least one temporal dimension is required.",
-        })
-      );
-    }
-
-    // Heatmap requires two dimensions (for rows and columns) to create a matrix
-    if (categoricalDimensions.length >= 2 || (categoricalDimensions.length >= 1 && temporalDimensions.length >= 1)) {
-      enableChartTypes(matrixEnabledChartTypes);
-    } else {
-      maybeDisableChartTypes(
-        matrixEnabledChartTypes,
-        t({
-          id: "controls.chart.disabled.matrix",
-          message: "At least two dimensions (categorical or temporal) are required for matrix charts.",
-        })
-      );
-    }
-
-  } else {
-    maybeDisableChartTypes(
-      chartTypes.filter((d) => d !== "table"),
-      t({
-        id: "controls.chart.disabled.numerical",
-        message: "At least one numerical measure is required.",
-      })
-    );
-  }
-
-  if (ordinalMeasures.length > 0 && geoDimensions.length > 0) {
-    enableChartType("map");
-  } else {
-    maybeDisableChartType(
-      "map",
-      "At least one ordinal measure and one geographical dimension are required."
-    );
-  }
-
-  const chartTypesOrder = getChartTypeOrder({ cubeCount });
-  const enabledChartTypes = chartTypes
-    .filter((d) => possibleChartTypesDict[d].enabled)
-    .sort((a, b) => chartTypesOrder[a] - chartTypesOrder[b]);
-
-  return {
-    enabledChartTypes,
-    possibleChartTypesDict,
-  };
-};
-
-export const getFieldComponentIds = (fields: ChartConfig["fields"]) => {
-  return new Set(
-    Object.values(fields).flatMap((f) =>
-      f?.componentId ? [f.componentId] : []
-    )
-  );
-};
-
-export const getGroupedFieldIds = (fields: GenericFields) => {
-  return new Set(
-    Object.values(fields).flatMap((f) =>
-      f && (f as $IntentionalAny).isGroup ? [f.componentId] : []
-    )
-  );
-};
-
-export const getHiddenFieldIds = (fields: GenericFields) => {
-  return new Set(
-    Object.values(fields).flatMap((f) =>
-      f && (f as $IntentionalAny).isHidden ? [f.componentId] : []
-    )
-  );
-};
-
-export const getFieldComponentId = (
-  fields: ChartConfig["fields"],
-  field: string
-): string | undefined => {
-  // Multi axis charts have multiple component ids in the y field.
-  return (fields as $IntentionalAny)[field]?.componentId;
-};
 
 /**
  * Gets the color field from a chart config if it's a compatible type (segment, single, or measures).
@@ -4156,37 +3911,3 @@ const convertTableFieldsToSegmentAndColorFields = ({
   };
 };
 
-export const getChartSymbol = (
-  chartType: ChartType
-): "square" | "line" | "circle" => {
-  switch (chartType) {
-    case "area":
-    case "column":
-    case "bar":
-    case "comboLineColumn":
-    case "pie":
-    case "donut":
-    case "heatmap":
-    case "map":
-    case "table":
-    case "boxplot":
-    case "waterfall":
-    case "bar3d":
-    case "pie3d":
-    case "surface":
-      return "square";
-    case "comboLineDual":
-    case "comboLineSingle":
-    case "line":
-    case "radar":
-    case "line3d":
-      return "line";
-    case "scatterplot":
-    case "scatter3d":
-    case "globe":
-      return "circle";
-    default:
-      const _exhaustiveCheck: never = chartType;
-      return _exhaustiveCheck;
-  }
-};

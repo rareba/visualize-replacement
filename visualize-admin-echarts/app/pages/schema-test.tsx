@@ -20,8 +20,7 @@ import {
   Tabs,
   Tab,
 } from "@mui/material";
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { useRouter } from "next/router";
+import { useState, useMemo, useCallback } from "react";
 
 import { SchemaFormConfigurator } from "@/configurator/components/schema-form";
 import { type ChartType } from "@/configurator/schemas/base-schema";
@@ -192,7 +191,7 @@ const generateEChartsOption = (
         series: [{
           type: "scatter",
           symbolSize: 15,
-          data: data.slice(0, 10).map((d, i) => [d.value, d.count]),
+          data: data.slice(0, 10).map((d) => [d.value, d.count]),
           itemStyle: { color: "#ff5722" },
         }],
       };

@@ -82,6 +82,10 @@ export const getChartIcon = (chartType: ChartType): IconName => {
       return "mapChart"; // Using map icon for globe
     case "pie3d":
       return "pieChart"; // Using pie icon for 3D pie
+    case "candlestick":
+      return "chartColumn"; // Using column icon for candlestick
+    case "themeriver":
+      return "areasChart"; // Using area icon for theme river
     default:
       const _exhaustiveCheck: never = chartType;
       return _exhaustiveCheck;

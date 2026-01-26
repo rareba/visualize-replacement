@@ -24,6 +24,7 @@ import { createAreaSeries, createAreaSeriesGroup } from "@/charts/echarts/series
 import { getSwissFederalTheme } from "@/charts/echarts/theme";
 import { registerChartAdapter } from "@/charts/core/chart-adapter-registry";
 import type { UniversalChartState } from "@/charts/core/universal-chart-state";
+import { resolveFormatting, getAnimationDuration } from "./shared";
 
 import type { EChartsOption } from "echarts";
 
@@ -103,6 +104,9 @@ export const areaUniversalAdapter = (state: UniversalChartState): EChartsOption 
   const { getX, getY, getSegment } = fields;
   const segmentType = options.segmentType;
 
+  // Get formatting options using shared utility
+  const formatting = resolveFormatting(state);
+
   const safeBounds = safeGetBounds(bounds);
   const animation = getDefaultAnimation();
 
@@ -154,25 +158,46 @@ export const areaUniversalAdapter = (state: UniversalChartState): EChartsOption 
     }
   }
 
+  // Build xAxis with formatting
+  const baseXAxis = createXCategoryAxis({
+    categories,
+    name: metadata.xAxisLabel,
+    nameGap: 35,
+    boundaryGap: false, // Areas should start at axis origin
+  });
+
+  // Build yAxis with formatting
+  const baseYAxis = createYValueAxis({
+    name: metadata.yAxisLabel,
+    nameGap: 50,
+    min: yDomain[0],
+    max: yDomain[1],
+  });
+
   return {
     ...getSwissFederalTheme(),
     grid: createGridConfig(safeBounds),
-    tooltip: createAxisTooltip(),
-    legend: hasSegments ? createLegend() : createLegend(false),
-    xAxis: createXCategoryAxis({
-      categories,
-      name: metadata.xAxisLabel,
-      nameGap: 35,
-      boundaryGap: false, // Areas should start at axis origin
-    }),
-    yAxis: createYValueAxis({
-      name: metadata.yAxisLabel,
-      nameGap: 50,
-      min: yDomain[0],
-      max: yDomain[1],
-    }),
+    tooltip: formatting.showTooltip ? createAxisTooltip() : { show: false },
+    legend: (hasSegments && formatting.showLegend) ? createLegend() : createLegend(false),
+    xAxis: {
+      ...baseXAxis,
+      show: formatting.showXAxis,
+      axisLabel: {
+        ...(baseXAxis.axisLabel as Record<string, unknown>),
+        show: formatting.showXAxisLabels,
+      },
+    },
+    yAxis: {
+      ...baseYAxis,
+      show: formatting.showYAxis,
+      axisLabel: {
+        ...(baseYAxis.axisLabel as Record<string, unknown>),
+        show: formatting.showYAxisLabels,
+      },
+      splitLine: { show: formatting.showGridlines },
+    },
     series,
-    animationDuration: animation.animationDuration,
+    animationDuration: getAnimationDuration(formatting, animation.animationDuration),
     animationEasing: animation.animationEasing,
   };
 };

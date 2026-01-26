@@ -7,10 +7,9 @@
  * Lines of code: ~110
  */
 
-import {
-  getDefaultAnimation,
-} from "@/charts/echarts/adapter-utils";
-import { getSwissFederalTheme, SWISS_FEDERAL_COLORS } from "@/charts/echarts/theme";
+// Animation import removed - not used in 3D surface adapter currently
+// import { getDefaultAnimation } from "@/charts/echarts/adapter-utils";
+import { getSwissFederalTheme } from "@/charts/echarts/theme";
 import { registerChartAdapter } from "@/charts/core/chart-adapter-registry";
 import type { UniversalChartState } from "@/charts/core/universal-chart-state";
 
@@ -28,8 +27,6 @@ import type { EChartsOption } from "echarts";
 export const surfaceUniversalAdapter = (state: UniversalChartState): EChartsOption => {
   const { observations, fields, metadata, categories, segments } = state;
   const { getX, getY, getSegment } = fields;
-
-  const animation = getDefaultAnimation();
 
   // Create surface data grid
   const xCategories = [...categories];

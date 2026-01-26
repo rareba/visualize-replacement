@@ -1,8 +1,10 @@
 import NextAuth, { NextAuthOptions, User } from "next-auth";
 import CredentialsProviders from "next-auth/providers/credentials";
+import { eq } from "drizzle-orm";
 
 import { ADFS } from "@/auth-providers/adfs";
-import { prisma } from "@/db/client";
+import { db } from "@/db/drizzle";
+import { users } from "@/db/schema";
 import { ensureUserFromSub } from "@/db/user";
 import { ADFS_ID, ADFS_ISSUER } from "@/domain/env";
 import { truthy } from "@/domain/types";
@@ -33,19 +35,20 @@ const providers = [
     name: "credentials",
     credentials: {},
     authorize: async (): Promise<ExtendedUser | null> => {
-      let user = null;
-      user = await prisma.user.findFirst({
-        where: {
-          sub: "test-user",
-        },
-      });
+      let [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.sub, "test-user"))
+        .limit(1);
+
       if (!user) {
-        user = await prisma.user.create({
-          data: {
+        [user] = await db
+          .insert(users)
+          .values({
             name: "TEST USER",
             sub: "test-user",
-          },
-        });
+          })
+          .returning();
       }
 
       return Promise.resolve({

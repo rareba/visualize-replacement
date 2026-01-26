@@ -16,9 +16,13 @@ services:
   #     DATABASE_URL: "postgres://postgres:password@db:5432/template1"
   #   restart: "always"
   db:
-    image: "postgres:11"
+    image: "postgres:16"
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    volumes:
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+    command: postgres -c hba_file=/etc/postgresql/pg_hba.conf
     environment:
       POSTGRES_DB: "visualization_tool"
+      POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "password"

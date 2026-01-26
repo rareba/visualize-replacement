@@ -19,7 +19,6 @@ import {
   createEnterAnimation,
   createExitAnimation,
   // Responsive utilities
-  RESPONSIVE_BREAKPOINTS,
   getBreakpoint,
   calculateResponsiveMargins,
   calculateResponsiveFontSizes,

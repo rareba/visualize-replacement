@@ -9,7 +9,6 @@
 
 import {
   getDefaultAnimation,
-  safeGetBounds,
 } from "@/charts/echarts/adapter-utils";
 import { getSwissFederalTheme, SWISS_FEDERAL_COLORS } from "@/charts/echarts/theme";
 import { registerChartAdapter } from "@/charts/core/chart-adapter-registry";

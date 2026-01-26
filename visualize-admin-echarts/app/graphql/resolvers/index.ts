@@ -123,7 +123,10 @@ export const resolveMeasureType = (
   return scaleType === "Ordinal" ? "OrdinalMeasure" : "NumericalMeasure";
 };
 
-export const datasourceUrlValue = (url: string) => {
+export const datasourceUrlValue = (url: unknown): string => {
+  if (typeof url !== "string") {
+    throw datasourceValidationError();
+  }
   if (isDataSourceUrlAllowed(url)) {
     return url;
   }

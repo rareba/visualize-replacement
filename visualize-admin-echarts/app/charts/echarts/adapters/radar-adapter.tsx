@@ -1,5 +1,11 @@
 /**
- * Radar Chart Adapter
+ * Radar Chart Adapter (LEGACY)
+ *
+ * @deprecated Use `radarUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/radar-universal-adapter.ts for the recommended approach.
  *
  * Displays multi-variable data on axes starting from the same point.
  */
@@ -43,7 +49,7 @@ interface RadarDataItem {
  * Radar chart adapter
  */
 export const RadarChartAdapter = () => {
-  const state = useChartState() as RadarState;
+  const state = useChartState() as unknown as RadarState;
   const {
     chartData,
     getSegment,

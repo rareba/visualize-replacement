@@ -19,20 +19,35 @@ import {
   Switch,
   Typography,
 } from "@mui/material";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 
-import { ChartConfig } from "@/config-types";
-import { Icon } from "@/icons";
+import { ChartConfig, FormattingConfig } from "@/config-types";
+import { Icon, IconName } from "@/icons";
 
 export interface FormattingPanelProps {
   chartConfig: ChartConfig;
-  onConfigChange?: (config: Partial<ChartConfig>) => void;
+  onFormattingChange?: (formatting: FormattingConfig) => void;
 }
+
+// Default formatting values
+const DEFAULT_FORMATTING: Required<FormattingConfig> = {
+  showXAxis: true,
+  showXAxisLabels: true,
+  showYAxis: true,
+  showGridlines: true,
+  showLegend: true,
+  showTitle: true,
+  showDataValues: false,
+  showTooltip: true,
+  enableAnimation: true,
+  enableZoom: false,
+  transparentBg: false,
+};
 
 // Formatting sections definition - consolidated for simplicity
 interface FormattingSection {
   id: string;
-  icon: string;
+  icon: IconName;
   label: string;
   chartTypes?: string[]; // If specified, only show for these chart types
   isAdvanced?: boolean; // Advanced sections hidden by default
@@ -50,10 +65,27 @@ const FORMATTING_SECTIONS: FormattingSection[] = [
 
 export const FormattingPanel = ({
   chartConfig,
-  onConfigChange,
+  onFormattingChange,
 }: FormattingPanelProps) => {
-  const [expandedSection, setExpandedSection] = useState<string | false>("appearance");
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [expandedSection, setExpandedSection] = React.useState<string | false>("appearance");
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
+
+  // Get current formatting from chartConfig or use defaults
+  const formattingState: Required<FormattingConfig> = useMemo(() => ({
+    ...DEFAULT_FORMATTING,
+    ...(chartConfig.formatting || {}),
+  }), [chartConfig.formatting]);
+
+  const handleFormattingChange = useCallback((key: keyof FormattingConfig) => (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newValue = event.target.checked;
+    const newFormatting: FormattingConfig = {
+      ...formattingState,
+      [key]: newValue,
+    };
+    onFormattingChange?.(newFormatting);
+  }, [formattingState, onFormattingChange]);
 
   // Filter sections based on chart type and advanced toggle
   const { essentialSections, advancedSections } = useMemo(() => {
@@ -100,6 +132,8 @@ export const FormattingPanel = ({
           expanded={expandedSection === section.id}
           onChange={handleSectionChange(section.id)}
           chartConfig={chartConfig}
+          formattingState={formattingState}
+          onFormattingChange={handleFormattingChange}
         />
       ))}
 
@@ -107,7 +141,6 @@ export const FormattingPanel = ({
       {advancedSections.length > 0 && (
         <>
           <Button
-            size="small"
             onClick={() => setShowAdvanced(!showAdvanced)}
             startIcon={
               <Icon
@@ -144,6 +177,8 @@ export const FormattingPanel = ({
                 expanded={expandedSection === section.id}
                 onChange={handleSectionChange(section.id)}
                 chartConfig={chartConfig}
+                formattingState={formattingState}
+                onFormattingChange={handleFormattingChange}
               />
             ))}
           </Collapse>
@@ -153,6 +188,9 @@ export const FormattingPanel = ({
   );
 };
 
+// Type alias for formatting state (uses FormattingConfig from config-types)
+type FormattingState = Required<FormattingConfig>;
+
 /**
  * Individual formatting accordion section
  */
@@ -161,11 +199,15 @@ const FormattingAccordion = ({
   expanded,
   onChange,
   chartConfig,
+  formattingState,
+  onFormattingChange,
 }: {
   section: FormattingSection;
   expanded: boolean;
   onChange: (event: React.SyntheticEvent, isExpanded: boolean) => void;
   chartConfig: ChartConfig;
+  formattingState: FormattingState;
+  onFormattingChange: (key: keyof FormattingState) => (event: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
   return (
     <Accordion
@@ -219,6 +261,8 @@ const FormattingAccordion = ({
         <FormattingSectionContent
           sectionId={section.id}
           chartConfig={chartConfig}
+          formattingState={formattingState}
+          onFormattingChange={onFormattingChange}
         />
       </AccordionDetails>
     </Accordion>
@@ -231,19 +275,23 @@ const FormattingAccordion = ({
 const FormattingSectionContent = ({
   sectionId,
   chartConfig,
+  formattingState,
+  onFormattingChange,
 }: {
   sectionId: string;
   chartConfig: ChartConfig;
+  formattingState: FormattingState;
+  onFormattingChange: (key: keyof FormattingState) => (event: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
   switch (sectionId) {
     case "appearance":
-      return <AppearanceSection chartConfig={chartConfig} />;
+      return <AppearanceSection chartConfig={chartConfig} formattingState={formattingState} onFormattingChange={onFormattingChange} />;
     case "labelsText":
-      return <LabelsTextSection chartConfig={chartConfig} />;
+      return <LabelsTextSection chartConfig={chartConfig} formattingState={formattingState} onFormattingChange={onFormattingChange} />;
     case "axes":
-      return <AxesSection chartConfig={chartConfig} />;
+      return <AxesSection chartConfig={chartConfig} formattingState={formattingState} onFormattingChange={onFormattingChange} />;
     case "behavior":
-      return <BehaviorSection chartConfig={chartConfig} />;
+      return <BehaviorSection chartConfig={chartConfig} formattingState={formattingState} onFormattingChange={onFormattingChange} />;
     default:
       return (
         <Typography variant="caption" color="text.secondary">
@@ -253,12 +301,17 @@ const FormattingSectionContent = ({
   }
 };
 
-// Consolidated section components
+// Section props type
+interface SectionProps {
+  chartConfig: ChartConfig;
+  formattingState: FormattingState;
+  onFormattingChange: (key: keyof FormattingState) => (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
 
 /**
  * Appearance Section - Colors and general styling
  */
-const AppearanceSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
+const AppearanceSection = ({ formattingState, onFormattingChange }: SectionProps) => (
   <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
       <Trans id="powerbi.formatting.color-palette">Color palette</Trans>
@@ -285,7 +338,13 @@ const AppearanceSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
     </Box>
     <Divider sx={{ my: 0.5 }} />
     <FormControlLabel
-      control={<Switch size="small" />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.transparentBg}
+          onChange={onFormattingChange("transparentBg")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.transparent-bg">Transparent background</Trans>
@@ -299,11 +358,17 @@ const AppearanceSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
 /**
  * Labels & Text Section - Title, legend, data labels combined
  */
-const LabelsTextSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
+const LabelsTextSection = ({ formattingState, onFormattingChange }: SectionProps) => (
   <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
     {/* Title options */}
     <FormControlLabel
-      control={<Switch size="small" defaultChecked />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.showTitle}
+          onChange={onFormattingChange("showTitle")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.show-title">Show title</Trans>
@@ -314,7 +379,13 @@ const LabelsTextSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
 
     {/* Legend options */}
     <FormControlLabel
-      control={<Switch size="small" defaultChecked />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.showLegend}
+          onChange={onFormattingChange("showLegend")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.show-legend">Show legend</Trans>
@@ -325,7 +396,13 @@ const LabelsTextSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
 
     {/* Data labels */}
     <FormControlLabel
-      control={<Switch size="small" />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.showDataValues}
+          onChange={onFormattingChange("showDataValues")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.show-values">Show data values</Trans>
@@ -339,13 +416,19 @@ const LabelsTextSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
 /**
  * Axes Section - X and Y axis configuration
  */
-const AxesSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
+const AxesSection = ({ formattingState, onFormattingChange }: SectionProps) => (
   <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
       X-Axis
     </Typography>
     <FormControlLabel
-      control={<Switch size="small" defaultChecked />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.showXAxis}
+          onChange={onFormattingChange("showXAxis")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.show-xaxis">Show X-axis</Trans>
@@ -354,7 +437,13 @@ const AxesSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
       sx={{ ml: 0 }}
     />
     <FormControlLabel
-      control={<Switch size="small" defaultChecked />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.showXAxisLabels}
+          onChange={onFormattingChange("showXAxisLabels")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.show-xaxis-labels">Show labels</Trans>
@@ -369,7 +458,13 @@ const AxesSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
       Y-Axis
     </Typography>
     <FormControlLabel
-      control={<Switch size="small" defaultChecked />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.showYAxis}
+          onChange={onFormattingChange("showYAxis")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.show-yaxis">Show Y-axis</Trans>
@@ -378,7 +473,13 @@ const AxesSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
       sx={{ ml: 0 }}
     />
     <FormControlLabel
-      control={<Switch size="small" defaultChecked />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.showGridlines}
+          onChange={onFormattingChange("showGridlines")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.show-gridlines">Show gridlines</Trans>
@@ -392,10 +493,16 @@ const AxesSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
 /**
  * Behavior Section - Tooltip, animation, interactions (advanced)
  */
-const BehaviorSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
+const BehaviorSection = ({ formattingState, onFormattingChange }: SectionProps) => (
   <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
     <FormControlLabel
-      control={<Switch size="small" defaultChecked />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.showTooltip}
+          onChange={onFormattingChange("showTooltip")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.show-tooltip">Show tooltip on hover</Trans>
@@ -404,7 +511,13 @@ const BehaviorSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
       sx={{ ml: 0 }}
     />
     <FormControlLabel
-      control={<Switch size="small" defaultChecked />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.enableAnimation}
+          onChange={onFormattingChange("enableAnimation")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.enable-animation">Enable animations</Trans>
@@ -413,7 +526,13 @@ const BehaviorSection = ({ chartConfig }: { chartConfig: ChartConfig }) => (
       sx={{ ml: 0 }}
     />
     <FormControlLabel
-      control={<Switch size="small" />}
+      control={
+        <Switch
+          size="small"
+          checked={formattingState.enableZoom}
+          onChange={onFormattingChange("enableZoom")}
+        />
+      }
       label={
         <Typography variant="caption">
           <Trans id="powerbi.formatting.enable-zoom">Enable zoom/pan</Trans>

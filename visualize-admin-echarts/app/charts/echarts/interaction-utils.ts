@@ -64,7 +64,7 @@ export const createClickHandler = <T = unknown>(
     }
   };
 
-  chart.on("click", handler);
+  chart.on("click", handler as $IntentionalAny);
 
   // Return cleanup function
   return () => {
@@ -98,8 +98,8 @@ export const createHoverHandler = <T = unknown>(
     }, debounceMs);
   };
 
-  chart.on("mouseover", mouseoverHandler);
-  chart.on("mouseout", mouseoutHandler);
+  chart.on("mouseover", mouseoverHandler as $IntentionalAny);
+  chart.on("mouseout", mouseoutHandler as $IntentionalAny);
 
   return () => {
     if (timeoutId) clearTimeout(timeoutId);
@@ -129,8 +129,8 @@ export const createBrushHandler = (
     }
   };
 
-  chart.on("brushSelected", brushSelectedHandler);
-  chart.on("brushEnd", brushEndHandler);
+  chart.on("brushSelected", brushSelectedHandler as $IntentionalAny);
+  chart.on("brushEnd", brushEndHandler as $IntentionalAny);
 
   return () => {
     chart.off("brushSelected", brushSelectedHandler);
@@ -250,10 +250,11 @@ export const createSeriesAnimation = (
   seriesIndex = 0
 ): AnimationConfig => {
   const base = ANIMATION_PRESETS[preset];
+  const baseDelay = "delay" in base ? base.delay : undefined;
   return {
     ...base,
-    delay: typeof base.delay === "function"
-      ? (dataIndex: number) => base.delay(dataIndex) + seriesIndex * 100
+    delay: typeof baseDelay === "function"
+      ? (dataIndex: number) => baseDelay(dataIndex) + seriesIndex * 100
       : seriesIndex * 100,
   };
 };
@@ -323,7 +324,7 @@ export const getBreakpoint = (width: number): keyof typeof RESPONSIVE_BREAKPOINT
  */
 export const calculateResponsiveMargins = (
   containerWidth: number,
-  containerHeight: number
+  _containerHeight: number
 ) => {
   const breakpoint = getBreakpoint(containerWidth);
 

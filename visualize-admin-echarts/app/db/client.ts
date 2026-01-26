@@ -1,24 +1,8 @@
-import { PrismaClient } from "@prisma/client";
-
 /**
- * Global Prisma client
- *
- * Only one instance of Prisma is kept across hot reloads to prevent
- * "FATAL: sorry, too many clients already" error.
- * @see https://github.com/prisma/prisma/issues/1983
+ * @deprecated Use @/db/drizzle instead
+ * This file is kept for backward compatibility during migration.
+ * All new code should use the Drizzle ORM client from @/db/drizzle.
  */
-let prisma: PrismaClient;
 
-const g = global as unknown as { prisma: PrismaClient | undefined };
-
-if (process.env.NODE_ENV === "production") {
-  prisma = new PrismaClient();
-} else {
-  if (!g.prisma) {
-    g.prisma = new PrismaClient();
-  }
-
-  prisma = g.prisma;
-}
-
-export { prisma };
+// Re-export Drizzle client as prisma for backward compatibility
+export { db as prisma } from "@/db/drizzle";

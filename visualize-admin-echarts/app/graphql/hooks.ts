@@ -81,7 +81,12 @@ export const makeUseQuery =
     const client = useClient();
     const { keepPreviousData } = options;
     const queryKey = useQueryKey(options);
-    const cachedResult = queryResultsCache.get(queryKey);
+    const cachedResult = queryResultsCache.get(queryKey) as {
+      queryKey: string | null;
+      data?: V | null;
+      error?: Error;
+      fetching: boolean;
+    } | undefined;
     const [rawResult, setRawResult] = useState<{
       queryKey: string | null;
       data?: V | null;

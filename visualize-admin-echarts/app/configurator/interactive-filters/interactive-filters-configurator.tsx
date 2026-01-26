@@ -71,7 +71,7 @@ export const InteractiveFiltersConfigurator = ({
             value="animation"
             labelId={null}
             {...ANIMATION_FIELD_SPEC.getDisabledState?.(
-              chartConfig,
+              chartConfig as Parameters<NonNullable<typeof ANIMATION_FIELD_SPEC.getDisabledState>>[0],
               dimensions,
               []
             )}

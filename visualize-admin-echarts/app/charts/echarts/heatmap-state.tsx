@@ -119,7 +119,7 @@ const useHeatmapState = (
     yDimension,
     yAxisLabel,
     getY: getYDimensionValue,
-    getYLabel,
+    getYLabel: _getYLabel,
     getYAbbreviationOrLabel,
   } = useBandYVariables(fields.y, {
     dimensionsById,

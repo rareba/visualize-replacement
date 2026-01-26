@@ -7,9 +7,8 @@
  * Lines of code: ~120
  */
 
-import {
-  getDefaultAnimation,
-} from "@/charts/echarts/adapter-utils";
+// Animation import removed - not used in globe adapter currently
+// import { getDefaultAnimation } from "@/charts/echarts/adapter-utils";
 import { getSwissFederalTheme, SWISS_FEDERAL_COLORS } from "@/charts/echarts/theme";
 import { registerChartAdapter } from "@/charts/core/chart-adapter-registry";
 import type { UniversalChartState } from "@/charts/core/universal-chart-state";
@@ -28,10 +27,8 @@ import type { EChartsOption } from "echarts";
  * For full geo functionality, latitude and longitude fields would be needed.
  */
 export const globeUniversalAdapter = (state: UniversalChartState): EChartsOption => {
-  const { observations, fields, colors, metadata, segments } = state;
+  const { observations, fields, colors, metadata, segments: _segments } = state;
   const { getX, getY, getSegment } = fields;
-
-  const animation = getDefaultAnimation();
 
   // Build scatter data for globe
   // Without explicit lat/lng fields, we distribute points evenly

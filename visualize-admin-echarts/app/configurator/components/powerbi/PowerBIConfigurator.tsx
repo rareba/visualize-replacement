@@ -16,7 +16,6 @@ import {
   Divider,
   Tab,
   Tabs,
-  Typography,
 } from "@mui/material";
 import React, { useMemo, useState } from "react";
 
@@ -226,7 +225,17 @@ export const PowerBIConfigurator = ({ state }: PowerBIConfiguratorProps) => {
           </TabPanel>
 
           <TabPanel id="format" activeTab={activeTab}>
-            <FormattingPanel chartConfig={chartConfig} />
+            <FormattingPanel
+              chartConfig={chartConfig}
+              onFormattingChange={(formatting) => {
+                dispatch({
+                  type: "CHART_CONFIG_UPDATE_FORMATTING",
+                  value: {
+                    formatting,
+                  },
+                });
+              }}
+            />
           </TabPanel>
         </Box>
 
@@ -283,7 +292,7 @@ const BuildPanel = ({
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
       {/* Chart type selector - collapsible */}
-      <ControlSection collapse defaultOpen={false}>
+      <ControlSection collapse defaultExpanded={false}>
         <SectionTitle>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Icon name="chartColumn" size={16} />

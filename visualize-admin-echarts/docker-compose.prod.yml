@@ -1,0 +1,75 @@
+# Docker Compose for Visualize Production
+# Start with: docker-compose -f docker-compose.prod.yml up -d
+#
+# Before running, create a .env file with required variables (see .env.example)
+
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  db:
+    image: "postgres:16"
+    container_name: visualize-db-prod
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "visualization_tool"
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  # Next.js Production App
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PREVENT_SEARCH_BOTS=${PREVENT_SEARCH_BOTS:-false}
+        - COMMIT=${COMMIT:-local}
+        - VECTOR_TILE_URL=${NEXT_PUBLIC_VECTOR_TILE_URL:-https://world.vectortiles.geo.admin.ch}
+        - MAPTILER_STYLE_KEY=${NEXT_PUBLIC_MAPTILER_STYLE_KEY}
+        - ADFS_ID=${ADFS_ID}
+        - ADFS_ISSUER=${ADFS_ISSUER}
+        - ADFS_PROFILE_URL=${ADFS_PROFILE_URL}
+        - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+        - NEXTAUTH_URL=${NEXTAUTH_URL}
+    container_name: visualize-app-prod
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/visualization_tool
+      - ENDPOINT=${ENDPOINT:-sparql+https://lindas-cached.cluster.ldbar.ch/query}
+      - SPARQL_GEO_ENDPOINT=${SPARQL_GEO_ENDPOINT:-https://geo.ld.admin.ch/query}
+      - GRAPHQL_ENDPOINT=/api/graphql
+      - WHITELISTED_DATA_SOURCES=${WHITELISTED_DATA_SOURCES:-["Prod"]}
+      - NODE_ENV=production
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+  # Optional: Nginx reverse proxy (uncomment if needed)
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: visualize-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - app
+  #   restart: always
+
+volumes:
+  postgres_data_prod:
+
+networks:
+  default:
+    name: visualize-network-prod

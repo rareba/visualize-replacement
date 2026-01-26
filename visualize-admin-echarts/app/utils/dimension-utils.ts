@@ -46,7 +46,7 @@ export const getDimensionValueLabel = (
  * Gets the identifier (IRI or value) for a dimension value.
  */
 export const getDimensionValueIdentifier = (value: DimensionValue): string => {
-  return value.value;
+  return String(value.value);
 };
 
 /**
@@ -56,7 +56,8 @@ export const getDimensionValueIdentifier = (value: DimensionValue): string => {
 export const getDimensionValuePosition = (
   value: DimensionValue
 ): number | undefined => {
-  return value.position;
+  if (value.position === undefined) return undefined;
+  return typeof value.position === "number" ? value.position : parseInt(value.position, 10);
 };
 
 /**
@@ -129,7 +130,7 @@ export const createLabelResolver = (
   for (const v of dimension.values) {
     const displayLabel = getDimensionValueLabel(v, options);
     // Map both value and label to the display label for flexible matching
-    labelMap.set(v.value, displayLabel);
+    labelMap.set(String(v.value), displayLabel);
     labelMap.set(v.label, displayLabel);
   }
 
@@ -202,7 +203,7 @@ export const getDimensionUniqueValues = (
   dimension: Dimension | undefined
 ): string[] => {
   if (!dimension?.values) return [];
-  return dimension.values.map((v) => v.value);
+  return dimension.values.map((v) => String(v.value));
 };
 
 /**
@@ -238,8 +239,11 @@ export const buildDimensionDomain = (
   // Build order map from dimension values
   const orderMap = new Map<string, number>();
   dimension.values.forEach((v, idx) => {
-    const order = v.position ?? idx;
-    orderMap.set(v.value, order);
+    const position = v.position !== undefined
+      ? (typeof v.position === "number" ? v.position : parseInt(v.position, 10))
+      : undefined;
+    const order = position ?? idx;
+    orderMap.set(String(v.value), order);
     orderMap.set(v.label, order);
   });
 
@@ -334,7 +338,7 @@ export const buildDimensionValueMap = (
 
   for (const v of dimension.values) {
     // Map both value (IRI) and label to the DimensionValue
-    map.set(v.value, v);
+    map.set(String(v.value), v);
     map.set(v.label, v);
   }
 
@@ -353,7 +357,7 @@ export const buildDimensionColorMap = (
 
   for (const v of dimension.values) {
     if (v.color) {
-      map.set(v.value, v.color);
+      map.set(String(v.value), v.color);
       map.set(v.label, v.color);
     }
   }

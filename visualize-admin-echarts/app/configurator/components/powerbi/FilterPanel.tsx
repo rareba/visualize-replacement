@@ -71,7 +71,6 @@ export const FilterPanel = ({ chartConfig, dimensions }: FilterPanelProps) => {
   // Get filter values from the interactive filters store
   const dataFilters = useChartInteractiveFilters((d) => d.dataFilters);
   const updateDataFilter = useChartInteractiveFilters((d) => d.updateDataFilter);
-  const setMultiDataFilter = useChartInteractiveFilters((d) => d.setMultiDataFilter);
   const addDataFilterValue = useChartInteractiveFilters((d) => d.addDataFilterValue);
   const removeDataFilterValue = useChartInteractiveFilters((d) => d.removeDataFilterValue);
 
@@ -138,7 +137,7 @@ export const FilterPanel = ({ chartConfig, dimensions }: FilterPanelProps) => {
     useInteractiveTimeRangeToggle();
 
   return (
-    <ControlSection collapse defaultOpen={true}>
+    <ControlSection collapse defaultExpanded={true}>
       <SectionTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Icon name="filter" size={16} />
@@ -157,7 +156,7 @@ export const FilterPanel = ({ chartConfig, dimensions }: FilterPanelProps) => {
           )}
         </Box>
       </SectionTitle>
-      <ControlSectionContent px="small" gap="none">
+      <ControlSectionContent px="none" gap="none">
         <Box sx={{ py: 1 }}>
           {/* Active Filters with Value Selection */}
           {activeFilters.length > 0 && (
@@ -178,13 +177,15 @@ export const FilterPanel = ({ chartConfig, dimensions }: FilterPanelProps) => {
               {activeFilters.map((dimension) => {
                 const filterType = interactiveFiltersConfig.dataFilters.filterTypes[dimension.id] || "single";
                 const currentFilter = dataFilters[dimension.id];
+                // ActiveFilterCard only supports single/multi filters, not range
+                const compatibleFilter = currentFilter?.type === "range" ? undefined : currentFilter;
 
                 return (
                   <ActiveFilterCard
                     key={dimension.id}
                     dimension={dimension}
                     filterType={filterType}
-                    currentFilter={currentFilter}
+                    currentFilter={compatibleFilter}
                     onRemove={() => handleToggleFilter(dimension.id)}
                     onChangeType={(type) => handleChangeFilterType(dimension.id, type)}
                     onSingleValueChange={(value) => handleSingleFilterChange(dimension.id, value)}
@@ -209,7 +210,7 @@ export const FilterPanel = ({ chartConfig, dimensions }: FilterPanelProps) => {
                 }
                 label={
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Icon name="time" size={14} color="var(--mui-palette-text-secondary)" />
+                    <Icon name="calendar" size={14} color="var(--mui-palette-text-secondary)" />
                     <Typography variant="caption">
                       <Trans id="powerbi.filters.timeRange">Time range slider</Trans>
                     </Typography>
@@ -376,7 +377,7 @@ const ActiveFilterCard = ({
           color="var(--mui-palette-text-secondary)"
         />
         <Icon
-          name={isTemporal ? "time" : "filter"}
+          name={isTemporal ? "calendar" : "filter"}
           size={14}
           color="var(--mui-palette-primary-main)"
         />
@@ -460,11 +461,12 @@ const ActiveFilterCard = ({
           >
             <List dense disablePadding>
               {filteredValues.map((dimValue) => {
-                const isSelected = selectedValues.has(dimValue.value);
+                const valueStr = String(dimValue.value);
+                const isSelected = selectedValues.has(valueStr);
                 return (
                   <ListItemButton
-                    key={dimValue.value}
-                    onClick={() => handleValueClick(dimValue.value)}
+                    key={valueStr}
+                    onClick={() => handleValueClick(valueStr)}
                     sx={{
                       py: 0.25,
                       px: 0.5,
@@ -547,7 +549,7 @@ const ActiveFilterCard = ({
           onClick={() => handleTypeChange("single")}
         >
           <ListItemIcon sx={{ minWidth: 32 }}>
-            <Icon name="radioChecked" size={16} />
+            <Icon name="circle" size={16} />
           </ListItemIcon>
           <ListItemText
             primary={<Trans id="filter.type.single">Single select</Trans>}
@@ -558,7 +560,7 @@ const ActiveFilterCard = ({
           onClick={() => handleTypeChange("multi")}
         >
           <ListItemIcon sx={{ minWidth: 32 }}>
-            <Icon name="checkboxChecked" size={16} />
+            <Icon name="checkmarkCircle" size={16} />
           </ListItemIcon>
           <ListItemText
             primary={<Trans id="filter.type.multi">Multi select</Trans>}
@@ -603,6 +605,7 @@ const FilterListItem = ({
   };
 
   return (
+    <>
     <ListItem
       onClick={isActive ? undefined : onToggle}
       sx={{
@@ -626,7 +629,7 @@ const FilterListItem = ({
     >
       <ListItemIcon sx={{ minWidth: 28 }}>
         <Icon
-          name={isTemporal ? "time" : "filter"}
+          name={isTemporal ? "calendar" : "filter"}
           size={14}
           color={
             isActive
@@ -664,8 +667,9 @@ const FilterListItem = ({
           ) : null
         }
       />
-      {isActive && (
-        <ListItemSecondaryAction>
+      {/* ListItemSecondaryAction must be last child in ListItem */}
+      <ListItemSecondaryAction>
+        {isActive ? (
           <Tooltip title={t({ id: "powerbi.filters.remove", message: "Remove filter" })}>
             <IconButton
               size="small"
@@ -678,47 +682,45 @@ const FilterListItem = ({
               <Icon name="close" size={14} />
             </IconButton>
           </Tooltip>
-        </ListItemSecondaryAction>
-      )}
-      {!isActive && (
-        <ListItemSecondaryAction>
-          <Icon name="add" size={14} color="var(--mui-palette-text-disabled)" />
-        </ListItemSecondaryAction>
-      )}
-
-      {/* Filter type menu */}
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={handleMenuClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-      >
-        <MenuItem
-          selected={filterType === "single"}
-          onClick={() => handleTypeChange("single")}
-        >
-          <ListItemIcon sx={{ minWidth: 32 }}>
-            <Icon name="radioChecked" size={16} />
-          </ListItemIcon>
-          <ListItemText
-            primary={<Trans id="filter.type.single">Single select</Trans>}
-            secondary={<Trans id="filter.type.single.desc">User selects one value</Trans>}
-          />
-        </MenuItem>
-        <MenuItem
-          selected={filterType === "multi"}
-          onClick={() => handleTypeChange("multi")}
-        >
-          <ListItemIcon sx={{ minWidth: 32 }}>
-            <Icon name="checkboxChecked" size={16} />
-          </ListItemIcon>
-          <ListItemText
-            primary={<Trans id="filter.type.multi">Multi select</Trans>}
-            secondary={<Trans id="filter.type.multi.desc">User selects multiple values</Trans>}
-          />
-        </MenuItem>
-      </Menu>
+        ) : (
+          <Icon name="plus" size={14} color="var(--mui-palette-text-disabled)" />
+        )}
+      </ListItemSecondaryAction>
     </ListItem>
+
+    {/* Filter type menu - must be outside ListItem */}
+    <Menu
+      anchorEl={menuAnchor}
+      open={Boolean(menuAnchor)}
+      onClose={handleMenuClose}
+      anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+    >
+      <MenuItem
+        selected={filterType === "single"}
+        onClick={() => handleTypeChange("single")}
+      >
+        <ListItemIcon sx={{ minWidth: 32 }}>
+          <Icon name="circle" size={16} />
+        </ListItemIcon>
+        <ListItemText
+          primary={<Trans id="filter.type.single">Single select</Trans>}
+          secondary={<Trans id="filter.type.single.desc">User selects one value</Trans>}
+        />
+      </MenuItem>
+      <MenuItem
+        selected={filterType === "multi"}
+        onClick={() => handleTypeChange("multi")}
+      >
+        <ListItemIcon sx={{ minWidth: 32 }}>
+          <Icon name="checkmarkCircle" size={16} />
+        </ListItemIcon>
+        <ListItemText
+          primary={<Trans id="filter.type.multi">Multi select</Trans>}
+          secondary={<Trans id="filter.type.multi.desc">User selects multiple values</Trans>}
+        />
+      </MenuItem>
+    </Menu>
+  </>
   );
 };
 

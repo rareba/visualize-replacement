@@ -41,7 +41,7 @@ import { Select, Switch } from "@/components/form";
 import { Loading } from "@/components/hint";
 import { MaybeTooltip } from "@/components/maybe-tooltip";
 import { MultiSelect } from "@/components/multi-select";
-import { ChartConfig, ColorMapping, isColorInConfig } from "@/config-types";
+import { ChartConfig, isColorInConfig } from "@/config-types";
 import { getChartConfig, useChartConfigFilters } from "@/config-utils";
 import { isSegmentInConfig } from "@/configurator";
 import {
@@ -80,7 +80,6 @@ import {
 import {
   Component,
   Dimension,
-  DimensionValue,
   HierarchyValue,
   TemporalDimension,
   TemporalEntityDimension,

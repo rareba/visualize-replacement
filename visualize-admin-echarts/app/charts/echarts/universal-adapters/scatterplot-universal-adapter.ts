@@ -23,6 +23,7 @@ import { createScatterSeries, createScatterSeriesGroup } from "@/charts/echarts/
 import { getSwissFederalTheme } from "@/charts/echarts/theme";
 import { registerChartAdapter } from "@/charts/core/chart-adapter-registry";
 import type { UniversalChartState } from "@/charts/core/universal-chart-state";
+import { resolveFormatting, getAnimationDuration } from "./shared";
 
 import type { EChartsOption } from "echarts";
 
@@ -99,6 +100,9 @@ export const scatterplotUniversalAdapter = (state: UniversalChartState): ECharts
   const { observations, fields, colors, bounds, metadata, segments } = state;
   const { getXNumeric, getY, getSegment } = fields;
 
+  // Get formatting options using shared utility
+  const formatting = resolveFormatting(state);
+
   const safeBounds = safeGetBounds(bounds);
   const animation = getDefaultAnimation();
 
@@ -160,10 +164,26 @@ export const scatterplotUniversalAdapter = (state: UniversalChartState): ECharts
     );
   }
 
+  // Build xAxis with formatting
+  const baseXAxis = createXValueAxis({
+    name: metadata.xAxisLabel,
+    nameGap: 35,
+    min: xDomain[0],
+    max: xDomain[1],
+  });
+
+  // Build yAxis with formatting
+  const baseYAxis = createYValueAxis({
+    name: metadata.yAxisLabel,
+    nameGap: 50,
+    min: yDomain[0],
+    max: yDomain[1],
+  });
+
   return {
     ...getSwissFederalTheme(),
     grid: createGridConfig(safeBounds),
-    tooltip: {
+    tooltip: formatting.showTooltip ? {
       ...createItemTooltip(),
       formatter: (params: unknown) => {
         const p = params as { seriesName: string; value: [number, number] };
@@ -171,22 +191,28 @@ export const scatterplotUniversalAdapter = (state: UniversalChartState): ECharts
         const segmentInfo = hasSegments ? `${p.seriesName}: ` : "";
         return `${segmentInfo}(${x.toLocaleString()}, ${y.toLocaleString()})`;
       },
+    } : { show: false },
+    legend: (hasSegments && formatting.showLegend) ? createLegend() : createLegend(false),
+    xAxis: {
+      ...baseXAxis,
+      show: formatting.showXAxis,
+      axisLabel: {
+        ...(baseXAxis.axisLabel as Record<string, unknown>),
+        show: formatting.showXAxisLabels,
+      },
+      splitLine: { show: formatting.showGridlines },
     },
-    legend: hasSegments ? createLegend() : createLegend(false),
-    xAxis: createXValueAxis({
-      name: metadata.xAxisLabel,
-      nameGap: 35,
-      min: xDomain[0],
-      max: xDomain[1],
-    }),
-    yAxis: createYValueAxis({
-      name: metadata.yAxisLabel,
-      nameGap: 50,
-      min: yDomain[0],
-      max: yDomain[1],
-    }),
+    yAxis: {
+      ...baseYAxis,
+      show: formatting.showYAxis,
+      axisLabel: {
+        ...(baseYAxis.axisLabel as Record<string, unknown>),
+        show: formatting.showYAxisLabels,
+      },
+      splitLine: { show: formatting.showGridlines },
+    },
     series,
-    animationDuration: animation.animationDuration,
+    animationDuration: getAnimationDuration(formatting, animation.animationDuration),
     animationEasing: animation.animationEasing,
   };
 };

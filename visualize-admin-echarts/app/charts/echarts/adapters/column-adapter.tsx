@@ -1,9 +1,11 @@
 /**
- * Column Chart Adapter
+ * Column Chart Adapter (LEGACY)
  *
- * Transforms data from the existing ChartContext state to ECharts format.
- * This adapter bridges the gap between the existing D3-based state management
- * and ECharts rendering.
+ * @deprecated Use `columnUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/column-universal-adapter.ts for the recommended approach.
  */
 
 import { useMemo } from "react";

@@ -20,9 +20,8 @@ import {
   SelectChangeEvent,
   Typography,
 } from "@mui/material";
-import React from "react";
 
-import { Icon } from "@/icons";
+import { Icon, IconName } from "@/icons";
 
 export type AggregationType = "sum" | "average" | "count" | "min" | "max" | "first" | "last" | "none";
 
@@ -33,47 +32,47 @@ export interface AggregationSelectorProps {
   disabled?: boolean;
 }
 
-const AGGREGATION_OPTIONS: { value: AggregationType; label: string; icon: string; description: string }[] = [
+const AGGREGATION_OPTIONS: { value: AggregationType; label: string; icon: IconName; description: string }[] = [
   {
     value: "sum",
     label: "Sum",
-    icon: "hash",
+    icon: "sum",
     description: "Total of all values",
   },
   {
     value: "average",
     label: "Average",
-    icon: "hash",
+    icon: "sum",
     description: "Mean of all values",
   },
   {
     value: "count",
     label: "Count",
-    icon: "hash",
+    icon: "sum",
     description: "Number of records",
   },
   {
     value: "min",
     label: "Minimum",
-    icon: "hash",
+    icon: "sum",
     description: "Smallest value",
   },
   {
     value: "max",
     label: "Maximum",
-    icon: "hash",
+    icon: "sum",
     description: "Largest value",
   },
   {
     value: "first",
     label: "First",
-    icon: "hash",
+    icon: "sum",
     description: "First value in order",
   },
   {
     value: "last",
     label: "Last",
-    icon: "hash",
+    icon: "sum",
     description: "Last value in order",
   },
   {
@@ -102,8 +101,6 @@ export const AggregationSelector = ({
   const handleChange = (event: SelectChangeEvent) => {
     onChange(event.target.value as AggregationType);
   };
-
-  const selectedOption = options.find((opt) => opt.value === value);
 
   return (
     <Box sx={{ width: "100%" }}>

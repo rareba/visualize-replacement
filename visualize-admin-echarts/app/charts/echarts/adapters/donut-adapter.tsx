@@ -1,5 +1,11 @@
 /**
- * Donut Chart Adapter
+ * Donut Chart Adapter (LEGACY)
+ *
+ * @deprecated Use `donutUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/donut-universal-adapter.ts for the recommended approach.
  *
  * Variant of Pie chart with inner radius, creating a donut/ring shape.
  */

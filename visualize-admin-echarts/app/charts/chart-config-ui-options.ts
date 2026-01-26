@@ -25,7 +25,9 @@ import {
 } from "@/charts/shared/stacked-helpers";
 import {
   AreaConfig,
+  Bar3dConfig,
   BarConfig,
+  CandlestickConfig,
   ChartConfig,
   ChartSegmentField,
   ChartSubType,
@@ -41,16 +43,22 @@ import {
   fieldHasComponentId,
   GenericField,
   getAnimationField,
+  GlobeConfig,
   isSortingInConfig,
+  Line3dConfig,
   LineConfig,
   MapColorField,
   MapConfig,
   PaletteType,
+  Pie3dConfig,
   PieConfig,
   ScatterPlotConfig,
+  Scatter3dConfig,
   SortingOrder,
   SortingType,
+  SurfaceConfig,
   TableConfig,
+  ThemeriverConfig,
 } from "@/config-types";
 import { makeMultiFilter } from "@/config-utils";
 import { getFieldLabel } from "@/configurator/components/field-i18n";
@@ -367,6 +375,15 @@ type ChartSpecs = {
   comboLineSingle: ChartSpec<ComboLineSingleConfig>;
   comboLineDual: ChartSpec<ComboLineDualConfig>;
   comboLineColumn: ChartSpec<ComboLineColumnConfig>;
+  // 3D and specialized chart types
+  candlestick: ChartSpec<CandlestickConfig>;
+  themeriver: ChartSpec<ThemeriverConfig>;
+  bar3d: ChartSpec<Bar3dConfig>;
+  scatter3d: ChartSpec<Scatter3dConfig>;
+  surface: ChartSpec<SurfaceConfig>;
+  line3d: ChartSpec<Line3dConfig>;
+  globe: ChartSpec<GlobeConfig>;
+  pie3d: ChartSpec<Pie3dConfig>;
 };
 
 const getDefaultSegmentSorting = <
@@ -1800,6 +1817,56 @@ const chartConfigOptionsUISpec: ChartSpecs = {
   pie3d: {
     chartType: "pie3d",
     encodings: [
+      {
+        field: "y",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NumericalMeasure"],
+        filters: false,
+      },
+      {
+        field: "segment",
+        optional: true,
+        idAttributes: ["componentId"],
+        componentTypes: SEGMENT_ENABLED_COMPONENTS,
+        filters: true,
+      },
+    ],
+    interactiveFilters: [],
+  },
+  // ============================================================================
+  // Specialized Charts
+  // ============================================================================
+  candlestick: {
+    chartType: "candlestick",
+    encodings: [
+      {
+        field: "x",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["TemporalDimension", "TemporalEntityDimension"],
+        filters: true,
+      },
+      {
+        field: "y",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["NumericalMeasure"],
+        filters: false,
+      },
+    ],
+    interactiveFilters: [],
+  },
+  themeriver: {
+    chartType: "themeriver",
+    encodings: [
+      {
+        field: "x",
+        idAttributes: ["componentId"],
+        optional: false,
+        componentTypes: ["TemporalDimension", "TemporalEntityDimension"],
+        filters: true,
+      },
       {
         field: "y",
         idAttributes: ["componentId"],

@@ -1,4 +1,4 @@
-import { Config as PrismaConfig } from "@prisma/client";
+import { Config as PrismaConfig } from "@/db/schema";
 import "iframe-resizer/js/iframeResizer.contentWindow.js";
 import { GetServerSideProps } from "next";
 import ErrorPage from "next/error";

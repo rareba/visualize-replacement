@@ -8,10 +8,10 @@
 
 "use client";
 
-import { Box, Typography, CircularProgress } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import { memo, useCallback, useMemo } from "react";
 
-import { getChartSchema, type ChartType } from "@/configurator/schemas/base-schema";
+import type { ChartType } from "@/configurator/schemas/base-schema";
 import { SchemaFormConfigurator } from "./SchemaFormConfigurator";
 import {
   isConfiguring,
@@ -20,7 +20,7 @@ import {
 import { getChartConfig } from "@/config-utils";
 import { useLocale } from "@/locales/use-locale";
 import type { Dimension, Measure } from "@/domain/data";
-import type { ChartConfig, GenericField } from "@/config-types";
+import type { ChartConfig } from "@/config-types";
 
 // ============================================================================
 // Types
@@ -172,7 +172,7 @@ export const SchemaOptionsPanel = memo(
                 locale,
                 field: field as any,
                 path,
-                value,
+                value: value as string | number | boolean | Record<string, unknown> | undefined,
               },
             });
           }

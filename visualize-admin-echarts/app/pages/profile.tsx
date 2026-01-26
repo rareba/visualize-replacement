@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { User } from "@prisma/client";
+import { User } from "@/db/schema";
 import { GetServerSideProps } from "next";
 import { getServerSession } from "next-auth";
 

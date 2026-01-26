@@ -7,7 +7,7 @@
 
 import { ascending, max as d3Max } from "d3-array";
 
-import { ChartConfig, ColorMapping, isColorInConfig } from "@/config-types";
+import { ChartConfig, isColorInConfig } from "@/config-types";
 import { Component, HierarchyValue } from "@/domain/data";
 
 // ============================================================================
@@ -71,8 +71,14 @@ export const getHasColorMapping = ({
   colorComponent?: Component;
   filterDimensionId: string;
 }): boolean => {
+  // Only segment and measures types have colorMapping
+  const hasColorMapping =
+    colorConfig?.type === "segment" || colorConfig?.type === "measures"
+      ? !!(colorConfig as { colorMapping?: Record<string, string> })?.colorMapping
+      : false;
+
   return !!(
-    (colorConfig?.type === "single" ? false : colorConfig?.colorMapping) &&
+    hasColorMapping &&
     (colorComponent !== undefined
       ? filterDimensionId === colorComponent.id
       : false)

@@ -908,6 +908,14 @@ const reducer_: Reducer<ConfiguratorState, ConfiguratorStateAction> = (
 
       return draft;
 
+    case "CHART_CONFIG_UPDATE_FORMATTING":
+      if (isConfiguring(draft)) {
+        const chartConfig = getChartConfig(draft);
+        chartConfig.formatting = action.value.formatting;
+      }
+
+      return draft;
+
     case "FILTER_SET_SINGLE":
       if (isConfiguring(draft)) {
         const { filters, value } = action.value;

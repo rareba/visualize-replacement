@@ -1,4 +1,4 @@
-import { Config, PUBLISHED_STATE } from "@prisma/client";
+import { Config, PublishedState } from "@/db/schema";
 import isUndefined from "lodash/isUndefined";
 import omit from "lodash/omit";
 import omitBy from "lodash/omitBy";
@@ -25,13 +25,13 @@ export type DeleteCustomColorPalette = Pick<CustomPaletteType, "paletteId">;
 type CreateConfigOptions = {
   key?: string;
   user_id?: number;
-  published_state?: PUBLISHED_STATE;
+  published_state?: PublishedState;
   data: ConfiguratorState;
 };
 
 type UpdateConfigOptions = {
   key: string;
-  published_state?: PUBLISHED_STATE;
+  published_state?: PublishedState;
   data: ConfiguratorState;
 };
 

@@ -33,3 +33,8 @@ declare module "*.graphql" {
 
   export = Schema;
 }
+
+// ECharts GL - 3D charting library
+declare module "echarts-gl" {
+  export {}; // Module has side effects, registers extensions to echarts
+}

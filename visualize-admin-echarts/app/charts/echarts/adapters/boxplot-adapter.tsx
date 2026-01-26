@@ -1,5 +1,11 @@
 /**
- * Boxplot Chart Adapter
+ * Boxplot Chart Adapter (LEGACY)
+ *
+ * @deprecated Use `boxplotUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/boxplot-universal-adapter.ts for the recommended approach.
  *
  * Displays statistical distribution with quartiles.
  */

@@ -214,6 +214,15 @@ export const ConversionUnitsField = ({
       }
     }
     case "table":
+    case "candlestick":
+    case "themeriver":
+    // 3D Charts (ECharts GL)
+    case "bar3d":
+    case "scatter3d":
+    case "surface":
+    case "line3d":
+    case "globe":
+    case "pie3d":
       return null;
     case "comboLineSingle": {
       const component = components.find(

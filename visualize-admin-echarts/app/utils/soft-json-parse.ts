@@ -2,6 +2,8 @@
  * Safe JSON parsing utilities with size limits and validation
  */
 
+import { SearchCubeResultOrder } from "@/graphql/query-hooks";
+
 /** Maximum allowed JSON string length (100KB) */
 const MAX_JSON_SIZE = 100 * 1024;
 
@@ -34,9 +36,16 @@ export const softJSONParse = <T = unknown>(
  * Valid types for browse params
  */
 const VALID_BROWSE_TYPES = ["theme", "organization", "dataset", "termset"] as const;
-type BrowseType = typeof VALID_BROWSE_TYPES[number];
+type BrowseType = (typeof VALID_BROWSE_TYPES)[number];
 
-const VALID_ORDERS = ["SCORE", "NEWEST", "TITLE_ASC", "TITLE_DESC"] as const;
+const VALID_ORDERS = Object.values(SearchCubeResultOrder);
+
+/**
+ * Validates that a value is a valid SearchCubeResultOrder
+ */
+const isValidOrder = (v: unknown): v is SearchCubeResultOrder => {
+  return typeof v === "string" && VALID_ORDERS.includes(v as SearchCubeResultOrder);
+};
 
 /**
  * Validated browse params structure
@@ -50,7 +59,7 @@ export interface ValidatedBrowseParams {
   subsubiri?: string;
   topic?: string;
   includeDrafts?: boolean;
-  order?: string;
+  order?: SearchCubeResultOrder;
   search?: string;
   dataset?: string;
 }
@@ -128,7 +137,7 @@ export const parseAndValidateBrowseParams = (
 
   // Validate order
   if (parsed.order !== undefined) {
-    if (typeof parsed.order !== "string" || !VALID_ORDERS.includes(parsed.order as typeof VALID_ORDERS[number])) {
+    if (!isValidOrder(parsed.order)) {
       return null;
     }
     result.order = parsed.order;

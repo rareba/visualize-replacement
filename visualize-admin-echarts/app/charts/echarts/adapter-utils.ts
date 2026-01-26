@@ -105,6 +105,7 @@ export interface AxisLabelConfig {
 export interface ValueAxisConfig extends AxisLabelConfig {
   min?: number;
   max?: number;
+  scale?: boolean;
 }
 
 export interface CategoryAxisConfig extends AxisLabelConfig {
@@ -260,6 +261,7 @@ const getValueAxisOptions = (config: ValueAxisConfig) => ({
   nameGap: config.nameGap ?? 50,
   min: config.min,
   max: config.max,
+  scale: config.scale,
   axisLabel: getBaseAxisLabelStyle(),
   axisLine: getBaseAxisLineStyle(),
   splitLine: getBaseSplitLineStyle(),

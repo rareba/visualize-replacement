@@ -11,7 +11,6 @@ import {
   Box,
   Chip,
   Divider,
-  IconButton,
   List,
   ListItem,
   ListItemIcon,
@@ -19,10 +18,9 @@ import {
   Switch,
   Typography,
 } from "@mui/material";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 import { TableConfig } from "@/config-types";
-import { getChartConfig } from "@/config-utils";
 import {
   ControlSection,
   ControlSectionContent,
@@ -33,7 +31,7 @@ import { PowerBIChartTypePicker } from "./PowerBIChartTypePicker";
 import { useOrderedTableColumns } from "@/configurator/components/ui-helpers";
 import { useConfiguratorState } from "@/configurator/configurator-state";
 import { Dimension, Measure } from "@/domain/data";
-import { Icon } from "@/icons";
+import { Icon, IconName } from "@/icons";
 
 export interface TableBuildPanelProps {
   chartConfig: TableConfig;
@@ -47,7 +45,7 @@ export interface TableBuildPanelProps {
 export const TableBuildPanel = ({
   chartConfig,
   dimensions,
-  measures,
+  measures: _measures,
   onColumnClick,
   activeField,
   state,
@@ -55,13 +53,27 @@ export const TableBuildPanel = ({
   const [, dispatch] = useConfiguratorState();
   const fieldsArray = useOrderedTableColumns(chartConfig.fields);
 
+  // Map fields to include labels from dimensions
+  const getFieldLabel = (componentId: string) => {
+    const dim = dimensions.find((d) => d.id === componentId);
+    return dim?.label ?? componentId;
+  };
+
   const groupFields = useMemo(
-    () => fieldsArray.filter((f) => f.isGroup),
-    [fieldsArray]
+    () => fieldsArray.filter((f) => f.isGroup).map((f) => ({
+      ...f,
+      id: f.componentId,
+      label: getFieldLabel(f.componentId),
+    })),
+    [fieldsArray, dimensions]
   );
   const columnFields = useMemo(
-    () => fieldsArray.filter((f) => !f.isGroup),
-    [fieldsArray]
+    () => fieldsArray.filter((f) => !f.isGroup).map((f) => ({
+      ...f,
+      id: f.componentId,
+      label: getFieldLabel(f.componentId),
+    })),
+    [fieldsArray, dimensions]
   );
 
   const handleColumnClick = (columnId: string) => {
@@ -82,10 +94,10 @@ export const TableBuildPanel = ({
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
       {/* Chart type selector - collapsible */}
-      <ControlSection collapse defaultOpen={false}>
+      <ControlSection collapse defaultExpanded={false}>
         <SectionTitle>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Icon name="table" size={16} />
+            <Icon name="tableChart" size={16} />
             <Trans id="powerbi.chart-type.title">Chart type</Trans>
           </Box>
         </SectionTitle>
@@ -150,8 +162,9 @@ export const TableBuildPanel = ({
             checked={chartConfig.settings?.showSearch ?? false}
             onChange={(e) => {
               dispatch({
-                type: "CHART_CONFIG_UPDATE_COLOR_MAPPING",
+                type: "CHART_FIELD_UPDATED",
                 value: {
+                  locale: "en",
                   field: null,
                   path: "settings.showSearch",
                   value: e.target.checked,
@@ -256,7 +269,7 @@ const TableConfigItem = ({
   isActive,
   onClick,
 }: {
-  icon: string;
+  icon: IconName;
   label: string;
   description?: string;
   isActive: boolean;
@@ -360,7 +373,7 @@ const ColumnListItem = ({
     >
       <ListItemIcon sx={{ minWidth: 28 }}>
         <Icon
-          name={isGroup ? "group" : "columns"}
+          name={isGroup ? "segments" : "tableColumnCategorical"}
           size={14}
           color={
             isActive

@@ -1,43 +1,32 @@
+import { desc, sql, isNotNull } from "drizzle-orm";
+
 import { ChartType, LayoutDashboard, LayoutType } from "@/config-types";
-import { prisma } from "@/db/client";
+import { db, pool } from "@/db/drizzle";
+import { config } from "@/db/schema";
 
 export const fetchMostPopularAllTimeCharts = async () => {
-  return await prisma.config
-    .findMany({
-      select: {
-        key: true,
-        created_at: true,
-        _count: {
-          select: {
-            views: true,
-          },
-        },
-      },
-      where: {
-        key: {
-          not: undefined,
-        },
-      },
-      orderBy: {
-        views: {
-          _count: "desc",
-        },
-      },
-      take: 25,
+  const results = await db
+    .select({
+      key: config.key,
+      created_at: config.created_at,
+      viewCount: sql<number>`(
+        SELECT count(*)::int FROM config_view cv WHERE cv.config_key = config.key
+      )`.as("view_count"),
     })
-    .then((rows) =>
-      rows.map((row) => {
-        return {
-          key: row.key,
-          createdDate: row.created_at,
-          viewCount: row._count.views,
-        };
-      })
-    );
+    .from(config)
+    .where(isNotNull(config.key))
+    .orderBy(desc(sql`view_count`))
+    .limit(25);
+
+  return results.map((row) => ({
+    key: row.key,
+    createdDate: row.created_at,
+    viewCount: row.viewCount,
+  }));
 };
 
 export const fetchMostPopularThisMonthCharts = async () => {
-  return await prisma.$queryRaw<{ key: string; view_count: BigInt }[]>`
+  const { rows } = await pool.query<{ key: string; view_count: string }>(`
     SELECT
       config_key AS key, COUNT(*) AS view_count
     FROM
@@ -49,17 +38,16 @@ export const fetchMostPopularThisMonthCharts = async () => {
     ORDER BY
       view_count DESC
     LIMIT 25;
-  `.then((rows) => {
-    return rows.map((row) => ({
-      key: row.key,
-      // superjson conversion breaks when we use default BigInt
-      viewCount: Number(row.view_count),
-    }));
-  });
+  `);
+
+  return rows.map((row) => ({
+    key: row.key,
+    viewCount: Number(row.view_count),
+  }));
 };
 
 export const fetchChartCountByDay = async () => {
-  return await prisma.$queryRaw<{ day: Date; count: BigInt }[]>`
+  const { rows } = await pool.query<{ day: Date; count: string }>(`
     SELECT
       DATE_TRUNC('day', created_at) AS day,
       COUNT(*) AS count
@@ -69,22 +57,19 @@ export const fetchChartCountByDay = async () => {
       DATE_TRUNC('day', created_at)
     ORDER BY
       day DESC;
-  `.then((rows) => {
-    return rows.map((row) => ({
-      ...row,
-      // superjson conversion breaks when we use default BigInt
-      count: Number(row.count),
-    }));
-  });
+  `);
+
+  return rows.map((row) => ({
+    ...row,
+    count: Number(row.count),
+  }));
 };
 
 export const fetchChartTrendAverages = async () => {
-  return await prisma.$queryRaw<
-    {
-      last_month_daily_average: number;
-      previous_three_months_daily_average: number;
-    }[]
-  >`
+  const { rows } = await pool.query<{
+    last_month_daily_average: string;
+    previous_three_months_daily_average: string;
+  }>(`
     WITH
       last_month_daily_average AS (
         SELECT COUNT(*) / 30.0 AS daily_average
@@ -101,23 +86,24 @@ export const fetchChartTrendAverages = async () => {
     SELECT
       (SELECT daily_average FROM last_month_daily_average) AS last_month_daily_average,
       (SELECT daily_average FROM last_three_months_daily_average) AS previous_three_months_daily_average;
-  `.then((rows) => {
-    const row = rows[0];
+  `);
 
-    return {
-      // superjson conversion breaks when we use default BigInt
-      lastMonthDailyAverage: Number(row.last_month_daily_average),
-      previousThreeMonthsDailyAverage: Number(
-        row.previous_three_months_daily_average
-      ),
-    };
-  });
+  const row = rows[0];
+
+  return {
+    lastMonthDailyAverage: Number(row.last_month_daily_average),
+    previousThreeMonthsDailyAverage: Number(
+      row.previous_three_months_daily_average
+    ),
+  };
 };
 
 export const fetchViewCountByDay = async () => {
-  return await prisma.$queryRaw<
-    { day: Date; type: "view" | "preview"; count: BigInt }[]
-  >`
+  const { rows } = await pool.query<{
+    day: Date;
+    type: "view" | "preview";
+    count: string;
+  }>(`
     SELECT
       DATE_TRUNC('day', viewed_at) AS day,
       CASE
@@ -131,22 +117,19 @@ export const fetchViewCountByDay = async () => {
       DATE_TRUNC('day', viewed_at), type
     ORDER BY
       day DESC;
-  `.then((rows) => {
-    return rows.map((row) => ({
-      ...row,
-      // superjson conversion breaks when we use default BigInt
-      count: Number(row.count),
-    }));
-  });
+  `);
+
+  return rows.map((row) => ({
+    ...row,
+    count: Number(row.count),
+  }));
 };
 
 export const fetchViewTrendAverages = async () => {
-  return await prisma.$queryRaw<
-    {
-      last_month_daily_average: number;
-      previous_three_months_daily_average: number;
-    }[]
-  >`
+  const { rows } = await pool.query<{
+    last_month_daily_average: string;
+    previous_three_months_daily_average: string;
+  }>(`
     WITH
       last_month_daily_average AS (
         SELECT COUNT(*) / 30.0 AS daily_average
@@ -163,29 +146,26 @@ export const fetchViewTrendAverages = async () => {
     SELECT
       (SELECT daily_average FROM last_month_daily_average) AS last_month_daily_average,
       (SELECT daily_average FROM last_three_months_daily_average) AS previous_three_months_daily_average;
-  `.then((rows) => {
-    const row = rows[0];
+  `);
 
-    return {
-      // superjson conversion breaks when we use default BigInt
-      lastMonthDailyAverage: Number(row.last_month_daily_average),
-      previousThreeMonthsDailyAverage: Number(
-        row.previous_three_months_daily_average
-      ),
-    };
-  });
+  const row = rows[0];
+
+  return {
+    lastMonthDailyAverage: Number(row.last_month_daily_average),
+    previousThreeMonthsDailyAverage: Number(
+      row.previous_three_months_daily_average
+    ),
+  };
 };
 
 export const fetchChartsMetadata = async () => {
-  return await prisma.$queryRaw<
-    {
-      day: Date;
-      iris: string[];
-      chart_types: ChartType[];
-      layout_type?: LayoutType;
-      layout_subtype?: LayoutDashboard["layout"];
-    }[]
-  >`
+  const { rows } = await pool.query<{
+    day: Date;
+    iris: string[];
+    chart_types: ChartType[];
+    layout_type?: LayoutType;
+    layout_subtype?: LayoutDashboard["layout"];
+  }>(`
     WITH filtered_data AS (
       SELECT
         DATE_TRUNC('day', created_at) AS day,
@@ -216,13 +196,13 @@ export const fetchChartsMetadata = async () => {
       FROM jsonb_array_elements_text(iris) AS iri
       WHERE NOT (iri LIKE 'http://%' OR iri LIKE 'https://%')
     );
-  `.then((rows) => {
-    return rows.map((row) => ({
-      day: row.day,
-      iris: row.iris,
-      chartTypes: row.chart_types,
-      layoutType: row.layout_type,
-      layoutSubtype: row.layout_subtype,
-    }));
-  });
+  `);
+
+  return rows.map((row) => ({
+    day: row.day,
+    iris: row.iris,
+    chartTypes: row.chart_types,
+    layoutType: row.layout_type,
+    layoutSubtype: row.layout_subtype,
+  }));
 };

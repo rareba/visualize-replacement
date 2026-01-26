@@ -1,13 +1,9 @@
 /**
  * Server side methods to connect to the database
+ * Using Drizzle ORM
  */
 
-import {
-  Config as PrismaConfig,
-  Prisma,
-  PUBLISHED_STATE,
-  User,
-} from "@prisma/client";
+import { eq, desc, sql } from "drizzle-orm";
 
 import {
   ChartConfig,
@@ -15,7 +11,14 @@ import {
   ConfiguratorState,
   ConfiguratorStatePublished,
 } from "@/config-types";
-import { prisma } from "@/db/client";
+import { db } from "@/db/drizzle";
+import {
+  config,
+  configView,
+  Config as DbConfig,
+  PublishedState,
+  User,
+} from "@/db/schema";
 import { isDataSourceUrlAllowed } from "@/domain/data-source";
 import { upgradeConfiguratorStateServerSide } from "@/utils/chart-config/upgrade-cube";
 import { migrateConfiguratorState } from "@/utils/chart-config/versioning";
@@ -34,18 +37,21 @@ export const createConfig = async ({
   published_state,
 }: {
   key: string;
-  data: Prisma.ConfigCreateInput["data"];
+  data: unknown;
   userId?: User["id"] | undefined;
-  published_state: PUBLISHED_STATE;
+  published_state: PublishedState;
 }): Promise<{ key: string }> => {
-  return await prisma.config.create({
-    data: {
+  const [result] = await db
+    .insert(config)
+    .values({
       key,
       data,
       user_id: userId,
       published_state,
-    },
-  });
+    })
+    .returning({ key: config.key });
+
+  return result;
 };
 
 /**
@@ -61,20 +67,20 @@ export const updateConfig = async ({
   published_state,
 }: {
   key: string;
-  data: Prisma.ConfigUpdateInput["data"];
-  published_state: Prisma.ConfigUpdateInput["published_state"];
+  data: unknown;
+  published_state: PublishedState;
 }): Promise<{ key: string }> => {
-  return await prisma.config.update({
-    where: {
-      key,
-    },
-    data: {
-      key,
+  const [result] = await db
+    .update(config)
+    .set({
       data,
       updated_at: new Date(),
-      published_state: published_state,
-    },
-  });
+      published_state,
+    })
+    .where(eq(config.key, key))
+    .returning({ key: config.key });
+
+  return result;
 };
 
 /**
@@ -84,19 +90,11 @@ export const updateConfig = async ({
  * @param key Key of the config to be updated
  */
 export const removeConfig = async ({ key }: { key: string }) => {
-  await prisma.configView
-    .deleteMany({
-      where: {
-        config_key: key,
-      },
-    })
-    .then(() => {
-      return prisma.config.delete({
-        where: {
-          key,
-        },
-      });
-    });
+  // First delete all views referencing this config
+  await db.delete(configView).where(eq(configView.config_key, key));
+
+  // Then delete the config
+  await db.delete(config).where(eq(config.key, key));
 };
 
 const migrateCubeIri = (iri: string): string => {
@@ -140,7 +138,7 @@ const ensureMigratedCubeIris = (chartConfig: ChartConfig) => {
   };
 };
 
-const parseDbConfig = async (d: PrismaConfig) => {
+const parseDbConfig = async (d: DbConfig) => {
   const data = d.data;
   const state = (await migrateConfiguratorState(
     data
@@ -161,12 +159,12 @@ const parseDbConfig = async (d: PrismaConfig) => {
   };
 };
 
-const upgradeDbConfig = async (config: PrismaConfig) => {
-  const state = config.data as Config;
+const upgradeDbConfig = async (parsedConfig: Awaited<ReturnType<typeof parseDbConfig>>) => {
+  const state = parsedConfig.data as Config;
   const dataSource = state.dataSource;
 
   return {
-    ...config,
+    ...parsedConfig,
     data: await upgradeConfiguratorStateServerSide(state as ConfiguratorState, {
       dataSource,
     }),
@@ -179,17 +177,17 @@ const upgradeDbConfig = async (config: PrismaConfig) => {
  * @param key Get data from DB with this key
  */
 export const getConfig = async (key: string) => {
-  const config = await prisma.config.findFirst({
-    where: {
-      key,
-    },
-  });
+  const [result] = await db
+    .select()
+    .from(config)
+    .where(eq(config.key, key))
+    .limit(1);
 
-  if (!config) {
+  if (!result) {
     return;
   }
 
-  const dbConfig = await parseDbConfig(config);
+  const dbConfig = await parseDbConfig(result);
 
   return await upgradeDbConfig(dbConfig);
 };
@@ -202,12 +200,13 @@ export const getAllConfigs = async ({
 }: {
   limit?: number;
 } = {}) => {
-  const configs = await prisma.config.findMany({
-    orderBy: {
-      created_at: "desc",
-    },
-    take: limit,
-  });
+  let query = db.select().from(config).orderBy(desc(config.created_at));
+
+  if (limit) {
+    query = query.limit(limit) as typeof query;
+  }
+
+  const configs = await query;
   const parsedConfigs = await Promise.all(configs.map(parseDbConfig));
 
   return await Promise.all(parsedConfigs.map(upgradeDbConfig));
@@ -215,31 +214,20 @@ export const getAllConfigs = async ({
 
 /** @internal */
 export const getConfigViewCount = async (configKey: string) => {
-  return await prisma.config
-    .findFirstOrThrow({
-      where: {
-        key: configKey,
-      },
-      include: {
-        _count: {
-          select: {
-            views: true,
-          },
-        },
-      },
-    })
-    .then((config) => config._count.views)
-    .catch(() => 0);
+  const [result] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(configView)
+    .where(eq(configView.config_key, configKey));
+
+  return result?.count ?? 0;
 };
 
 /**
  * Increase the view count of a config. Previewing of charts adds views without config key.
  */
 export const increaseConfigViewCount = async (configKey?: string) => {
-  await prisma.configView.create({
-    data: {
-      config_key: configKey,
-    },
+  await db.insert(configView).values({
+    config_key: configKey,
   });
 };
 
@@ -253,41 +241,64 @@ export const getAllConfigsMetadata = async ({
   limit?: number;
   orderByViewCount?: boolean;
 } = {}) => {
-  return await prisma.config.findMany({
-    select: {
-      key: true,
-      created_at: true,
-      updated_at: true,
-      published_state: true,
-      user_id: true,
-    },
-    orderBy: orderByViewCount
-      ? { views: { _count: "desc" } }
-      : { created_at: "desc" },
-    take: limit,
-  });
+  if (orderByViewCount) {
+    // Order by view count requires a subquery
+    const query = db
+      .select({
+        key: config.key,
+        created_at: config.created_at,
+        updated_at: config.updated_at,
+        published_state: config.published_state,
+        user_id: config.user_id,
+        viewCount: sql<number>`(
+          SELECT count(*)::int FROM config_view cv WHERE cv.config_key = config.key
+        )`.as("view_count"),
+      })
+      .from(config)
+      .orderBy(desc(sql`view_count`));
+
+    if (limit) {
+      return await query.limit(limit);
+    }
+    return await query;
+  }
+
+  let query = db
+    .select({
+      key: config.key,
+      created_at: config.created_at,
+      updated_at: config.updated_at,
+      published_state: config.published_state,
+      user_id: config.user_id,
+    })
+    .from(config)
+    .orderBy(desc(config.created_at));
+
+  if (limit) {
+    query = query.limit(limit) as typeof query;
+  }
+
+  return await query;
 };
 
 /**
  * Get config from a user.
  */
 export const getUserConfigs = async (userId: number) => {
-  const configs = await prisma.config.findMany({
-    where: {
-      user_id: userId,
-    },
-    orderBy: {
-      created_at: "desc",
-    },
-  });
+  const configs = await db
+    .select()
+    .from(config)
+    .where(eq(config.user_id, userId))
+    .orderBy(desc(config.created_at));
+
   const parsedConfigs = await Promise.all(configs.map(parseDbConfig));
   const upgradedConfigs = await Promise.all(parsedConfigs.map(upgradeDbConfig));
 
   const configsWithViewCount = await Promise.all(
-    upgradedConfigs.map(async (config) => {
+    upgradedConfigs.map(async (cfg) => {
       return {
-        ...config,
-        viewCount: await getConfigViewCount(config.key),
+        ...cfg,
+        viewCount: await getConfigViewCount(cfg.key),
       };
     })
   );

@@ -1,5 +1,11 @@
 /**
- * Heatmap Chart Adapter
+ * Heatmap Chart Adapter (LEGACY)
+ *
+ * @deprecated Use `heatmapUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/heatmap-universal-adapter.ts for the recommended approach.
  *
  * Displays matrix data using color intensity.
  */
@@ -31,12 +37,12 @@ import type { EChartsOption, HeatmapSeriesOption } from "echarts";
  * Heatmap chart adapter
  */
 export const HeatmapChartAdapter = () => {
-  const state = useChartState() as HeatmapState;
+  const state = useChartState() as unknown as HeatmapState;
   const {
     chartData,
     getSegment,
     getSegmentAbbreviationOrLabel,
-    getY,
+    getValue,
     bounds,
     xScale,
     valueLabelFormatter,
@@ -44,7 +50,6 @@ export const HeatmapChartAdapter = () => {
 
   // Use getX if available, otherwise use getSegment
   const getX = (state as HeatmapState).getX || getSegment;
-  const getValue = (state as HeatmapState).getValue || getY;
   const yScale = (state as HeatmapState).yScale;
   const colorField = (state as HeatmapState).colorField;
 

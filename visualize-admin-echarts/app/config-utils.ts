@@ -308,6 +308,15 @@ export const getAxisDimension = ({
     case "table":
     case "boxplot":
     case "waterfall":
+    case "candlestick":
+    case "themeriver":
+    // 3D Charts (ECharts GL)
+    case "bar3d":
+    case "scatter3d":
+    case "surface":
+    case "line3d":
+    case "globe":
+    case "pie3d":
       return;
     default:
       const _exhaustiveCheck: never = chartConfig;
@@ -344,6 +353,15 @@ const getLimitMeasure = ({
     case "table":
     case "boxplot":
     case "waterfall":
+    case "candlestick":
+    case "themeriver":
+    // 3D Charts (ECharts GL)
+    case "bar3d":
+    case "scatter3d":
+    case "surface":
+    case "line3d":
+    case "globe":
+    case "pie3d":
       return;
     default:
       const _exhaustiveCheck: never = chartConfig;

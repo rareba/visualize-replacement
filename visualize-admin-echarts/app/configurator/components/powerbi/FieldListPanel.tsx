@@ -10,7 +10,6 @@ import {
   alpha,
   Box,
   Collapse,
-  IconButton,
   InputAdornment,
   List,
   ListItem,
@@ -24,7 +23,7 @@ import {
 import React, { useMemo, useState } from "react";
 
 import { Component, Dimension, Measure } from "@/domain/data";
-import { Icon } from "@/icons";
+import { Icon, IconName } from "@/icons";
 
 export interface FieldListPanelProps {
   dimensions: Dimension[];
@@ -158,7 +157,7 @@ export const FieldListPanel = ({
         {/* Measures section */}
         <FieldSection
           title={<Trans id="powerbi.field-list.measures">Measures</Trans>}
-          icon="hash"
+          icon="listNumber"
           isExpanded={isMeasuresExpanded}
           onToggle={() => setIsMeasuresExpanded(!isMeasuresExpanded)}
           count={filteredMeasures.length}
@@ -200,7 +199,7 @@ const FieldSection = ({
   children,
 }: {
   title: React.ReactNode;
-  icon: string;
+  icon: IconName;
   isExpanded: boolean;
   onToggle: () => void;
   count: number;
@@ -271,7 +270,7 @@ const FieldItem = ({
   onClick?: () => void;
   onDragStart?: () => void;
 }) => {
-  const icon = type === "dimension" ? "text" : "hash";
+  const icon = type === "dimension" ? "text" : "listNumber";
   const iconColor =
     type === "dimension"
       ? "var(--mui-palette-info-main)"

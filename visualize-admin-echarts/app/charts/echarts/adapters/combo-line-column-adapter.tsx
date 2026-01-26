@@ -1,5 +1,11 @@
 /**
- * Combo Line Column Chart Adapter
+ * Combo Line Column Chart Adapter (LEGACY)
+ *
+ * @deprecated Use `comboLineColumnUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/combo-line-column-universal-adapter.ts for the recommended approach.
  *
  * Transforms data from the existing ChartContext state to ECharts format.
  * This adapter renders a combination of bar and line charts with dual Y axes.

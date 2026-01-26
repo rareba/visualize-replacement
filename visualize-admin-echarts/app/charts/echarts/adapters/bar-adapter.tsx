@@ -1,5 +1,11 @@
 /**
- * Bar Chart Adapter (Horizontal)
+ * Bar Chart Adapter (Horizontal) (LEGACY)
+ *
+ * @deprecated Use `barUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/bar-universal-adapter.ts for the recommended approach.
  *
  * Transforms data from the existing ChartContext state to ECharts format.
  * Bar charts are horizontal (categories on Y, values on X).

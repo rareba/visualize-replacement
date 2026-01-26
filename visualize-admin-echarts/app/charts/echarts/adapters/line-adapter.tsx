@@ -1,5 +1,11 @@
 /**
- * Line Chart Adapter
+ * Line Chart Adapter (LEGACY)
+ *
+ * @deprecated Use `lineUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/line-universal-adapter.ts for the recommended approach.
  *
  * Transforms data from the existing ChartContext state to ECharts format.
  * Supports time series with interactive filtering via dataZoom.

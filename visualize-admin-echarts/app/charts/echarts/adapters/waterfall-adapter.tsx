@@ -1,5 +1,11 @@
 /**
- * Waterfall Chart Adapter
+ * Waterfall Chart Adapter (LEGACY)
+ *
+ * @deprecated Use `waterfallUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/waterfall-universal-adapter.ts for the recommended approach.
  *
  * Shows cumulative effect of sequential values.
  */
@@ -30,7 +36,7 @@ import type { EChartsOption, BarSeriesOption } from "echarts";
  * Uses WaterfallState for chart configuration.
  */
 export const WaterfallChartAdapter = () => {
-  const state = useChartState() as WaterfallState;
+  const state = useChartState() as unknown as WaterfallState;
   const {
     chartData,
     xScale,

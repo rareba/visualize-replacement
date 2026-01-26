@@ -21,7 +21,7 @@ import {
 import { TooltipInfo } from "@/charts/shared/interaction/tooltip";
 import { InteractionProvider } from "@/charts/shared/use-interaction";
 import { useSize } from "@/charts/shared/use-size";
-import { RadarConfig } from "@/config-types";
+import { RadarConfig, ChartSegmentField } from "@/config-types";
 import { Observation } from "@/domain/data";
 import { formatNumberWithUnit, useFormatNumber } from "@/formatters";
 import { getPalette } from "@/palettes";
@@ -101,12 +101,13 @@ const useRadarState = (
   }, [measures]);
 
   // Get segment variables
+  // Note: radar segment field doesn't have 'type' but useSegmentVariables only uses componentId and optional fields
   const {
     segmentDimension,
     getSegment,
     getSegmentAbbreviationOrLabel,
-    getSegmentLabel,
-  } = useSegmentVariables(fields.segment, {
+    getSegmentLabel: _getSegmentLabel,
+  } = useSegmentVariables(fields.segment as unknown as ChartSegmentField, {
     dimensionsById,
     observations,
   });
@@ -159,17 +160,19 @@ const useRadarState = (
     const colorScale = scaleOrdinal<string, string>();
     colorScale.domain(uniqueSegments);
 
-    if (fields.color.type === "segment" && fields.color.colorMapping) {
+    const colorField = fields.color;
+    if (colorField.type === "segment" && colorField.colorMapping) {
+      const colorMapping = colorField.colorMapping;
       const orderedColors = uniqueSegments.map((segment) => {
         const dimensionValue = findDimensionValue(segmentDimension, segment);
         const iri = dimensionValue?.value ?? segment;
-        return fields.color.colorMapping?.[iri] ?? getPalette({})[0];
+        return colorMapping[iri] ?? getPalette({})[0];
       });
       colorScale.range(orderedColors);
     } else {
       colorScale.range(
         getPalette({
-          paletteId: fields.color.type === "segment" ? fields.color.paletteId : undefined,
+          paletteId: colorField.type === "segment" ? colorField.paletteId : undefined,
         })
       );
     }

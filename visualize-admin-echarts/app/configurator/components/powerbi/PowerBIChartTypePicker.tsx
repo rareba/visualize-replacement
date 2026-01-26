@@ -9,7 +9,7 @@
  * - Search/filter functionality
  */
 
-import { t, Trans } from "@lingui/macro";
+import { Trans } from "@lingui/macro";
 import {
   alpha,
   Box,
@@ -21,10 +21,9 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import React, { SyntheticEvent, useCallback, useMemo, useState } from "react";
+import { SyntheticEvent, useCallback, useMemo, useState } from "react";
 
 import {
-  chartTypeCategories,
   getEnabledChartTypes,
 } from "@/charts";
 import { ChartType, ConfiguratorStatePublished } from "@/config-types";
@@ -158,7 +157,7 @@ export const PowerBIChartTypePicker = ({
 
   const { possibleChartTypesDict } = useMemo(() => {
     if (!data?.dataCubesComponents) {
-      return { possibleChartTypesDict: {} };
+      return { possibleChartTypesDict: {} as Record<ChartType, { enabled: boolean; message?: string }> };
     }
     return getEnabledChartTypes({
       dimensions,
@@ -271,7 +270,7 @@ export const PowerBIChartTypePicker = ({
           <Box sx={{ px: 1, py: 0.5 }}>
             <Button
               variant="text"
-              size="small"
+              size="sm"
               onClick={() => setShowAllCharts(!showAllCharts)}
               startIcon={
                 <Icon

@@ -7,30 +7,23 @@
  * @see https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-field-list
  */
 
-import { t, Trans } from "@lingui/macro";
+import { Trans } from "@lingui/macro";
 import {
   alpha,
   Box,
   Button,
   Chip,
   Collapse,
-  IconButton,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import React, { useMemo, useState } from "react";
 
 import { getChartSpec, EncodingSpec } from "@/charts/chart-config-ui-options";
-import { ChartConfig, isMapConfig } from "@/config-types";
-import { getChartConfig } from "@/config-utils";
+import { ChartConfig } from "@/config-types";
 import { getFieldLabel } from "@/configurator/components/field-i18n";
 import { getComponentLabel } from "@/configurator/components/ui-helpers";
-import {
-  isConfiguring,
-  useConfiguratorState,
-} from "@/configurator/configurator-state";
 import { Component, Dimension, isMeasure, Measure } from "@/domain/data";
-import { Icon } from "@/icons";
+import { Icon, IconName } from "@/icons";
 import { AggregationBadge, AggregationType } from "./AggregationSelector";
 
 export interface FieldWellsProps {
@@ -43,7 +36,7 @@ export interface FieldWellsProps {
 }
 
 // Icons for different field types
-const FIELD_ICONS: Record<string, string> = {
+const FIELD_ICONS: Record<string, IconName> = {
   x: "xAxis",
   y: "yAxis",
   segment: "color",
@@ -53,19 +46,6 @@ const FIELD_ICONS: Record<string, string> = {
   areaLayer: "mapRegions",
   symbolLayer: "mapMarker",
   animation: "animation",
-};
-
-// Field descriptions
-const FIELD_DESCRIPTIONS: Record<string, string> = {
-  x: "Horizontal axis - typically categories or time",
-  y: "Vertical axis - typically values/measures",
-  segment: "Group data by categories for stacking or grouping",
-  color: "Color encoding based on a dimension",
-  size: "Size encoding for bubble charts",
-  baseLayer: "Base map configuration",
-  areaLayer: "Area layer for choropleth maps",
-  symbolLayer: "Symbol layer for point maps",
-  animation: "Animate through values over time",
 };
 
 export const FieldWells = ({
@@ -177,11 +157,11 @@ export const FieldWells = ({
       {optionalEncodings.length > 0 && (
         <Button
           variant="text"
-          size="small"
+          size="sm"
           onClick={() => setShowOptionalFields(!showOptionalFields)}
           startIcon={
             <Icon
-              name={showOptionalFields ? "chevronUp" : "add"}
+              name={showOptionalFields ? "chevronUp" : "plus"}
               size={12}
             />
           }
@@ -234,7 +214,7 @@ const FieldWell = ({
   onDrop?: (droppedComponent: { id: string; label: string; type: string }) => void;
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
-  const { field, optional, componentTypes } = encoding;
+  const { field, optional } = encoding;
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -289,7 +269,6 @@ const FieldWell = ({
 
   const label = getFieldLabel(`${chartConfig.chartType}.${field}`);
   const icon = FIELD_ICONS[field] || "categories";
-  const description = FIELD_DESCRIPTIONS[field] || "";
   const hasValue = assignedComponents.length > 0;
   const isRequired = !optional;
 

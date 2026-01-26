@@ -1,5 +1,11 @@
 /**
- * Combo Line Single Chart Adapter
+ * Combo Line Single Chart Adapter (LEGACY)
+ *
+ * @deprecated Use `comboLineSingleUniversalAdapter` from `@/charts/echarts/universal-adapters/`
+ * or `UniversalEChartsChart` component instead.
+ *
+ * This component-based adapter is maintained for backward compatibility.
+ * See universal-adapters/combo-line-single-universal-adapter.ts for the recommended approach.
  *
  * Transforms data from the existing ChartContext state to ECharts format.
  * This adapter renders multiple lines on a single Y axis.

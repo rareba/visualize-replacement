@@ -37,6 +37,7 @@ export interface SeriesBaseConfig {
 export interface BarSeriesConfig extends SeriesBaseConfig {
   data: Array<number | null | { value: number | null; itemStyle?: { color: string } }>;
   stack?: string;
+  barWidth?: number | string;
   barMaxWidth?: number;
   yAxisIndex?: number;
   showLabel?: boolean;
@@ -92,6 +93,7 @@ export const createBarSeries = (config: BarSeriesConfig): BarSeriesOption => {
     data,
     color = SWISS_FEDERAL_COLORS.palette[0],
     stack,
+    barWidth,
     barMaxWidth,
     yAxisIndex,
     showLabel = false,
@@ -106,6 +108,7 @@ export const createBarSeries = (config: BarSeriesConfig): BarSeriesOption => {
     type: "bar",
     data,
     stack,
+    barWidth,
     barMaxWidth,
     yAxisIndex,
     itemStyle: {

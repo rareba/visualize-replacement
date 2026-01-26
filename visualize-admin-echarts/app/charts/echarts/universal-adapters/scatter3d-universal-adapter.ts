@@ -7,9 +7,8 @@
  * Lines of code: ~100
  */
 
-import {
-  getDefaultAnimation,
-} from "@/charts/echarts/adapter-utils";
+// Animation import removed - not used in 3D scatter adapter currently
+// import { getDefaultAnimation } from "@/charts/echarts/adapter-utils";
 import { getSwissFederalTheme, SWISS_FEDERAL_COLORS } from "@/charts/echarts/theme";
 import { registerChartAdapter } from "@/charts/core/chart-adapter-registry";
 import type { UniversalChartState } from "@/charts/core/universal-chart-state";
@@ -28,8 +27,6 @@ import type { EChartsOption } from "echarts";
 export const scatter3dUniversalAdapter = (state: UniversalChartState): EChartsOption => {
   const { observations, fields, colors, metadata, segments } = state;
   const { getX, getY, getSegment, getValue } = fields;
-
-  const animation = getDefaultAnimation();
 
   // Group data by segment for different colors
   const segmentDataMap = new Map<string, Array<[number, number, number]>>();

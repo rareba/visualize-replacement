@@ -11,6 +11,7 @@ import {
   DashboardFiltersConfig,
   DataSource,
   Filters,
+  FormattingConfig,
   ImputationType,
   InteractiveFiltersConfig,
   Layout,
@@ -395,5 +396,11 @@ export type ConfiguratorStateAction =
       type: "DASHBOARD_DATA_FILTER_REMOVE";
       value: {
         dimensionId: string;
+      };
+    }
+  | {
+      type: "CHART_CONFIG_UPDATE_FORMATTING";
+      value: {
+        formatting: FormattingConfig;
       };
     };

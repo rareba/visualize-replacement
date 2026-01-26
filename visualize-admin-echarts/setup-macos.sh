@@ -194,24 +194,47 @@ success "Dependencies installed"
 # ============================================================================
 step "Compiling locales..."
 
-yarn locales:compile || warn "Failed to compile locales (may not be critical)"
-success "Locales compiled"
+if yarn locales:compile; then
+    success "Locales compiled"
+else
+    warn "Failed to compile locales (may not be critical)"
+fi
 
 # ============================================================================
 # Run Database Migrations
 # ============================================================================
 step "Running database migrations..."
 
-# Try with postgres user first, fall back to current user
-export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}"
+# On macOS with Homebrew, the default superuser is the current user (no password needed)
+# Try current user first (most common), then fall back to postgres user with password
 
-if ! yarn drizzle-kit push 2>/dev/null; then
-    # Fallback: try with current user (macOS default)
-    export DATABASE_URL="postgres://${CURRENT_USER}@localhost:${DB_PORT}/${DB_NAME}"
-    yarn drizzle-kit push
+run_migration() {
+    # Use npx to ensure drizzle-kit is found even if not in PATH
+    npx drizzle-kit push 2>&1
+}
+
+export DATABASE_URL="postgres://${CURRENT_USER}@localhost:${DB_PORT}/${DB_NAME}"
+echo "    Trying connection as ${CURRENT_USER}..."
+
+if run_migration; then
+    success "Database migrations complete"
+else
+    warn "Connection as ${CURRENT_USER} failed, trying postgres user..."
+    export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}"
+
+    if run_migration; then
+        success "Database migrations complete"
+    else
+        error "Database migration failed. Check your PostgreSQL connection."
+        echo ""
+        echo "    Troubleshooting steps:"
+        echo "    1. Verify PostgreSQL is running: brew services list"
+        echo "    2. Check you can connect: psql -d ${DB_NAME} -c '\\dt'"
+        echo "    3. Try manual migration: DATABASE_URL=\"postgres://${CURRENT_USER}@localhost:${DB_PORT}/${DB_NAME}\" npx drizzle-kit push"
+        exit 1
+    fi
 fi
 
-success "Database migrations complete"
 unset DATABASE_URL
 
 # ============================================================================

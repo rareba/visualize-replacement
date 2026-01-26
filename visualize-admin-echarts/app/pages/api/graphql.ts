@@ -18,7 +18,6 @@ const schema = makeExecutableSchema({
 
 const server = new ApolloServer<VisualizeGraphQLContext>({
   schema,
-  allowBatchedHttpRequests: true, // Enable query batching for better performance
   formatError: (formattedError) => {
     console.error("GraphQL Error:", formattedError);
     return formattedError;

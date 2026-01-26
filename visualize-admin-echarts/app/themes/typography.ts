@@ -1,4 +1,4 @@
-import { t as federalTypography } from "@visualize-admin/swiss-federal-ci";
+import { t as federalTypography } from "@interactivethings/swiss-federal-ci";
 import { type Typography } from "@mui/material/styles/createTypography";
 
 const fontFamily = [

@@ -1,7 +1,7 @@
 import {
   b as breakpoints,
   s as spacing,
-} from "@visualize-admin/swiss-federal-ci";
+} from "@interactivethings/swiss-federal-ci";
 import { createTheme } from "@mui/material/styles";
 
 import { components } from "@/themes/components";

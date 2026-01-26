@@ -1,4 +1,4 @@
-import { c as colors } from "@visualize-admin/swiss-federal-ci";
+import { c as colors } from "@interactivethings/swiss-federal-ci";
 import { type ThemeOptions } from "@mui/material";
 import { PaletteOptions } from "@mui/material/styles";
 

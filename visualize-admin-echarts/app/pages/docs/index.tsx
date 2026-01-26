@@ -1,5 +1,5 @@
 /* eslint-disable import/no-anonymous-default-export */
-import { c } from "@visualize-admin/swiss-federal-ci";
+import { c } from "@interactivethings/swiss-federal-ci";
 import { MDXProvider } from "@mdx-js/react";
 import { CssBaseline } from "@mui/material";
 import {

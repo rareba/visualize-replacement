@@ -6,7 +6,7 @@ import {
   FooterSectionSocialMediaButtonGroup,
   FooterSectionText,
   FooterSectionTitle,
-} from "@visualize-admin/swiss-federal-ci/dist/components";
+} from "@interactivethings/swiss-federal-ci/dist/components";
 import { t } from "@lingui/macro";
 import { Link, SxProps } from "@mui/material";
 import NextLink from "next/link";

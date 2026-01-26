@@ -1,4 +1,4 @@
-import { ContentWrapper } from "@interactivethings/swiss-federal-ci/dist/components";
+import { ContentWrapper } from "@visualize-admin/swiss-federal-ci/dist/components";
 import { Box, Card, Skeleton, Typography } from "@mui/material";
 import { ReactNode, useEffect, useState } from "react";
 import { useClient } from "urql";

@@ -106,7 +106,7 @@ vi.mock("rdf-cube-view-query", () => ({
 }));
 
 vi.mock(
-  "@interactivethings/swiss-federal-ci/dist/components/pages-router",
+  "@visualize-admin/swiss-federal-ci/dist/components/pages-router",
   () => ({})
 );
 

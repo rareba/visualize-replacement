@@ -1,4 +1,4 @@
-import { ContentWrapper } from "@interactivethings/swiss-federal-ci/dist/components";
+import { ContentWrapper } from "@visualize-admin/swiss-federal-ci/dist/components";
 import { Trans } from "@lingui/macro";
 import { Box, Button, darken, Theme, Typography } from "@mui/material";
 import { makeStyles } from "@mui/styles";

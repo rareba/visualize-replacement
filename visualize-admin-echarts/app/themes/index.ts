@@ -4,7 +4,7 @@ import {
   FederalTypographyPropsVariantOverrides,
   FederalTypographyVariants,
   FederalTypographyVariantsOptions,
-} from "@interactivethings/swiss-federal-ci";
+} from "@visualize-admin/swiss-federal-ci";
 import type {} from "@mui/lab/themeAugmentation";
 import { useTheme } from "@mui/material";
 

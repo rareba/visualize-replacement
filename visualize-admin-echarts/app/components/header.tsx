@@ -1,5 +1,5 @@
-import { TopBar } from "@interactivethings/swiss-federal-ci/dist/components";
-import { Header as SwissFederalCiHeader } from "@interactivethings/swiss-federal-ci/dist/components/pages-router";
+import { TopBar } from "@visualize-admin/swiss-federal-ci/dist/components";
+import { Header as SwissFederalCiHeader } from "@visualize-admin/swiss-federal-ci/dist/components/pages-router";
 import { useRouter } from "next/router";
 
 import { DataSourceMenu } from "@/components/data-source-menu";

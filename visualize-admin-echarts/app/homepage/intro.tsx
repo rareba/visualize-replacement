@@ -1,4 +1,4 @@
-import { ContentWrapper } from "@interactivethings/swiss-federal-ci/dist/components";
+import { ContentWrapper } from "@visualize-admin/swiss-federal-ci/dist/components";
 import { Box, Button, Typography } from "@mui/material";
 import NextLink from "next/link";
 import { ReactNode } from "react";

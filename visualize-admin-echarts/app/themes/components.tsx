@@ -1,4 +1,4 @@
-import { c } from "@interactivethings/swiss-federal-ci";
+import { c } from "@visualize-admin/swiss-federal-ci";
 import { Components } from "@mui/material";
 
 import { Icon } from "@/icons";

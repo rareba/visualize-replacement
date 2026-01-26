@@ -30,7 +30,7 @@
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",
     "@graphql-tools/schema": "^10.0.16",
-    "@interactivethings/swiss-federal-ci": "file:../packages/swiss-federal-ci",
+    "@visualize-admin/swiss-federal-ci": "file:../packages/swiss-federal-ci",
     "@juggle/resize-observer": "^3.4.0",
     "@lexical/link": "0.17.1",
     "@lexical/rich-text": "0.17.1",

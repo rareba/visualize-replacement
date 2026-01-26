@@ -54,6 +54,7 @@ const buildPieData = <T,>(
 ): PieDataItem[] => {
   const result: PieDataItem[] = [];
   let hasNegatives = false;
+  let colorIndex = 0;
 
   chartData.forEach((d) => {
     const rawValue = getY(d);
@@ -74,13 +75,18 @@ const buildPieData = <T,>(
       return;
     }
 
+    // Get color from scale, fallback to palette if undefined
+    const segmentColor = colors(getSegment(d));
+    const fallbackColor = SWISS_FEDERAL_COLORS.palette[colorIndex % SWISS_FEDERAL_COLORS.palette.length];
+
     result.push({
       name: getSegmentAbbreviationOrLabel(d),
       value: rawValue,
       itemStyle: {
-        color: colors(getSegment(d)),
+        color: segmentColor || fallbackColor,
       },
     });
+    colorIndex++;
   });
 
   // Log warning if negative values were encountered

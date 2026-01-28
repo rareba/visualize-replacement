@@ -132,7 +132,7 @@ export function CubeDetailPage() {
         <Button
           variant="contained"
           startIcon={<ChartIcon />}
-          onClick={() => navigate(`/cubes/${cubeId}/chart`)}
+          onClick={() => navigate(`/cubes/${encodeURIComponent(decodedCubeId)}/chart`)}
           sx={{ flexShrink: 0 }}
         >
           Create Chart

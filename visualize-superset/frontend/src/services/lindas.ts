@@ -93,18 +93,33 @@ export async function getCubeSchema(
   endpoint: Endpoint = 'prod'
 ): Promise<{
   cubeIri: string;
-  columns: Array<{
-    name: string;
-    iri: string;
-    label: string;
-    type: string;
-    dataType: string | null;
-  }>;
+  columns: CubeColumn[];
 }> {
   const response = await api.get(`/api/v1/schema/${encodeURIComponent(cubeId)}`, {
     params: { endpoint },
   });
-  return response.data;
+  // Map columns and heuristically fix types based on data_type
+  const numericDataTypes = ['integer', 'int', 'decimal', 'float', 'double', 'long', 'short', 'nonNegativeInteger', 'positiveInteger'];
+  const temporalDataTypes = ['date', 'dateTime', 'gYear', 'gYearMonth'];
+  const columns: CubeColumn[] = response.data.columns.map((col: any) => {
+    let type: CubeColumn['type'] = col.type as CubeColumn['type'];
+    const dt = col.data_type || col.dataType || '';
+    const dtLocal = dt.split('#').pop()?.toLowerCase() || '';
+
+    if (type === 'dimension') {
+      if (numericDataTypes.some(t => dtLocal === t.toLowerCase())) {
+        type = 'measure';
+      } else if (temporalDataTypes.some(t => dtLocal === t.toLowerCase())) {
+        type = 'temporalDimension';
+      }
+    }
+
+    return { ...col, type };
+  });
+  return {
+    cubeIri: response.data.cubeIri,
+    columns,
+  };
 }
 
 /**
@@ -346,6 +361,7 @@ export interface CubeColumn {
 
 /**
  * Fetch observations from a cube with specified dimensions and measures.
+ * Transforms nested {iri, values} structure from backend into flat records for charts.
  */
 export async function getObservations(
   cubeId: string,
@@ -385,8 +401,35 @@ ${patterns}
 LIMIT ${options.limit || 1000}
   `.trim();
 
-  const result = await executeSparqlQuery(sparqlQuery, endpoint);
-  return result.rows;
+  let result: QueryResult;
+  try {
+    result = await executeSparqlQuery(sparqlQuery, endpoint);
+  } catch (e) {
+    console.error('getObservations SPARQL error:', e);
+    return [];
+  }
+
+  if (!result.rows) return [];
+
+  // Transform data: backend returns {iri, values} but frontend needs flat records
+  // Also extract local names from IRIs for dimension values
+  return result.rows.map((row: any) => {
+    // Handle nested values structure from backend
+    const values = row.values || row;
+    const flatRow: Record<string, any> = {};
+    
+    for (const [key, value] of Object.entries(values)) {
+      if (typeof value === 'string' && value.startsWith('http')) {
+        // Extract local name from IRI for display
+        const localName = value.split('/').pop()?.split('#').pop() || value;
+        flatRow[key] = localName;
+      } else {
+        flatRow[key] = value;
+      }
+    }
+    
+    return flatRow;
+  });
 }
 
 export const lindasService = {

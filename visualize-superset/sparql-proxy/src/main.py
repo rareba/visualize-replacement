@@ -22,7 +22,7 @@ from .sparql import (
     close_sparql_client,
 )
 from .sql import translate_sql_to_sparql, SQLParseError, TranslationError
-from .graphql import schema
+from .gql_schema import schema
 
 # Configure logging
 logging.basicConfig(

@@ -255,8 +255,7 @@ start_sparql_proxy() {
     
     # Start the proxy in background
     print_info "Starting SPARQL Proxy on port ${SPARQL_PROXY_PORT}..."
-    cd src
-    python main.py > "${PROJECT_ROOT}/sparql-proxy.log" 2>&1 &
+    python -m uvicorn src.main:app --host 0.0.0.0 --port ${SPARQL_PROXY_PORT} > "${PROJECT_ROOT}/sparql-proxy.log" 2>&1 &
     SPARQL_PID=$!
     cd "$PROJECT_ROOT"
     

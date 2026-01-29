@@ -211,10 +211,9 @@ set "LINDAS_ENDPOINT_URL=%LINDAS_ENDPOINT%"
 set "LOG_LEVEL=INFO"
 
 echo [INFO] Starting SPARQL Proxy on port %SPARQL_PROXY_PORT%...
-cd src
 
 REM Start Python in background using start command
-start "SPARQL Proxy" /MIN cmd /c "python main.py ^> "%PROJECT_ROOT%\sparql-proxy.log" 2^>^&1"
+start "SPARQL Proxy" /MIN cmd /c "python -m uvicorn src.main:app --host 0.0.0.0 --port %SPARQL_PROXY_PORT% ^> "%PROJECT_ROOT%\sparql-proxy.log" 2^>^&1"
 
 REM Get the PID of the started process (approximate)
 for /f "tokens=2" %%a in ('tasklist ^| findstr "python"') do (

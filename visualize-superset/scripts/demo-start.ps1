@@ -321,16 +321,13 @@ function Start-SparqlProxyService {
     Write-Info "Starting SPARQL Proxy on port $($Script:SPARQL_PROXY_PORT)..."
     
     # Start the proxy as a background job
-    $srcDir = Join-Path $sparqlDir "src"
-    Set-Location $srcDir
-    
     $logPath = Join-Path $Script:PROJECT_ROOT "sparql-proxy.log"
     $Script:SPARQL_JOB = Start-Job -ScriptBlock {
-        param($SrcDir, $LogPath)
-        Set-Location $SrcDir
-        python main.py 2>&1 | Out-File -FilePath $LogPath -Append
-    } -ArgumentList $srcDir, $logPath
-    
+        param($SparqlDir, $LogPath)
+        Set-Location $SparqlDir
+        python -m uvicorn src.main:app --host 0.0.0.0 --port 8089 2>&1 | Out-File -FilePath $LogPath -Append
+    } -ArgumentList $sparqlDir, $logPath
+
     Set-Location $Script:PROJECT_ROOT
     
     Write-Success "SPARQL Proxy started (Job ID: $($Script:SPARQL_JOB.Id))"
